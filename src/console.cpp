@@ -21,7 +21,7 @@ void setconskip(int n) {
 	if (conskip < 0)
 		conskip = 0;
 }
-;
+
 
 COMMANDN(conskip, setconskip, ARG_1INT);
 
@@ -44,7 +44,7 @@ void conline(const char *sf, bool highlight) // add a line to the console buffer
 	fflush(stdout);
 #endif
 }
-;
+
 
 void conoutf(const char *s, ...) {
 
@@ -67,27 +67,24 @@ void conoutf(const char *s, ...) {
 	};
 	conline(s, n != 0);
 }
-;
 
 void renderconsole()       // render buffer taking into account time & scrolling
 {
 	int nd = 0;
 	char *refs[ndraw];
-	loopv(conlines)
-		if (conskip ?
-				i >= conskip - 1 || i >= conlines.length() - ndraw :
-				lastmillis - conlines[i].outtime < 20000) {
+	for (int i = 0; i < conlines.length(); ++i) {
+		if (conskip ? i >= conskip - 1 || i >= conlines.length() - ndraw :lastmillis - conlines[i].outtime < 20000) {
 			refs[nd++] = conlines[i].cref;
 			if (nd == ndraw)
 				break;
-		};
-	loopj(nd)
+		}
+	}
+	for(int j = 0; j < nd; ++j)
 	{
-		draw_text(refs[j], FONTH / 3,
-				(FONTH / 4 * 5) * (nd - j - 1) + FONTH / 3, 2);
-	};
+		draw_text(refs[j], FONTH / 3, (FONTH / 4 * 5) * (nd - j - 1) + FONTH / 3, 2);
+	}
 }
-;
+
 
 // keymap is defined externally in keymap.cfg
 
@@ -103,7 +100,7 @@ void keymap(char *code, char *key, char *action) {
 	keyms[numkm].name = newstring(key);
 	keyms[numkm++].action = newstringbuf(action);
 }
-;
+
 
 COMMAND(keymap, ARG_3STR);
 
@@ -117,7 +114,7 @@ void bindkey(char *key, char *action) {
 		};
 	conoutf("unknown key \"%s\"", key);
 }
-;
+
 
 COMMANDN(bind, bindkey, ARG_2STR);
 
@@ -127,50 +124,47 @@ void saycommand(char *init)         // turns input to the command line on or off
 		init = "";
 	strcpy_s(commandbuf, init);
 }
-;
+
 
 void mapmsg(char *s) {
 	strn0cpy(hdr.maptitle, s, 128);
 }
-;
+
 
 COMMAND(saycommand, ARG_VARI);
 COMMAND(mapmsg, ARG_1STR);
 
-#ifndef WIN32
-#include <X11/Xlib.h>
+//#include <X11/Xlib.h>
 #include <SDL2/SDL_syswm.h>
-#endif
 
 void pasteconsole() {
-	SDL_SysWMinfo wminfo;
-	SDL_VERSION(&wminfo.version);
-	wminfo.subsystem = SDL_SYSWM_X11;
-	//SDL_GetWindowWMInfo( &wminfo);
-
-	int cbsize;
-	char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
-	if (!cb || !cbsize)
-		return;
-	int commandlen = strlen(commandbuf);
-	for (char *cbline = cb, *cbend;
-			commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize];
-			cbline = cbend + 1) {
-		cbend = (char *) memchr(cbline, '\0', &cb[cbsize] - cbline);
-		if (!cbend)
-			cbend = &cb[cbsize];
-		if (commandlen + cbend - cbline + 1 > _MAXDEFSTR)
-			cbend = cbline + _MAXDEFSTR - commandlen - 1;
-		memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
-		commandlen += cbend - cbline;
-		commandbuf[commandlen] = '\n';
-		if (commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize])
-			++commandlen;
-		commandbuf[commandlen] = '\0';
-	};
-	XFree(cb);
+//	SDL_SysWMinfo wminfo;
+//	SDL_VERSION(&wminfo.version);
+//	wminfo.subsystem = SDL_SYSWM_X11;
+//	//SDL_GetWindowWMInfo( &wminfo);
+//
+//	int cbsize;
+//	char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
+//	if (!cb || !cbsize)
+//		return;
+//	int commandlen = strlen(commandbuf);
+//	for (char *cbline = cb, *cbend;
+//			commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize];
+//			cbline = cbend + 1) {
+//		cbend = (char *) memchr(cbline, '\0', &cb[cbsize] - cbline);
+//		if (!cbend)
+//			cbend = &cb[cbsize];
+//		if (commandlen + cbend - cbline + 1 > _MAXDEFSTR)
+//			cbend = cbline + _MAXDEFSTR - commandlen - 1;
+//		memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
+//		commandlen += cbend - cbline;
+//		commandbuf[commandlen] = '\n';
+//		if (commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize])
+//			++commandlen;
+//		commandbuf[commandlen] = '\0';
+//	};
+//	XFree(cb);
 }
-;
 
 cvector vhistory;
 int histpos = 0;
@@ -183,7 +177,7 @@ void history(int n) {
 		rec = false;
 	};
 }
-;
+
 
 COMMAND(history, ARG_1INT);
 
@@ -260,12 +254,12 @@ void keypress(int code, bool isdown) {
 			};
 	};
 }
-;
+
 
 char *getcurcommand() {
 	return saycommandon ? commandbuf : NULL;
 }
-;
+
 
 void writebinds(FILE *f) {
 	loopi(numkm)
@@ -274,4 +268,4 @@ void writebinds(FILE *f) {
 			fprintf(f, "bind \"%s\" [%s]\n", keyms[i].name, keyms[i].action);
 	};
 }
-;
+

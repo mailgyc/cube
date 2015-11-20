@@ -27,7 +27,7 @@ bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo) // 
 	};
 	return true;
 }
-;
+
 
 bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by,
 		int &bs)    // recursively collide with a mipmapped corner cube
@@ -46,7 +46,7 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by,
 	};
 	return stest;
 }
-;
+
 
 void mmcollide(dynent *d, float &hi, float &lo)       // collide with a mapmodel
 		{
@@ -68,7 +68,7 @@ void mmcollide(dynent *d, float &hi, float &lo)       // collide with a mapmodel
 		};
 	};
 }
-;
+
 
 // all collision happens here
 // spawn is a dirty side effect used in spawning
@@ -195,7 +195,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise) {
 float rad(float x) {
 	return x * 3.14159f / 180;
 }
-;
+
 
 VARP(maxroll, 0, 3, 20);
 
@@ -212,7 +212,7 @@ void physicsframe() // optimally schedule physics frames inside the graphics fra
 		physicsrepeat = 1;
 	};
 }
-;
+
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -363,7 +363,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime) {
 		playsound(S_SPLASH1, &pl->o);
 	pl->inwater = water;
 }
-;
+
 
 void moveplayer(dynent *pl, int moveres, bool local) {
 	loopi(physicsrepeat)
@@ -371,5 +371,5 @@ void moveplayer(dynent *pl, int moveres, bool local) {
 				i ? curtime / physicsrepeat : curtime
 							- curtime / physicsrepeat * (physicsrepeat - 1));
 }
-;
+
 

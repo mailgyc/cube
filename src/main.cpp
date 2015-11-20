@@ -17,14 +17,14 @@ void cleanup(char *msg)         // single program exit point;
 	SDL_Quit();
 	exit(1);
 }
-;
+
 
 void quit()                     // normal exit
 {
 	writeservercfg();
 	cleanup(NULL);
 }
-;
+
 
 void fatal(char *s, char *o)    // failure exit
 {
@@ -40,7 +40,7 @@ void *alloc(int s) // for some big chunks... most other allocs use the memory po
 		fatal("out of memory!");
 	return b;
 }
-;
+
 
 int scr_w = 640;
 int scr_h = 480;
@@ -70,7 +70,7 @@ void screenshot() {
 		SDL_FreeSurface(image);
 	};
 }
-;
+
 
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 	char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
 	islittleendian = *((char *) &islittleendian);
 
-#define log(s) conoutf("init: %s", s)
+	#define log(s) conoutf("init: %s", s)
 	log("sdl");
 
 	for (int i = 1; i < argc; i++) {
@@ -252,5 +252,5 @@ int main(int argc, char **argv) {
 	quit();
 	return 1;
 }
-;
+
 

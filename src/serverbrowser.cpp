@@ -46,7 +46,7 @@ int resolverloop(void * data) {
 	};
 	return 0;
 }
-;
+
 
 void resolverinit(int threads, int limit) {
 	resolverlimit = limit;
@@ -61,7 +61,7 @@ void resolverinit(int threads, int limit) {
 		--threads;
 	};
 }
-;
+
 
 void resolverstop(resolverthread &rt, bool restart) {
 	SDL_LockMutex(resolvermutex);
@@ -76,7 +76,7 @@ void resolverstop(resolverthread &rt, bool restart) {
 		rt.thread = SDL_CreateThread(resolverloop, "serverbrowser", &rt);
 	SDL_UnlockMutex(resolvermutex);
 }
-;
+
 
 void resolverclear() {
 	SDL_LockMutex(resolvermutex);
@@ -90,7 +90,7 @@ void resolverclear() {
 	};
 	SDL_UnlockMutex(resolvermutex);
 }
-;
+
 
 void resolverquery(char *name) {
 	SDL_LockMutex(resolvermutex);
@@ -98,7 +98,7 @@ void resolverquery(char *name) {
 	SDL_SemPost(resolversem);
 	SDL_UnlockMutex(resolvermutex);
 }
-;
+
 
 bool resolvercheck(char **name, ENetAddress *address) {
 	SDL_LockMutex(resolvermutex);
@@ -123,7 +123,7 @@ bool resolvercheck(char **name, ENetAddress *address) {
 	SDL_UnlockMutex(resolvermutex);
 	return false;
 }
-;
+
 
 struct serverinfo {
 	string name;
@@ -141,7 +141,7 @@ int lastinfo = 0;
 char *getservername(int n) {
 	return servers[n].name;
 }
-;
+
 
 void addserver(char *servername) {
 	loopv(servers)
@@ -160,7 +160,7 @@ void addserver(char *servername) {
 	si.address.host = ENET_HOST_ANY;
 	si.address.port = CUBE_SERVINFO_PORT;
 }
-;
+
 
 void pingservers() {
 	ENetBuffer buf;
@@ -178,7 +178,7 @@ void pingservers() {
 	};
 	lastinfo = lastmillis;
 }
-;
+
 
 void checkresolver() {
 	char *name = NULL;
@@ -230,13 +230,13 @@ void checkpings() {
 		};
 	};
 }
-;
+
 
 int sicompare(const serverinfo *a, const serverinfo *b) {
 	return a->ping > b->ping ?
 			1 : (a->ping < b->ping ? -1 : strcmp(a->name, b->name));
 }
-;
+
 
 void refreshservers() {
 	checkresolver();
@@ -261,7 +261,7 @@ void refreshservers() {
 			return;
 	};
 }
-;
+
 
 void servermenu() {
 	if (pingsock == ENET_SOCKET_NULL) {
@@ -274,7 +274,7 @@ void servermenu() {
 	refreshservers();
 	menuset(1);
 }
-;
+
 
 void updatefrommaster() {
 	const int MAXUPD = 32000;
@@ -289,7 +289,7 @@ void updatefrommaster() {
 	};
 	servermenu();
 }
-;
+
 
 COMMAND(addserver, ARG_1STR);
 COMMAND(servermenu, ARG_NONE);
@@ -304,5 +304,5 @@ void writeservercfg() {
 		fprintf(f, "addserver %s\n", servers[i].name);
 	fclose(f);
 }
-;
+
 

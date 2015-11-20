@@ -16,36 +16,36 @@ void startdemo();
 void gzput(int i) {
 	gzputc(f, i);
 }
-;
+
 void gzputi(int i) {
 	gzwrite(f, &i, sizeof(int));
 }
-;
+
 void gzputv(vec &v) {
 	gzwrite(f, &v, sizeof(vec));
 }
-;
+
 
 void gzcheck(int a, int b) {
 	if (a != b)
 		fatal("savegame file corrupt (short)");
 }
-;
+
 int gzget() {
 	char c = gzgetc(f);
 	return c;
 }
-;
+
 int gzgeti() {
 	int i;
 	gzcheck(gzread(f, &i, sizeof(int)), sizeof(int));
 	return i;
 }
-;
+
 void gzgetv(vec &v) {
 	gzcheck(gzread(f, &v, sizeof(vec)), sizeof(vec));
 }
-;
+
 
 void stop() {
 	if (f) {
@@ -61,13 +61,13 @@ void stop() {
 		zapdynent(playerhistory[i]);
 	playerhistory.setsize(0);
 }
-;
+
 
 void stopifrecording() {
 	if (demorecording)
 		stop();
 }
-;
+
 
 void savestate(char *fn) {
 	stop();
@@ -96,7 +96,7 @@ void savestate(char *fn) {
 		gzwrite(f, players[i], sizeof(dynent));
 	};
 }
-;
+
 
 void savegame(char *name) {
 	if (!m_classicsp) {
@@ -109,7 +109,7 @@ void savegame(char *name) {
 	stop();
 	conoutf("wrote %s", fn);
 }
-;
+
 
 void loadstate(char *fn) {
 	stop();
@@ -139,21 +139,21 @@ void loadstate(char *fn) {
 			"aborting: savegame/demo from a different version of cube or cpu architecture");
 	stop();
 }
-;
+
 
 void loadgame(char *name) {
 	string fn;
 	std::sprintf(fn, "savegames/%s.csgz", name);
 	loadstate(fn);
 }
-;
+
 
 void loadgameout() {
 	stop();
 	conoutf(
 			"loadgame incomplete: savegame from a different version of this map");
 }
-;
+
 
 void loadgamerest() {
 	if (demoplayback || !f)
@@ -198,7 +198,7 @@ void loadgamerest() {
 	else
 		stop();
 }
-;
+
 
 // demo functions
 
@@ -224,17 +224,17 @@ void record(char *name) {
 	starttime = lastmillis;
 	ddamage = bdamage = 0;
 }
-;
+
 
 void demodamage(int damage, vec &o) {
 	ddamage = damage;
 	dorig = o;
 }
-;
+
 void demoblend(int damage) {
 	bdamage = damage;
 }
-;
+
 
 void incomingdemodata(uchar *buf, int len, bool extras) {
 	if (!demorecording)
@@ -264,7 +264,7 @@ void incomingdemodata(uchar *buf, int len, bool extras) {
 		// FIXME: add all other client state which is not send through the network
 	};
 }
-;
+
 
 void demo(char *name) {
 	string fn;
@@ -272,7 +272,7 @@ void demo(char *name) {
 	loadstate(fn);
 	demoloading = true;
 }
-;
+
 
 void stopreset() {
 	conoutf("demo stopped (%d msec elapsed)", lastmillis - starttime);
@@ -281,13 +281,13 @@ void stopreset() {
 		zapdynent(players[i]);
 	disconnect(0, 0);
 }
-;
+
 
 VAR(demoplaybackspeed, 10, 100, 1000);
 int scaletime(int t) {
 	return (int) (t * (100.0f / demoplaybackspeed)) + starttime;
 }
-;
+
 
 void readdemotime() {
 	if (gzeof(f) || (playbacktime = gzgeti()) == -1) {
@@ -296,7 +296,7 @@ void readdemotime() {
 	};
 	playbacktime = scaletime(playbacktime);
 }
-;
+
 
 void startdemo() {
 	democlientnum = gzgeti();
@@ -308,7 +308,7 @@ void startdemo() {
 	*d = *player1;
 	readdemotime();
 }
-;
+
 
 VAR(demodelaymsec, 0, 120, 500);
 
@@ -335,7 +335,7 @@ void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest)// spline inte
 	vmul(t2, s3 - s2);
 	vadd(dest, t2);
 }
-;
+
 
 void fixwrap(dynent *a, dynent *b) {
 	while (b->yaw - a->yaw > 180)
@@ -343,7 +343,7 @@ void fixwrap(dynent *a, dynent *b) {
 	while (b->yaw - a->yaw < -180)
 		a->yaw -= 360;
 }
-;
+
 
 void demoplaybackstep() {
 	while (demoplayback && lastmillis >= playbacktime) {
@@ -439,7 +439,7 @@ void demoplaybackstep() {
 		//if(player1->state!=CS_DEAD) showscores(false);
 	};
 }
-;
+
 
 void stopn() {
 	if (demoplayback)
@@ -448,7 +448,7 @@ void stopn() {
 		stop();
 	conoutf("demo stopped");
 }
-;
+
 
 COMMAND(record, ARG_1STR);
 COMMAND(demo, ARG_1STR);

@@ -10,13 +10,13 @@ VARF(skill, 1, 3, 10, conoutf("skill is now %d", skill));
 dvector &getmonsters() {
 	return monsters;
 }
-;
+
 void restoremonsterstate() {
 	loopv(monsters)
 		if (monsters[i]->state == CS_DEAD)
 			numkilled++;
 }
-;
+
 // for savegames
 
 #define TOTMFREQ 13
@@ -77,7 +77,7 @@ dynent *basicmonster(int type, int yaw, int state, int trigger, int move) {
 	monsters.add(m);
 	return m;
 }
-;
+
 
 void spawnmonster() // spawn a random monster according to freq distribution in DMSP
 {
@@ -89,7 +89,7 @@ void spawnmonster() // spawn a random monster according to freq distribution in 
 		};
 	basicmonster(type, rnd(360), M_SEARCH, 1000, 1);
 }
-;
+
 
 void monsterclear() // called after map start of when toggling edit mode to reset/spawn all monsters to initial state
 {
@@ -116,7 +116,7 @@ void monsterclear() // called after map start of when toggling edit mode to rese
 			};
 	};
 }
-;
+
 
 bool los(float lx, float ly, float lz, float bx, float by, float bz, vec &v) // height-correct line of sight for monster shooting/seeing
 		{
@@ -152,14 +152,14 @@ bool los(float lx, float ly, float lz, float bx, float by, float bz, vec &v) // 
 	};
 	return i >= steps;
 }
-;
+
 
 bool enemylos(dynent *m, vec &v) {
 	v = m->o;
 	return los(m->o.x, m->o.y, m->o.z, m->enemy->o.x, m->enemy->o.y,
 			m->enemy->o.z, v);
 }
-;
+
 
 // monster AI is sequenced using transitions: they are in a particular state where
 // they execute a particular behaviour until the trigger time is hit, and then they
@@ -174,7 +174,7 @@ void transition(dynent *m, int state, int moving, int n, int r) // n = at skill 
 	n = n * 130 / 100;
 	m->trigger = lastmillis + n - skill * (n / 16) + rnd(r + 1);
 }
-;
+
 
 void normalise(dynent *m, float angle) {
 	while (m->yaw < angle - 180.0f)
@@ -182,7 +182,7 @@ void normalise(dynent *m, float angle) {
 	while (m->yaw > angle + 180.0f)
 		m->yaw -= 360.0f;
 }
-;
+
 
 void monsteraction(dynent *m) // main AI thinking routine, called every frame for every monster
 		{
@@ -283,7 +283,7 @@ void monsteraction(dynent *m) // main AI thinking routine, called every frame fo
 
 	moveplayer(m, 1, false);        // use physics to move monster
 }
-;
+
 
 void monsterpain(dynent *m, int damage, dynent *d) {
 	if (d->monsterstate)     // a monster hit us
@@ -314,7 +314,7 @@ void monsterpain(dynent *m, int damage, dynent *d) {
 		playsound(monstertypes[m->mtype].painsound, &m->o);
 	};
 }
-;
+
 
 void endsp(bool allkilled) {
 	conoutf(allkilled ? "you have cleared the map!" : "you reached the exit!");
@@ -323,7 +323,7 @@ void endsp(bool allkilled) {
 	monstertotal = 0;
 	startintermission();
 }
-;
+
 
 void monsterthink() {
 	if (m_dmsp && spawnremain && lastmillis > nextmonster) {
@@ -363,7 +363,7 @@ void monsterthink() {
 		if (monsters[i]->state == CS_ALIVE)
 			monsteraction(monsters[i]);
 }
-;
+
 
 void monsterrender() {
 	loopv(monsters)
@@ -372,4 +372,4 @@ void monsterrender() {
 				monsters[i]->mtype == 5,
 				monstertypes[monsters[i]->mtype].mscale / 10.0f);
 }
-;
+

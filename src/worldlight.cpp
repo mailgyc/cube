@@ -7,7 +7,7 @@ extern bool hasoverbright;
 VAR(lightscale, 1, 4, 100);
 
 void lightray(float bx, float by, persistent_entity &light) // done in realtime, needs to be fast
-		{
+{
 	float lx = light.x + (rnd(21) - 10) * 0.1f;
 	float ly = light.y + (rnd(21) - 10) * 0.1f;
 	float dx = bx - lx;
@@ -108,7 +108,7 @@ void lightray(float bx, float by, persistent_entity &light) // done in realtime,
 	};
 
 }
-;
+
 
 void calclightsource(persistent_entity &l) {
 	int reach = l.attr1;
@@ -133,7 +133,7 @@ void calclightsource(persistent_entity &l) {
 	rndtime()
 	;
 }
-;
+
 
 void postlightarea(block &a) // median filter, smooths out random noise in light and makes it more mipable
 		{
@@ -152,7 +152,7 @@ void postlightarea(block &a) // median filter, smooths out random noise in light
 
 	remip(a);
 }
-;
+
 
 void calclight() {
 	loop(x,ssize)
@@ -172,7 +172,7 @@ void calclight() {
 	postlightarea(b);
 	setvar("fullbright", 0);
 }
-;
+
 
 VARP(dynlight, 0, 16, 32);
 
@@ -185,7 +185,7 @@ void cleardlights() {
 		free(backup);
 	};
 }
-;
+
 
 void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner) {
 	if (!reach)
@@ -217,7 +217,7 @@ void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner) {
 	calclightsource(l);
 	postlightarea(b);
 }
-;
+
 
 // utility functions also used by editing code
 
@@ -230,7 +230,7 @@ block *blockcopy(block &s) {
 			*q++ = *S(x, y);
 	return b;
 }
-;
+
 
 void blockpaste(block &b) {
 	sqr *q = (sqr *) ((&b) + 1);
@@ -239,5 +239,5 @@ void blockpaste(block &b) {
 			*S(x, y) = *q++;
 	remipmore(b);
 }
-;
+
 

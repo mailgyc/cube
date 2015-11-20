@@ -108,12 +108,12 @@ bool md2::load(char* filename) {
 
 	return true;
 }
-;
+
 
 float snap(int sn, float f) {
 	return sn ? (float) (((int) (f + sn * 0.5f)) & (~(sn - 1))) : f;
 }
-;
+
 
 void md2::scale(int frame, float scale, int sn) {
 	mverts[frame] = new vec[numVerts];
@@ -128,7 +128,7 @@ void md2::scale(int frame, float scale, int sn) {
 		v->z = (snap(sn, cv[2] * cf->scale[2]) + cf->translate[2]) / sc;
 	};
 }
-;
+
 
 void md2::render(vec &light, int frame, int range, float x, float y, float z,
 		float yaw, float pitch, float sc, float speed, int snap, int basetime) {
@@ -218,7 +218,7 @@ void delayedload(md2 *m) {
 		m->loaded = true;
 	};
 }
-;
+
 
 int modelnum = 0;
 
@@ -236,7 +236,7 @@ md2 *loadmodel(char *name) {
 	mdllookup->access(m->loadname, &m);
 	return m;
 }
-;
+
 
 void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name) {
 	md2 *m = loadmodel(name);
@@ -245,17 +245,17 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name) {
 	m->mmi = mmi;
 	mapmodels.add(m);
 }
-;
+
 
 void mapmodelreset() {
 	mapmodels.setsize(0);
 }
-;
+
 
 mapmodelinfo &getmminfo(int i) {
 	return i < mapmodels.length() ? mapmodels[i]->mmi : *(mapmodelinfo *) 0;
 }
-;
+
 
 COMMAND(mapmodel, ARG_5STR);
 COMMAND(mapmodelreset, ARG_NONE);
@@ -296,4 +296,4 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x,
 	m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap,
 			basetime);
 }
-;
+

@@ -58,11 +58,11 @@ inline void strn0cpy(char *d, const char *s, size_t m) {
 	strncpy(d, s, m);
 	d[(m) - 1] = 0;
 }
-;
+
 inline void strcpy_s(char *d, const char *s) {
 	strn0cpy(d, s, _MAXDEFSTR);
 }
-;
+
 inline void strcat_s(char *d, const char *s) {
 	size_t n = strlen(d);
 	strn0cpy(d + n, s, _MAXDEFSTR - n);
@@ -131,6 +131,8 @@ struct Pool {
 	void allocnext(size_t allocsize);
 };
 
+Pool *gp();
+
 template<class T> struct vector {
 	T *buf;
 	int alen;
@@ -143,13 +145,11 @@ template<class T> struct vector {
 		buf = (T *) p->alloc(alen * sizeof(T));
 		ulen = 0;
 	}
-	;
 
 	~vector() {
 		setsize(0);
 		p->dealloc(buf, alen * sizeof(T));
 	}
-	;
 
 	vector(vector<T> &v);
 	void operator=(vector<T> &v);
@@ -257,13 +257,15 @@ template<class T> struct hashtable {
 	hashtable(hashtable<T> &v);
 	void operator=(hashtable<T> &v);
 
-	T *access(char *key, T *data = NULL) {
+	T *access(const char *key, T *data = NULL) {
 		unsigned int h = 5381;
-		for (int i = 0, k; k = key[i]; i++)
+		for (int i = 0, k; (k = key[i]) != 0; i++)
 			h = ((h << 5) + h) ^ k;    // bernstein k=33 xor
 		h = h & (size - 1);                   // primes not much of an advantage
 		for (Chain *c = table[h]; c; c = c->next) {
-			for (char *p1 = key, *p2 = c->key, ch; (ch = *p1++) == *p2++;)
+			const char *p1 = key;
+			char ch;
+			for (char *p2 = c->key; (ch = *p1++) == *p2++;)
 				if (!ch)    //if(strcmp(key,c->key)==0)
 				{
 					T *d = &c->data;
@@ -275,7 +277,7 @@ template<class T> struct hashtable {
 		if (data) {
 			Chain *c = (Chain *) parent->alloc(sizeof(Chain));
 			c->data = *data;
-			c->key = key;
+			c->key = (char *)key;
 			c->next = table[h];
 			table[h] = c;
 			numelems++;
@@ -291,15 +293,15 @@ Pool *gp();
 inline char *newstring(char *s) {
 	return gp()->string(s);
 }
-;
+
 inline char *newstring(char *s, size_t l) {
 	return gp()->string(s, l);
 }
-;
+
 inline char *newstringbuf(char *s) {
 	return gp()->stringbuf(s);
 }
-;
+
 
 #endif
 

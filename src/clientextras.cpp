@@ -16,14 +16,14 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig,
 	int n = 3;
 	float speed = 100.0f;
 	float mz = d->o.z - d->eyeheight + 1.55f * scale;
-	int basetime = -((int) d & 0xFFF);
+	int basetime = -((int)(size_t) d & 0xFFF);
 	if (d->state == CS_DEAD) {
 		int r;
 		if (hellpig) {
 			n = 2;
 			r = range[3];
 		} else {
-			n = (int) d % 3;
+			n = (int)(size_t) d % 3;
 			r = range[n];
 		};
 		basetime = d->lastaction;
@@ -68,7 +68,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig,
 	rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y,
 			d->yaw + 90, d->pitch / 2, team, scale, speed, 0, basetime);
 }
-;
+
 
 extern int democlientnum;
 
@@ -79,7 +79,7 @@ void renderclients() {
 			renderclient(d, isteam(player1->team, d->team), "monster/ogro",
 					false, 1.0f);
 }
-;
+
 
 // creation of scoreboard pseudo-menu
 
@@ -89,7 +89,7 @@ void showscores(bool on) {
 	scoreson = on;
 	menuset(((int) on) - 1);
 }
-;
+
 
 struct sline {
 	string s;
@@ -124,7 +124,7 @@ void addteamscore(dynent *d) {
 	teamname[teamsused] = d->team;
 	teamscore[teamsused++] = d->frags;
 }
-;
+
 
 void renderscores() {
 	if (!scoreson)
@@ -153,7 +153,7 @@ void renderscores() {
 		menumanual(0, scorelines.length() + 1, teamscores);
 	};
 }
-;
+
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 

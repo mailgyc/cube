@@ -6,7 +6,7 @@ extern int variable(char *name, int min, int cur, int max, int *storage,
 extern void setvar(char *name, int i);
 extern int getvar(char *name);
 extern bool identexists(char *name);
-extern bool addcommand(char *name, void (*fun)(), int narg);
+extern bool addcommand(const char *name, void (*fun)(), int narg);
 extern int execute(char *p, bool down = true);
 extern void exec(char *cfgfile);
 extern bool execfile(char *cfgfile);

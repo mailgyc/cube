@@ -32,7 +32,7 @@ void httpgetsend(ENetAddress &ad, char *hostname, char *req, char *ref,
 	printf("sending request to %s...\n", hostname);
 	enet_socket_send(mssock, NULL, &buf, 1);
 }
-;
+
 
 void httpgetrecieve(ENetBuffer &buf) {
 	if (mssock == ENET_SOCKET_NULL)
@@ -50,7 +50,7 @@ void httpgetrecieve(ENetBuffer &buf) {
 		buf.dataLength -= len;
 	};
 }
-;
+
 
 uchar *stripheader(uchar *b) {
 	char *s = strstr((char *) b, "\n\r\n");
@@ -58,7 +58,7 @@ uchar *stripheader(uchar *b) {
 		s = strstr((char *) b, "\n\n");
 	return s ? (uchar *) s : b;
 }
-;
+
 
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
 int updmaster = 0;
@@ -80,7 +80,7 @@ void updatemasterserver(int seconds) {
 		updmaster = seconds + 60 * 60;
 	};
 }
-;
+
 
 void checkmasterreply() {
 	bool busy = mssock != ENET_SOCKET_NULL;
@@ -88,7 +88,7 @@ void checkmasterreply() {
 	if (busy && mssock == ENET_SOCKET_NULL)
 		printf("masterserver reply: %s\n", stripheader(masterrep));
 }
-;
+
 
 uchar *retrieveservers(uchar *buf, int buflen) {
 	string path;
@@ -102,7 +102,7 @@ uchar *retrieveservers(uchar *buf, int buflen) {
 		httpgetrecieve(eb);
 	return stripheader(buf);
 }
-;
+
 
 ENetSocket pongsock = ENET_SOCKET_NULL;
 string serverdesc;
@@ -138,7 +138,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname,
 		enet_socket_send(pongsock, &addr, &buf, 1);
 	};
 }
-;
+
 
 void servermsinit(const char *master, char *sdesc, bool listen) {
 	const char *mid = strstr(master, "/");
@@ -156,4 +156,4 @@ void servermsinit(const char *master, char *sdesc, bool listen) {
 			fatal("could not create server info socket\n");
 	};
 }
-;
+

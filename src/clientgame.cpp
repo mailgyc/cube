@@ -8,7 +8,7 @@ VAR(gamemode, 1, 0, 0);
 void mode(int n) {
 	addmsg(1, 2, SV_GAMEMODE, nextmode = n);
 }
-;
+
 COMMAND(mode, ARG_1INT);
 
 bool intermission = false;
@@ -29,7 +29,7 @@ extern int framesinmap;
 char *getclientmap() {
 	return clientmap;
 }
-;
+
 
 void resetmovement(dynent *d) {
 	d->k_left = false;
@@ -40,7 +40,7 @@ void resetmovement(dynent *d) {
 	d->strafe = 0;
 	d->move = 0;
 }
-;
+
 
 void spawnstate(dynent *d)   // reset player state not persistent accross spawns
 		{
@@ -96,7 +96,7 @@ void spawnstate(dynent *d)   // reset player state not persistent accross spawns
 		d->ammo[GUN_SG] = 5;
 	};
 }
-;
+
 
 dynent *newdynent()                 // create a new blank player or monster
 {
@@ -126,13 +126,13 @@ dynent *newdynent()                 // create a new blank player or monster
 	spawnstate(d);
 	return d;
 }
-;
+
 
 void respawnself() {
 	spawnplayer(player1);
 	showscores(false);
 }
-;
+
 
 void arenacount(dynent *d, int &alive, int &dead, char *&lastteam,
 		bool &oneteam) {
@@ -145,7 +145,7 @@ void arenacount(dynent *d, int &alive, int &dead, char *&lastteam,
 		dead++;
 	};
 }
-;
+
 
 int arenarespawnwait = 0;
 int arenadetectwait = 0;
@@ -178,14 +178,14 @@ void arenarespawn() {
 		};
 	};
 }
-;
+
 
 void zapdynent(dynent *&d) {
 	if (d)
 		gp()->dealloc(d, sizeof(dynent));
 	d = NULL;
 }
-;
+
 
 extern int democlientnum;
 
@@ -202,7 +202,7 @@ void otherplayers() {
 				moveplayer(players[i], 2, false); // use physics to extrapolate player position
 		};
 }
-;
+
 
 void respawn() {
 	if (player1->state == CS_DEAD) {
@@ -219,7 +219,7 @@ void respawn() {
 		respawnself();
 	};
 }
-;
+
 
 int sleepwait = 0;
 string sleepcmd;
@@ -227,7 +227,7 @@ void sleepf(char *msec, char *cmd) {
 	sleepwait = atoi(msec) + lastmillis;
 	strcpy_s(sleepcmd, cmd);
 }
-;
+
 COMMANDN(sleep, sleepf, ARG_2STR);
 
 void updateworld(int millis)        // main game update loop
@@ -268,7 +268,7 @@ void updateworld(int millis)        // main game update loop
 	};
 	lastmillis = millis;
 }
-;
+
 
 void entinmap(dynent *d) // brute force but effective way to find a free spawn spot in the map
 		{
@@ -287,7 +287,7 @@ void entinmap(dynent *d) // brute force but effective way to find a free spawn s
 			(int) d->o.y);
 	// leave ent at original pos, possibly stuck
 }
-;
+
 
 int spawncycle = -1;
 int fixspawn = 2;
@@ -312,7 +312,7 @@ void spawnplayer(dynent *d)   // place at random spawn. also used by monsters!
 	spawnstate(d);
 	d->state = CS_ALIVE;
 }
-;
+
 
 // movement input code
 
@@ -331,13 +331,13 @@ void attack(bool on) {
 	else if (player1->attacking = on)
 		respawn();
 }
-;
+
 
 void jumpn(bool on) {
 	if (!intermission && (player1->jumpnext = on))
 		respawn();
 }
-;
+
 
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
@@ -358,7 +358,7 @@ void fixplayer1range() {
 	while (player1->yaw >= 360.0f)
 		player1->yaw -= 360.0f;
 }
-;
+
 
 void mousemove(int dx, int dy) {
 	if (player1->state == CS_DEAD || intermission)
@@ -369,7 +369,7 @@ void mousemove(int dx, int dy) {
 			* (invmouse ? -1 : 1);
 	fixplayer1range();
 }
-;
+
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
@@ -419,7 +419,7 @@ void selfdamage(int damage, int actor, dynent *act) {
 		playsound(S_PAIN6);
 	};
 }
-;
+
 
 void timeupdate(int timeremain) {
 	if (!timeremain) {
@@ -432,7 +432,7 @@ void timeupdate(int timeremain) {
 		conoutf("time remaining: %d minutes", timeremain);
 	};
 }
-;
+
 
 dynent *getclient(int cn)   // ensure valid entity
 		{
@@ -444,13 +444,13 @@ dynent *getclient(int cn)   // ensure valid entity
 		players.add(NULL);
 	return players[cn] ? players[cn] : (players[cn] = newdynent());
 }
-;
+
 
 void initclient() {
 	clientmap[0] = 0;
 	initclientnet();
 }
-;
+
 
 void startmap(char *name)   // called just after a map load
 		{
@@ -479,6 +479,6 @@ void startmap(char *name)   // called just after a map load
 	framesinmap = 0;
 	conoutf("game mode is %s", modestr(gamemode));
 }
-;
+
 
 COMMANDN(map, changemap, ARG_1STR);

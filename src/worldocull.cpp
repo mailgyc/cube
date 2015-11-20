@@ -11,7 +11,7 @@ float odist = 256;
 void toggleocull() {
 	ocull = !ocull;
 }
-;
+
 
 COMMAND(toggleocull, ARG_NONE);
 
@@ -70,7 +70,7 @@ void computeraytable(float vx, float vy) {
 		};
 	};
 }
-;
+
 
 // test occlusion for a cube... one of the most computationally expensive functions in the engine
 // as its done for every cube and entity, but its effect is more than worth it!
@@ -78,11 +78,11 @@ void computeraytable(float vx, float vy) {
 inline float ca(float x, float y) {
 	return x > y ? y / x : 2 - x / y;
 }
-;
+
 inline float ma(float x, float y) {
 	return x == 0 ? (y > 0 ? 2 : -2) : y / x;
 }
-;
+
 
 int isoccluded(float vx, float vy, float cx, float cy, float csize) // v = viewer, c = cube to test 
 		{
@@ -175,5 +175,5 @@ int isoccluded(float vx, float vy, float cx, float cy, float csize) // v = viewe
 
 	return 1;                                       // cube is entirely occluded
 }
-;
+
 

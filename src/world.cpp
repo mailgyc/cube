@@ -39,12 +39,12 @@ void settag(int tag, int type) // set all cubes with "tag" to space, if tag is 0
 	if (maxx)
 		remip(b);      // remip minimal area of changed geometry
 }
-;
+
 
 void resettagareas() {
 	settag(0, 0);
 }
-;
+
 // reset for editing or map saving
 void settagareas() {
 	settag(0, 1);
@@ -52,7 +52,7 @@ void settagareas() {
 		if (ents[i].type == CARROT)
 			setspawn(i, true);
 }
-;
+
 // set for playing
 
 void trigger(int tag, int type, bool savegame) {
@@ -68,7 +68,7 @@ void trigger(int tag, int type, bool savegame) {
 	if (type == 2)
 		endsp(false);
 }
-;
+
 
 COMMAND(trigger, ARG_2INT);
 
@@ -190,7 +190,7 @@ void remip(block &b, int level) {
 	s.ys /= 2;
 	remip(s, level + 1);
 }
-;
+
 
 void remipmore(block &b, int level) {
 	block bb = b;
@@ -204,7 +204,7 @@ void remipmore(block &b, int level) {
 		bb.ys++;
 	remip(bb, level);
 }
-;
+
 
 int closestent()        // used for delent and edit mode ent display
 {
@@ -225,7 +225,7 @@ int closestent()        // used for delent and edit mode ent display
 	};
 	return bdist == 99999 ? -1 : best;
 }
-;
+
 
 void entproperty(int prop, int amount) {
 	int e = closestent();
@@ -246,7 +246,7 @@ void entproperty(int prop, int amount) {
 		break;
 	};
 }
-;
+
 
 void delent() {
 	int e = closestent();
@@ -261,7 +261,7 @@ void delent() {
 	if (t == LIGHT)
 		calclight();
 }
-;
+
 
 int findtype(char *what) {
 	loopi(MAXENTTYPES)
@@ -302,7 +302,7 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3,
 		calclight();
 	return &ents.last();
 }
-;
+
 
 void clearents(char *name) {
 	int type = findtype(name);
@@ -316,7 +316,7 @@ void clearents(char *name) {
 	if (type == LIGHT)
 		calclight();
 }
-;
+
 
 COMMAND(clearents, ARG_1STR);
 
@@ -326,7 +326,7 @@ void scalecomp(uchar &c, int intens) {
 		n = 255;
 	c = n;
 }
-;
+
 
 void scalelights(int f, int intens) {
 	loopv(ents) {
@@ -346,7 +346,7 @@ void scalelights(int f, int intens) {
 	};
 	calclight();
 }
-;
+
 
 COMMAND(scalelights, ARG_2INT);
 
@@ -359,7 +359,7 @@ int findentity(int type, int index) {
 			return j;
 	return -1;
 }
-;
+
 
 sqr *wmip[LARGEST_FACTOR * 2];
 
@@ -374,7 +374,7 @@ void setupworld(int factor) {
 		w += cubicsize >> (i * 2);
 	};
 }
-;
+
 
 void empty_world(int factor, bool force) // main empty world creation routine, if passed factor -1 will enlarge old world by 1
 		{
@@ -446,16 +446,16 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 		execute("fullbright 1");
 	};
 }
-;
+
 
 void mapenlarge() {
 	empty_world(-1, false);
 }
-;
+
 void newmap(int i) {
 	empty_world(i, false);
 }
-;
+
 
 COMMAND(mapenlarge, ARG_NONE);
 COMMAND(newmap, ARG_1INT);

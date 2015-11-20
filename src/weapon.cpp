@@ -46,18 +46,18 @@ void selectgun(int a, int b, int c) {
 	player1->gunselect = s;
 	//conoutf("%s selected", (int)guns[s].name);
 }
-;
+
 
 int reloadtime(int gun) {
 	return guns[gun].attackdelay;
 }
-;
+
 
 void weapon(char *a1, char *a2, char *a3) {
 	selectgun(a1[0] ? atoi(a1) : -1, a2[0] ? atoi(a2) : -1,
 			a3[0] ? atoi(a3) : -1);
 }
-;
+
 
 COMMAND(weapon, ARG_3STR);
 
@@ -73,7 +73,7 @@ void createrays(vec &from, vec &to) // create random spread of rays for the shot
 		vadd(sg[i], r);
 	};
 }
-;
+
 
 bool intersect(dynent *d, vec &from, vec &to) // if lineseg hits entity bounding box
 		{
@@ -100,7 +100,7 @@ bool intersect(dynent *d, vec &from, vec &to) // if lineseg hits entity bounding
 			&& p->y <= d->o.y + d->radius && p->y >= d->o.y - d->radius
 			&& p->z <= d->o.z + d->aboveeye && p->z >= d->o.z - d->eyeheight;
 }
-;
+
 
 char *playerincrosshair() {
 	if (demoplayback)
@@ -114,7 +114,7 @@ char *playerincrosshair() {
 	};
 	return NULL;
 }
-;
+
 
 const int MAXPROJ = 100;
 struct projectile {
@@ -130,7 +130,7 @@ void projreset() {
 	loopi(MAXPROJ)
 		projs[i].inuse = false;
 }
-;
+
 
 void newprojectile(vec &from, vec &to, float speed, bool local, dynent *owner,
 		int gun) {
@@ -149,7 +149,7 @@ void newprojectile(vec &from, vec &to, float speed, bool local, dynent *owner,
 		return;
 	};
 }
-;
+
 
 void hit(int target, int damage, dynent *d, dynent *at) {
 	if (d == player1)
@@ -163,7 +163,7 @@ void hit(int target, int damage, dynent *d, dynent *at) {
 	particle_splash(3, damage, 1000, d->o);
 	demodamage(damage, d->o);
 }
-;
+
 
 const float RL_RADIUS = 5;
 const float RL_DAMRAD = 7;   // hack
@@ -182,7 +182,7 @@ void radialeffect(dynent *o, vec &v, int cn, int qdam, dynent *at) {
 		vadd(o->vel, temp);
 	};
 }
-;
+
 
 void splash(projectile *p, vec &v, vec &vold, int notthisplayer,
 		int notthismonster, int qdam) {
@@ -212,7 +212,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer,
 				radialeffect(mv[i], v, i, qdam, p->owner);
 	};
 }
-;
+
 
 inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im,
 		int qdam) {
@@ -223,7 +223,7 @@ inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im,
 		hit(i, qdam, o, p->owner);
 	};
 }
-;
+
 
 void moveprojectiles(float time) {
 	loopi(MAXPROJ)
@@ -270,7 +270,7 @@ void moveprojectiles(float time) {
 		p->o = v;
 	};
 }
-;
+
 
 void shootv(int gun, vec &from, vec &to, dynent *d, bool local) // create visual effect from a shot
 		{
@@ -308,7 +308,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local) // create visual
 		break;
 	};
 }
-;
+
 
 void hitpush(int target, int damage, dynent *d, dynent *at, vec &from,
 		vec &to) {
@@ -317,7 +317,7 @@ void hitpush(int target, int damage, dynent *d, dynent *at, vec &from,
 	vmul(v, damage / dist / 50);
 	vadd(d->vel, v);
 }
-;
+
 
 void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i) {
 	if (o->state != CS_ALIVE)
@@ -337,7 +337,7 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i) {
 	} else if (intersect(o, from, to))
 		hitpush(i, qdam, o, d, from, to);
 }
-;
+
 
 void shoot(dynent *d, vec &targ) {
 	int attacktime = lastmillis - d->lastaction;
@@ -403,5 +403,5 @@ void shoot(dynent *d, vec &targ) {
 	if (d->monsterstate)
 		raydamage(player1, from, to, d, -1);
 }
-;
+
 

@@ -6,7 +6,7 @@ void backup(char *name, char *backupname) {
 	remove(backupname);
 	rename(name, backupname);
 }
-;
+
 
 string cgzname, bakname, pcfname, mcfname;
 
@@ -28,7 +28,7 @@ void setnames(char *name) {
 	path(cgzname);
 	path(bakname);
 }
-;
+
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by
 // setting certain properties (vdeltas and textures) to neighbouring values wherever there is no
@@ -39,7 +39,7 @@ void setnames(char *name) {
 inline bool nhf(sqr *s) {
 	return s->type != FHF && s->type != CHF;
 }
-;
+
 
 void voptimize()        // reset vdeltas on non-hf cubes
 {
@@ -55,7 +55,7 @@ void voptimize()        // reset vdeltas on non-hf cubes
 				s->vdelta = 0;
 		};
 }
-;
+
 
 void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut) {
 	sqr *o[4];
@@ -87,7 +87,7 @@ void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut) {
 			};
 	};
 }
-;
+
 
 void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 {
@@ -110,7 +110,7 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 			};
 		};
 }
-;
+
 
 // these two are used by getmap/sendmap.. transfers compressed maps directly 
 
@@ -217,7 +217,7 @@ void save_world(char *mname) {
 	conoutf("wrote map file %s", cgzname);
 	settagareas();
 }
-;
+
 
 void load_world(char *mname) // still supports all map formats that have existed since the earliest cube betas!
 		{
@@ -353,7 +353,7 @@ void load_world(char *mname) // still supports all map formats that have existed
 	execfile(pcfname);
 	execfile(mcfname);
 }
-;
+
 
 COMMANDN(savemap, save_world, ARG_1STR);
 

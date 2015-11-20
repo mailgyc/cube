@@ -12,7 +12,7 @@ bool c2sinit = false;     // whether we need to tell the other clients our stats
 int getclientnum() {
 	return clientnum;
 }
-;
+
 
 bool multiplayer() {
 	// check not correct on listen server?
@@ -20,7 +20,7 @@ bool multiplayer() {
 		conoutf("operation not available in multiplayer");
 	return clienthost != NULL;
 }
-;
+
 
 bool allowedittoggle() {
 	bool allow = !clienthost || gamemode == 1;
@@ -28,7 +28,7 @@ bool allowedittoggle() {
 		conoutf("editing in multiplayer requires coopedit mode (1)");
 	return allow;
 }
-;
+
 
 VARF(rate, 0, 0, 25000,
 		if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
@@ -46,18 +46,18 @@ void throttle() {
 	enet_peer_throttle_configure(clienthost->peers, throttle_interval * 1000,
 			throttle_accel, throttle_decel);
 }
-;
+
 
 void newname(char *name) {
 	c2sinit = false;
 	strn0cpy(player1->name, name, 16);
 }
-;
+
 void newteam(char *name) {
 	c2sinit = false;
 	strn0cpy(player1->team, name, 5);
 }
-;
+
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
@@ -65,7 +65,7 @@ COMMANDN(name, newname, ARG_1STR);
 void writeclientinfo(FILE *f) {
 	fprintf(f, "name \"%s\"\nteam \"%s\"\n", player1->name, player1->team);
 }
-;
+
 
 void connects(char *servername) {
 	disconnect(1);  // reset state
@@ -90,7 +90,7 @@ void connects(char *servername) {
 		disconnect();
 	};
 }
-;
+
 
 void disconnect(int onlyclean, int async) {
 	if (clienthost) {
@@ -126,7 +126,7 @@ void disconnect(int onlyclean, int async) {
 		localconnect();
 	};
 }
-;
+
 
 void trydisconnect() {
 	if (!clienthost) {
@@ -141,18 +141,18 @@ void trydisconnect() {
 	conoutf("attempting to disconnect...");
 	disconnect(0, !disconnecting);
 }
-;
+
 
 string ctext;
 void toserver(char *text) {
 	conoutf("%s:\f %s", player1->name, text);
 	strn0cpy(ctext, text, 80);
 }
-;
+
 void echo(char *text) {
 	conoutf("%s", text);
 }
-;
+
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
@@ -185,13 +185,13 @@ void addmsg(int rel, int num, int type, ...) {
 		msg.add(va_arg(marker, int));
 	va_end(marker);
 }
-;
+
 
 void server_err() {
 	conoutf("server network error, disconnecting...");
 	disconnect();
 }
-;
+
 
 int lastupdate = 0, lastping = 0;
 string toservermap;
@@ -201,14 +201,14 @@ string clientpassword;
 void password(char *p) {
 	strcpy_s(clientpassword, p);
 }
-;
+
 COMMAND(password, ARG_1STR);
 
 bool netmapstart() {
 	senditemstoserver = true;
 	return clienthost != NULL;
 }
-;
+
 
 void initclientnet() {
 	ctext[0] = 0;
@@ -217,7 +217,7 @@ void initclientnet() {
 	newname("unnamed");
 	newteam("red");
 }
-;
+
 
 void sendpackettoserv(void *packet) {
 	if (clienthost) {
@@ -314,7 +314,7 @@ void c2sinfo(dynent *d)                     // send update to the server
 	if (serveriteminitdone)
 		loadgamerest();  // hack
 }
-;
+
 
 void gets2c()           // get updates from the server
 {
@@ -356,5 +356,5 @@ void gets2c()           // get updates from the server
 			return;
 		}
 }
-;
+
 

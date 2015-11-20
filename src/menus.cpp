@@ -25,7 +25,7 @@ void menuset(int menu) {
 	if (vmenu == 1)
 		menus[1].menusel = 0;
 }
-;
+
 
 void showmenu(char *name) {
 	loopv(menus)
@@ -34,7 +34,7 @@ void showmenu(char *name) {
 			return;
 		};
 }
-;
+
 
 int menucompare(mitem *a, mitem *b) {
 	int x = atoi(a->text);
@@ -45,7 +45,7 @@ int menucompare(mitem *a, mitem *b) {
 		return 1;
 	return 0;
 }
-;
+
 
 void sortmenu(int start, int num) {
 	qsort(&menus[0].items[start], num, sizeof(mitem),
@@ -93,14 +93,14 @@ bool rendermenu() {
 	};
 	return true;
 }
-;
+
 
 void newmenu(char *name) {
 	gmenu &menu = menus.add();
 	menu.name = newstring(name);
 	menu.menusel = 0;
 }
-;
+
 
 void menumanual(int m, int n, char *text) {
 	if (!n)
@@ -116,7 +116,7 @@ void menuitem(char *text, char *action) {
 	mi.text = newstring(text);
 	mi.action = action[0] ? newstring(action) : mi.text;
 }
-;
+
 
 COMMAND(menuitem, ARG_2STR);
 COMMAND(showmenu, ARG_1STR);
@@ -154,4 +154,4 @@ bool menukey(int code, bool isdown) {
 	};
 	return true;
 }
-;
+

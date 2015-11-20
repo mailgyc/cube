@@ -49,7 +49,7 @@ void stopsound() {
 		stream = NULL;
 	};
 }
-;
+
 
 VAR(soundbufferlen, 128, 1024, 4096);
 
@@ -70,7 +70,7 @@ void initsound() {
 	};
 #endif
 }
-;
+
 
 void music(char *name) {
 	if (nosound)
@@ -103,7 +103,7 @@ void music(char *name) {
 #endif
 	};
 }
-;
+
 
 COMMAND(music, ARG_1STR);
 
@@ -123,7 +123,7 @@ int registersound(char *name) {
 	samples.add(NULL);
 	return samples.length() - 1;
 }
-;
+
 
 COMMAND(registersound, ARG_1EST);
 
@@ -137,7 +137,7 @@ void cleansound() {
 	FSOUND_Close();
 #endif
 }
-;
+
 
 VAR(stereo, 0, 1, 1);
 
@@ -160,14 +160,14 @@ void updatechanvol(int chan, vec *loc) {
 	FSOUND_SetPan(chan, pan);
 #endif
 }
-;
+
 
 void newsoundloc(int chan, vec *loc) {
 	assert(chan>=0 && chan<MAXCHAN);
 	soundlocs[chan].loc = *loc;
 	soundlocs[chan].inuse = true;
 }
-;
+
 
 void updatevol() {
 	if (nosound)
@@ -184,13 +184,13 @@ void updatevol() {
 				soundlocs[i].inuse = false;
 		};
 }
-;
+
 
 void playsoundc(int n) {
 	addmsg(0, 2, SV_SOUND, n);
 	playsound(n);
 }
-;
+
 
 int soundsatonce = 0, lastsoundmillis = 0;
 
@@ -241,10 +241,10 @@ void playsound(int n, vec *loc) {
 	FSOUND_SetPaused(chan, false);
 #endif
 }
-;
+
 
 void sound(int n) {
 	playsound(n, NULL);
 }
-;
+
 COMMAND(sound, ARG_1INT);

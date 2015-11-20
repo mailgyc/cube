@@ -11,20 +11,20 @@ void neterr(char *s) {
 	conoutf("illegal network message (%s)", s);
 	disconnect();
 }
-;
+
 
 void changemapserv(char *name, int mode)    // forced map change from the server
 		{
 	gamemode = mode;
 	load_world(name);
 }
-;
+
 
 void changemap(char *name)              // request map change, server may ignore
 		{
 	strcpy_s(toservermap, name);
 }
-;
+
 
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
@@ -50,7 +50,7 @@ void updatepos(dynent *d) {
 		d->lastupdate = lastmillis;
 	};
 }
-;
+
 
 void localservertoclient(uchar *buf, int len) // processes any updates from the server
 		{
@@ -389,4 +389,4 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			return;
 		};
 }
-;
+

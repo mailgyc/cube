@@ -62,13 +62,13 @@ void gl_init(int w, int h) {
 	gluSphere(qsphere, 1, 12, 6);
 	glEndList();
 }
-;
+
 
 void cleangl() {
 	if (qsphere)
 		gluDeleteQuadric(qsphere);
 }
-;
+
 
 bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 	SDL_Surface *s = IMG_Load(texname);
@@ -112,7 +112,7 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 	SDL_FreeSurface(s);
 	return true;
 }
-;
+
 
 // management of texture slots
 // each texture slot can have multople texture frames, of which currently only the first is used
@@ -135,14 +135,14 @@ void purgetextures() {
 		loop(j,MAXFRAMES)
 			mapping[i][j] = 0;
 }
-;
+
 
 int curtexnum = 0;
 
 void texturereset() {
 	curtexnum = 0;
 }
-;
+
 
 void texture(char *aframe, char *name) {
 	int num = curtexnum++, frame = atoi(aframe);
@@ -153,7 +153,7 @@ void texture(char *aframe, char *name) {
 	strcpy_s(n, name);
 	path(n);
 }
-;
+
 
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
@@ -201,7 +201,7 @@ int lookuptexture(int tex, int &xs, int &ys) {
 		return mapping[tex][frame] = FIRSTTEX;  // temp fix
 	};
 }
-;
+
 
 void setupworld() {
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -216,7 +216,7 @@ void setupworld() {
 		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 	};
 }
-;
+
 
 int skyoglid;
 
@@ -231,7 +231,7 @@ void renderstripssky() {
 		if (strips[i].tex == skyoglid)
 			glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
 }
-;
+
 
 void renderstrips() {
 	int lasttex = -1;
@@ -244,13 +244,13 @@ void renderstrips() {
 			glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
 		};
 }
-;
+
 
 void overbright(float amount) {
 	if (hasoverbright)
 		glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount);
 }
-;
+
 
 void addstrip(int tex, int start, int n) {
 	strip &s = strips.add();
@@ -258,7 +258,7 @@ void addstrip(int tex, int start, int n) {
 	s.start = start;
 	s.num = n;
 }
-;
+
 
 VARFP(gamma, 30, 100, 300, {
 //    float f = gamma/100.0f;
@@ -280,7 +280,7 @@ void transplayer() {
 			(player1->state == CS_DEAD ? player1->eyeheight - 0.2f : 0)
 					- player1->o.z, -player1->o.y);
 }
-;
+
 
 VARP(fov, 10, 105, 120);
 
@@ -299,7 +299,7 @@ void drawhudmodel(int start, int end, float speed, int base) {
 			player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90,
 			player1->pitch, false, 1.0f, speed, 0, base);
 }
-;
+
 
 void drawhudgun(float fovy, float aspect, int farplane) {
 	if (!hudgun /*|| !player1->gunselect*/)
@@ -328,7 +328,7 @@ void drawhudgun(float fovy, float aspect, int farplane) {
 
 	glDisable(GL_CULL_FACE);
 }
-;
+
 
 void gl_drawframe(int w, int h, float curfps) {
 	float hf = hdr.waterlevel - 0.3f;
@@ -427,5 +427,5 @@ void gl_drawframe(int w, int h, float curfps) {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_FOG);
 }
-;
+
 

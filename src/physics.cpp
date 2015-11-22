@@ -5,7 +5,7 @@
 
 #include "cube.h"
 
-bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo) // collide with player or monster
+bool plcollide(Sprite *d, Sprite *o, float &headspace, float &hi, float &lo) // collide with player or monster
 		{
 	if (o->state != CS_ALIVE)
 		return true;
@@ -27,7 +27,6 @@ bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo) // 
 	};
 	return true;
 }
-;
 
 bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by,
 		int &bs)    // recursively collide with a mipmapped corner cube
@@ -46,9 +45,8 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by,
 	};
 	return stest;
 }
-;
 
-void mmcollide(dynent *d, float &hi, float &lo)       // collide with a mapmodel
+void mmcollide(Sprite *d, float &hi, float &lo)       // collide with a mapmodel
 		{
 	loopv(ents) {
 		entity &e = ents[i];
@@ -68,13 +66,12 @@ void mmcollide(dynent *d, float &hi, float &lo)       // collide with a mapmodel
 		};
 	};
 }
-;
 
 // all collision happens here
 // spawn is a dirty side effect used in spawning
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
 
-bool collide(dynent *d, bool spawn, float drop, float rise) {
+bool collide(Sprite *d, bool spawn, float drop, float rise) {
 	const float fx1 = d->o.x - d->radius; // figure out integer cube rectangle this entity covers in map
 	const float fy1 = d->o.y - d->radius;
 	const float fx2 = d->o.x + d->radius;
@@ -143,7 +140,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise) {
 	float headspace = 10;
 	loopv(players)       // collide with other players
 	{
-		dynent *o = players[i];
+		Sprite *o = players[i];
 		if (!o || o == d)
 			continue;
 		if (!plcollide(d, o, headspace, hi, lo))
@@ -152,7 +149,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise) {
 	if (d != player1)
 		if (!plcollide(d, player1, headspace, hi, lo))
 			return false;
-	dvector &v = getmonsters();
+	std::vector<Sprite *> &v = getmonsters();
 	// this loop can be a performance bottleneck with many monster on a slow cpu,
 	// should replace with a blockmap but seems mostly fast enough
 	loopv(v)
@@ -195,7 +192,6 @@ bool collide(dynent *d, bool spawn, float drop, float rise) {
 float rad(float x) {
 	return x * 3.14159f / 180;
 }
-;
 
 VARP(maxroll, 0, 3, 20);
 
@@ -212,17 +208,16 @@ void physicsframe() // optimally schedule physics frames inside the graphics fra
 		physicsrepeat = 1;
 	};
 }
-;
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
-void moveplayer(dynent *pl, int moveres, bool local, int curtime) {
+void moveplayer(Sprite *pl, int moveres, bool local, int curtime) {
 	const bool water = hdr.waterlevel > pl->o.z - 0.5f;
 	const bool floating = (editmode && local) || pl->state == CS_EDITING;
 
-	vec d;      // vector of direction we ideally want to move in
+	vec d;      // IVector of direction we ideally want to move in
 
 	d.x = (float) (pl->move * cos(rad(pl->yaw - 90)));
 	d.y = (float) (pl->move * sin(rad(pl->yaw - 90)));
@@ -247,7 +242,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime) {
 	vadd(pl->vel, d);
 	vdiv(pl->vel, fpsfric);
 	d = pl->vel;
-	vmul(d, speed);             // d is now frametime based velocity vector
+	vmul(d, speed);             // d is now frametime based velocity IVector
 
 	pl->blocked = false;
 	pl->moving = true;
@@ -363,13 +358,11 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime) {
 		playsound(S_SPLASH1, &pl->o);
 	pl->inwater = water;
 }
-;
 
-void moveplayer(dynent *pl, int moveres, bool local) {
+void moveplayer(Sprite *pl, int moveres, bool local) {
 	loopi(physicsrepeat)
 		moveplayer(pl, moveres, local,
 				i ? curtime / physicsrepeat : curtime
 							- curtime / physicsrepeat * (physicsrepeat - 1));
 }
-;
 

@@ -19,7 +19,6 @@ void putint(uchar *&p, int n) {
 		*p++ = n >> 24;
 	};
 }
-;
 
 int getint(uchar *&p) {
 	int c = *((char *) p);
@@ -37,14 +36,12 @@ int getint(uchar *&p) {
 	} else
 		return c;
 }
-;
 
-void sendstring(char *t, uchar *&p) {
+void sendIString(char *t, uchar *&p) {
 	while (*t)
 		putint(p, *t++);
 	putint(p, 0);
 }
-;
 
 const char *modenames[] = { "SP", "DMSP", "ffa/default", "coopedit", "ffa/duel",
 		"teamplay", "instagib", "instagib team", "efficiency",
@@ -54,7 +51,6 @@ const char *modenames[] = { "SP", "DMSP", "ffa/default", "coopedit", "ffa/duel",
 const char *modestr(int n) {
 	return (n >= -2 && n < 12) ? modenames[n + 2] : "unknown";
 }
-;
 
 char msgsizesl[] = // size inclusive message token, 0 for variable or not-checked sizes
 		{ SV_INITS2C, 4, SV_INITC2S, 0, SV_POS, 12, SV_TEXT, 0, SV_SOUND, 2,
@@ -72,15 +68,14 @@ char msgsizelookup(int msg) {
 			return p[1];
 	return -1;
 }
-;
 
 // sending of maps between clients
 
-string copyname;
+IString copyname;
 int copysize;
 uchar *copydata = NULL;
 
-void sendmaps(int n, string mapname, int mapsize, uchar *mapdata) {
+void sendmaps(int n, IString mapname, int mapsize, uchar *mapdata) {
 	if (mapsize <= 0 || mapsize > 256 * 256)
 		return;
 	strcpy_s(copyname, mapname);
@@ -99,7 +94,7 @@ ENetPacket *recvmap(int n) {
 	uchar *start = packet->data;
 	uchar *p = start + 2;
 	putint(p, SV_RECVMAP);
-	sendstring(copyname, p);
+	sendIString(copyname, p);
 	putint(p, copysize);
 	memcpy(p, copydata, copysize);
 	p += copysize;

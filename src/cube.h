@@ -2,6 +2,9 @@
 
 #include "tools.h"
 #include <cstdio>
+#include <string>
+#include <vector>
+#include <map>
 
 enum                            // block types, order matters!
 {
@@ -115,7 +118,7 @@ enum {
 	NUMGUNS
 };
 
-struct dynent                           // players & monsters
+struct Sprite                           // players & monsters
 {
 	vec o, vel;                         // origin, velocity
 	float yaw, pitch, roll;             // used as vec in one place
@@ -138,16 +141,16 @@ struct dynent                           // players & monsters
 	int ammo[NUMGUNS];
 	int monsterstate;                   // one of M_* below, M_NONE means human
 	int mtype;                          // see monster.cpp
-	dynent *enemy;                      // monster wants to kill this entity
+	Sprite *enemy;                      // monster wants to kill this entity
 	float targetyaw;                  // monster wants to look in this direction
 	bool blocked, moving;               // used by physics to signal ai
 	int trigger; // millis at which transition to another monsterstate takes place
 	vec attacktarget;                   // delayed attacks
 	int anger;                   // how many times already hit by fellow monster
-	string name, team;
+	IString name, team;
 };
 
-#define SAVEGAMEVERSION 4               // bump if dynent/netprotocol changes or any other savegame/demo data
+#define SAVEGAMEVERSION 4               // bump if Sprite/netprotocol changes or any other savegame/demo data
 
 enum {
 	A_BLUE, A_GREEN, A_YELLOW
@@ -266,20 +269,16 @@ struct vertex {
 	uchar r, g, b, a;
 };
 
-typedef vector<dynent *> dvector;
-typedef vector<char *> cvector;
-typedef vector<int> ivector;
-
 // globals ooh naughty
 
 extern sqr *world, *wmip[]; // map data, the mips are sequential 2D arrays in memory
 extern header hdr;                      // current map header
 extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
-extern dynent *player1; // special client ent that receives input and acts as camera
-extern dvector players;                // all the other clients (in multiplayer)
+extern Sprite *player1; // special client ent that receives input and acts as camera
+extern std::vector<Sprite *> players;  // all the other clients (in multiplayer)
 extern bool editmode;
-extern vector<entity> ents;             // map entities
+extern std::vector<entity> ents;             // map entities
 extern vec worldpos;             // current target of the crosshair in the world
 extern int lastmillis;                  // last time
 extern int curtime;                     // current frame time
@@ -299,7 +298,7 @@ extern bool demoplayback;
 #define PI  (3.1415927f)
 #define PI2 (2*PI)
 
-// simplistic vector ops
+// simplistic IVector ops
 #define dotprod(u,v) ((u).x * (v).x + (u).y * (v).y + (u).z * (v).z)
 #define vmul(u,f)    { (u).x *= (f); (u).y *= (f); (u).z *= (f); }
 #define vdiv(u,f)    { (u).x /= (f); (u).y /= (f); (u).z /= (f); }

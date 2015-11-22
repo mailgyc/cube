@@ -59,7 +59,6 @@ void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip,
 				y2 << mip, 1 << mip, d1, d2, topleft);
 	};
 }
-;
 
 const int MAX_MIP = 5;   // 32x32 unit blocks
 const int MIN_LOD = 2;
@@ -103,7 +102,6 @@ bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2) {
 	};
 	return false;
 }
-;
 
 bool render_floor, render_ceil;
 
@@ -287,7 +285,6 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 	};
 
 }
-;
 
 void distlod(int &low, int &high, int angle, float widef) {
 	float f = 90.0f / lod / widef;
@@ -298,7 +295,6 @@ void distlod(int &low, int &high, int angle, float widef) {
 	if (high < min_lod)
 		high = min_lod;
 }
-;
 
 // does some out of date view frustrum optimisation that doesn't contribute much anymore
 
@@ -338,5 +334,4 @@ void render_world(float vx, float vy, float vh, int yaw, int pitch, float fov,
 			ssize >> MAX_MIP);
 	mipstats(stats[0], stats[1], stats[2]);
 }
-;
 

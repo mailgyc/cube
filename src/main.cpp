@@ -3,7 +3,7 @@
 #include "cube.h"
 
 void cleanup(char *msg)         // single program exit point;
-{
+		{
 	stop();
 	disconnect(true);
 	writecfg();
@@ -17,18 +17,16 @@ void cleanup(char *msg)         // single program exit point;
 	SDL_Quit();
 	exit(1);
 }
-;
 
 void quit()                     // normal exit
 {
 	writeservercfg();
 	cleanup(NULL);
 }
-;
 
 void fatal(char *s, char *o)    // failure exit
-{
-	string msg;
+		{
+	IString msg;
 	std::sprintf(msg, "%s%s (%s)\n", s, o, SDL_GetError());
 	cleanup(msg);
 }
@@ -40,7 +38,6 @@ void *alloc(int s) // for some big chunks... most other allocs use the memory po
 		fatal("out of memory!");
 	return b;
 }
-;
 
 int scr_w = 640;
 int scr_h = 480;
@@ -62,7 +59,7 @@ void screenshot() {
 						3 * scr_w);
 				endianswap(dest, 3, scr_w);
 			};
-			string buf;
+			IString buf;
 			std::sprintf(buf, "screenshots/screenshot_%d.bmp", lastmillis);
 			SDL_SaveBMP(temp, path(buf));
 			SDL_FreeSurface(temp);
@@ -70,7 +67,6 @@ void screenshot() {
 		SDL_FreeSurface(image);
 	};
 }
-;
 
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
@@ -158,15 +154,15 @@ int main(int argc, char **argv) {
 
 	log("basetex");
 	int xs, ys;
-	if (!installtex(2, path(newstring("data/newchars.png")), xs, ys)
-			|| !installtex(3, path(newstring("data/martin/base.png")), xs, ys)
-			|| !installtex(6, path(newstring("data/martin/ball1.png")), xs, ys)
-			|| !installtex(7, path(newstring("data/martin/smoke.png")), xs, ys)
-			|| !installtex(8, path(newstring("data/martin/ball2.png")), xs, ys)
-			|| !installtex(9, path(newstring("data/martin/ball3.png")), xs, ys)
-			|| !installtex(4, path(newstring("data/explosion.jpg")), xs, ys)
-			|| !installtex(5, path(newstring("data/items.png")), xs, ys)
-			|| !installtex(1, path(newstring("data/crosshair.png")), xs, ys))
+	if (!installtex(2, path(newIString("data/newchars.png")), xs, ys)
+			|| !installtex(3, path(newIString("data/martin/base.png")), xs, ys)
+			|| !installtex(6, path(newIString("data/martin/ball1.png")), xs, ys)
+			|| !installtex(7, path(newIString("data/martin/smoke.png")), xs, ys)
+			|| !installtex(8, path(newIString("data/martin/ball2.png")), xs, ys)
+			|| !installtex(9, path(newIString("data/martin/ball3.png")), xs, ys)
+			|| !installtex(4, path(newIString("data/explosion.jpg")), xs, ys)
+			|| !installtex(5, path(newIString("data/items.png")), xs, ys)
+			|| !installtex(1, path(newIString("data/crosshair.png")), xs, ys))
 		fatal(
 				"could not find core textures (hint: run cube from the parent of the bin directory)");
 
@@ -234,7 +230,6 @@ int main(int argc, char **argv) {
 					ignore--;
 					break;
 				}
-				;
 				mousemove(event.motion.xrel, event.motion.yrel);
 				break;
 
@@ -252,5 +247,4 @@ int main(int argc, char **argv) {
 	quit();
 	return 1;
 }
-;
 

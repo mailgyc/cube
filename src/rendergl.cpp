@@ -62,13 +62,11 @@ void gl_init(int w, int h) {
 	gluSphere(qsphere, 1, 12, 6);
 	glEndList();
 }
-;
 
 void cleangl() {
 	if (qsphere)
 		gluDeleteQuadric(qsphere);
 }
-;
 
 bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 	SDL_Surface *s = IMG_Load(texname);
@@ -89,7 +87,7 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 			clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
+	GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	xs = s->w;
 	ys = s->h;
@@ -102,17 +100,16 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 		conoutf("warning: quality loss: scaling %s", texname); // for voodoo cards under linux
 		scaledimg = alloc(xs * ys * 3);
 		gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys,
-				GL_UNSIGNED_BYTE, scaledimg);
+		GL_UNSIGNED_BYTE, scaledimg);
 	};
 	if (gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, xs, ys, GL_RGB,
-			GL_UNSIGNED_BYTE, scaledimg))
+	GL_UNSIGNED_BYTE, scaledimg))
 		fatal("could not build mipmaps");
 	if (xs != s->w)
 		free(scaledimg);
 	SDL_FreeSurface(s);
 	return true;
 }
-;
 
 // management of texture slots
 // each texture slot can have multople texture frames, of which currently only the first is used
@@ -121,28 +118,26 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 const int MAXTEX = 1000;
 int texx[MAXTEX];                        // ( loaded texture ) -> ( name, size )
 int texy[MAXTEX];
-string texname[MAXTEX];
+IString texname[MAXTEX];
 int curtex = 0;
 const int FIRSTTEX = 1000;                  // opengl id = loaded id + FIRSTTEX
 // std 1+, sky 14+, mdls 20+
 
 const int MAXFRAMES = 2;           // increase to allow more complex shader defs
 int mapping[256][MAXFRAMES];   // ( cube texture, frame ) -> ( opengl id, name )
-string mapname[256][MAXFRAMES];
+IString mapname[256][MAXFRAMES];
 
 void purgetextures() {
 	loopi(256)
 		loop(j,MAXFRAMES)
 			mapping[i][j] = 0;
 }
-;
 
 int curtexnum = 0;
 
 void texturereset() {
 	curtexnum = 0;
 }
-;
 
 void texture(char *aframe, char *name) {
 	int num = curtexnum++, frame = atoi(aframe);
@@ -153,7 +148,6 @@ void texture(char *aframe, char *name) {
 	strcpy_s(n, name);
 	path(n);
 }
-;
 
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
@@ -188,7 +182,7 @@ int lookuptexture(int tex, int &xs, int &ys) {
 	int tnum = curtex + FIRSTTEX;
 	strcpy_s(texname[curtex], mapname[tex][frame]);
 
-	string name;
+	IString name;
 	std::sprintf(name, "packages%c%s", PATHDIV, texname[curtex]);
 
 	if (installtex(tnum, name, xs, ys)) {
@@ -201,7 +195,6 @@ int lookuptexture(int tex, int &xs, int &ys) {
 		return mapping[tex][frame] = FIRSTTEX;  // temp fix
 	};
 }
-;
 
 void setupworld() {
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -216,14 +209,13 @@ void setupworld() {
 		glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 	};
 }
-;
 
 int skyoglid;
 
 struct strip {
 	int tex, start, num;
 };
-vector<strip> strips;
+std::vector<strip> strips;
 
 void renderstripssky() {
 	glBindTexture(GL_TEXTURE_2D, skyoglid);
@@ -231,7 +223,6 @@ void renderstripssky() {
 		if (strips[i].tex == skyoglid)
 			glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
 }
-;
 
 void renderstrips() {
 	int lasttex = -1;
@@ -244,21 +235,19 @@ void renderstrips() {
 			glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
 		};
 }
-;
 
 void overbright(float amount) {
 	if (hasoverbright)
 		glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount);
 }
-;
 
 void addstrip(int tex, int start, int n) {
-	strip &s = strips.add();
+	strip s;
 	s.tex = tex;
 	s.start = start;
 	s.num = n;
+	strips.emplace_back(s);
 }
-;
 
 VARFP(gamma, 30, 100, 300, {
 //    float f = gamma/100.0f;
@@ -280,7 +269,6 @@ void transplayer() {
 			(player1->state == CS_DEAD ? player1->eyeheight - 0.2f : 0)
 					- player1->o.z, -player1->o.y);
 }
-;
 
 VARP(fov, 10, 105, 120);
 
@@ -299,7 +287,6 @@ void drawhudmodel(int start, int end, float speed, int base) {
 			player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90,
 			player1->pitch, false, 1.0f, speed, 0, base);
 }
-;
 
 void drawhudgun(float fovy, float aspect, int farplane) {
 	if (!hudgun /*|| !player1->gunselect*/)
@@ -328,7 +315,6 @@ void drawhudgun(float fovy, float aspect, int farplane) {
 
 	glDisable(GL_CULL_FACE);
 }
-;
 
 void gl_drawframe(int w, int h, float curfps) {
 	float hf = hdr.waterlevel - 0.3f;
@@ -370,7 +356,7 @@ void gl_drawframe(int w, int h, float curfps) {
 	resetcubes();
 
 	curvert = 0;
-	strips.setsize(0);
+	strips.resize(0);
 
 	render_world(player1->o.x, player1->o.y, player1->o.z, (int) player1->yaw,
 			(int) player1->pitch, (float) fov, w, h);
@@ -427,5 +413,4 @@ void gl_drawframe(int w, int h, float curfps) {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_FOG);
 }
-;
 

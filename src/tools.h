@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <assert.h>
+#include <algorithm>
 #ifdef __GNUC__
 #include <new>
 #else
@@ -49,20 +50,20 @@ typedef unsigned int uint;
 #define _vsnprintf vsnprintf
 #define PATHDIV '/'
 
-// easy safe strings
+// easy safe IStrings
 
 #define _MAXDEFSTR 260
-typedef char string[_MAXDEFSTR];
+typedef char IString[_MAXDEFSTR];
 
 inline void strn0cpy(char *d, const char *s, size_t m) {
 	strncpy(d, s, m);
 	d[(m) - 1] = 0;
 }
-;
+
 inline void strcpy_s(char *d, const char *s) {
 	strn0cpy(d, s, _MAXDEFSTR);
 }
-;
+
 inline void strcat_s(char *d, const char *s) {
 	size_t n = strlen(d);
 	strn0cpy(d + n, s, _MAXDEFSTR - n);
@@ -93,7 +94,6 @@ struct Pool {
 	inline size_t bucket(size_t s) {
 		return (s + PTRSIZE - 1) >> PTRBITS;
 	}
-	;
 	enum {
 		PTRBITS = PTRSIZE == 2 ? 1 : PTRSIZE == 4 ? 2 : 3
 	};
@@ -107,199 +107,95 @@ struct Pool {
 	~Pool() {
 		dealloc_block(blocks);
 	}
-	;
 
 	void *alloc(size_t size);
 	void dealloc(void *p, size_t size);
 	void *realloc(void *p, size_t oldsize, size_t newsize);
 
-	char *string(char *s, size_t l);
-	char *string(char *s) {
-		return string(s, strlen(s));
+	char *IString(char *s, size_t l);
+	char *IString(char *s) {
+		return IString(s, strlen(s));
 	}
-	;
 	void deallocstr(char *s) {
 		dealloc(s, strlen(s) + 1);
 	}
-	;
-	char *stringbuf(char *s) {
-		return string(s, _MAXDEFSTR - 1);
+	char *IStringbuf(char *s) {
+		return IString(s, _MAXDEFSTR - 1);
 	}
-	;
 
 	void dealloc_block(void *b);
 	void allocnext(size_t allocsize);
 };
 
-template<class T> struct vector {
-	T *buf;
-	int alen;
-	int ulen;
-	Pool *p;
 
-	vector() {
-		this->p = gp();
-		alen = 8;
-		buf = (T *) p->alloc(alen * sizeof(T));
-		ulen = 0;
-	}
-	;
+#define loopv(v)    if(false) {} else for(int i = 0; i<(v).size(); i++)
 
-	~vector() {
-		setsize(0);
-		p->dealloc(buf, alen * sizeof(T));
-	}
-	;
+//template<class T> struct hashtable {
+//	struct Chain {
+//		Chain *next;
+//		char *key;
+//		T data;
+//	};
+//
+//	int size;
+//	int numelems;
+//	Chain **table;
+//	Pool *parent;
+//	Chain *enumc;
+//
+//	hashtable() {
+//		this->size = 1 << 10;
+//		this->parent = gp();
+//		numelems = 0;
+//		table = (Chain **) parent->alloc(size * sizeof(T));
+//		for (int i = 0; i < size; i++)
+//			table[i] = NULL;
+//	}
+//
+//	hashtable(hashtable<T> &v);
+//	void operator=(hashtable<T> &v);
+//
+//	T *access(char *key, T *data = NULL) {
+//		unsigned int h = 5381;
+//		for (int i = 0, k; k = key[i]; i++)
+//			h = ((h << 5) + h) ^ k;    // bernstein k=33 xor
+//		h = h & (size - 1);                   // primes not much of an advantage
+//		for (Chain *c = table[h]; c; c = c->next) {
+//			for (char *p1 = key, *p2 = c->key, ch; (ch = *p1++) == *p2++;)
+//				if (!ch)    //if(strcmp(key,c->key)==0)
+//				{
+//					T *d = &c->data;
+//					if (data)
+//						c->data = *data;
+//					return d;
+//				};
+//		};
+//		if (data) {
+//			Chain *c = (Chain *) parent->alloc(sizeof(Chain));
+//			c->data = *data;
+//			c->key = key;
+//			c->next = table[h];
+//			table[h] = c;
+//			numelems++;
+//		};
+//		return NULL;
+//	}
+//};
 
-	vector(vector<T> &v);
-	void operator=(vector<T> &v);
-
-	T &add(const T &x) {
-		if (ulen == alen)
-			realloc();
-		new (&buf[ulen]) T(x);
-		return buf[ulen++];
-	}
-	;
-
-	T &add() {
-		if (ulen == alen)
-			realloc();
-		new (&buf[ulen]) T;
-		return buf[ulen++];
-	}
-	;
-
-	T &pop() {
-		return buf[--ulen];
-	}
-	;
-	T &last() {
-		return buf[ulen - 1];
-	}
-	;
-	bool empty() {
-		return ulen == 0;
-	}
-	;
-
-	int length() {
-		return ulen;
-	}
-	;
-	T &operator[](int i) {
-		assert(i >= 0 && i < ulen);
-		return buf[i];
-	}
-	;
-	void setsize(int i) {
-		for (; ulen > i; ulen--)
-			buf[ulen - 1].~T();
-	}
-	;
-	T *getbuf() {
-		return buf;
-	}
-	;
-
-	void sort(void *cf) {
-		qsort(buf, ulen, sizeof(T),
-				(int (__cdecl *)(const void *, const void *))cf);};
-
-		void realloc()
-		{
-			int olen = alen;
-			buf = (T *)p->realloc(buf, olen*sizeof(T), (alen *= 2)*sizeof(T));
-		};
-
-		T remove(int i)
-		{
-			T e = buf[i];
-			for(int p = i+1; p<ulen; p++) buf[p-1] = buf[p];
-			ulen--;
-			return e;
-		};
-
-		T &insert(int i, const T &e)
-		{
-			add(T());
-			for(int p = ulen-1; p>i; p--) buf[p] = buf[p-1];
-			buf[i] = e;
-			return buf[i];
-		};
-	};
-
-#define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)    
-#define loopvrev(v) if(false) {} else for(int i = (v).length()-1; i>=0; i--)
-
-template<class T> struct hashtable {
-	struct Chain {
-		Chain *next;
-		char *key;
-		T data;
-	};
-
-	int size;
-	int numelems;
-	Chain **table;
-	Pool *parent;
-	Chain *enumc;
-
-	hashtable() {
-		this->size = 1 << 10;
-		this->parent = gp();
-		numelems = 0;
-		table = (Chain **) parent->alloc(size * sizeof(T));
-		for (int i = 0; i < size; i++)
-			table[i] = NULL;
-	}
-
-	hashtable(hashtable<T> &v);
-	void operator=(hashtable<T> &v);
-
-	T *access(char *key, T *data = NULL) {
-		unsigned int h = 5381;
-		for (int i = 0, k; k = key[i]; i++)
-			h = ((h << 5) + h) ^ k;    // bernstein k=33 xor
-		h = h & (size - 1);                   // primes not much of an advantage
-		for (Chain *c = table[h]; c; c = c->next) {
-			for (char *p1 = key, *p2 = c->key, ch; (ch = *p1++) == *p2++;)
-				if (!ch)    //if(strcmp(key,c->key)==0)
-				{
-					T *d = &c->data;
-					if (data)
-						c->data = *data;
-					return d;
-				};
-		};
-		if (data) {
-			Chain *c = (Chain *) parent->alloc(sizeof(Chain));
-			c->data = *data;
-			c->key = key;
-			c->next = table[h];
-			table[h] = c;
-			numelems++;
-		};
-		return NULL;
-	}
-	;
-};
-
-#define enumerate(ht,t,e,b) loopi(ht->size) for(ht->enumc = ht->table[i]; ht->enumc; ht->enumc = ht->enumc->next) { t e = &ht->enumc->data; b; }
+//#define enumerate(ht,t,e,b) loopi(ht->size) for(ht->enumc = ht->table[i]; ht->enumc; ht->enumc = ht->enumc->next) { t e = &ht->enumc->data; b; }
 
 Pool *gp();
-inline char *newstring(char *s) {
-	return gp()->string(s);
+inline char *newIString(char *s) {
+	return gp()->IString(s);
 }
-;
-inline char *newstring(char *s, size_t l) {
-	return gp()->string(s, l);
+
+inline char *newIString(char *s, size_t l) {
+	return gp()->IString(s, l);
 }
-;
-inline char *newstringbuf(char *s) {
-	return gp()->stringbuf(s);
+
+inline char *newIStringbuf(char *s) {
+	return gp()->IStringbuf(s);
 }
-;
 
 #endif
 

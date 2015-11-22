@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-vector<entity> ents;
+std::vector<entity> ents;
 
 char *entmdlnames[] = { "shells", "bullets", "rockets", "rrounds", "health",
 		"boost", "g_armour", "y_armour", "quad", "teleporter", };
@@ -14,12 +14,11 @@ void renderent(entity &e, char *mdlname, float z, float yaw, int frame = 0,
 	rendermodel(mdlname, frame, numf, 0, 1.1f, e.x, z + S(e.x, e.y)->floor, e.y,
 			yaw, 0, false, 1.0f, speed, 0, basetime);
 }
-;
 
 void renderentities() {
 	if (lastmillis > triggertime + 1000)
 		triggertime = 0;
-	loopv(ents) {
+	for (int i = 0; i < ents.size(); ++i) {
 		entity &e = ents[i];
 		if (e.type == MAPMODEL) {
 			mapmodelinfo &mmi = getmminfo(e.attr2);
@@ -72,7 +71,6 @@ void renderentities() {
 		};
 	};
 }
-;
 
 struct itemstat {
 	int add, max, sound;
@@ -83,7 +81,6 @@ struct itemstat {
 void baseammo(int gun) {
 	player1->ammo[gun] = itemstats[gun - 1].add * 2;
 }
-;
 
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
@@ -96,9 +93,8 @@ void radditem(int i, int &v) {
 		v = is.max;
 	playsoundc(is.sound);
 }
-;
 
-void realpickup(int n, dynent *d) {
+void realpickup(int n, Sprite *d) {
 	switch (ents[n].type) {
 	case I_SHELLS:
 		radditem(n, d->ammo[1]);
@@ -135,7 +131,6 @@ void realpickup(int n, dynent *d) {
 		break;
 	};
 }
-;
 
 // these functions are called when the client touches the item
 
@@ -146,9 +141,8 @@ void additem(int i, int &v, int spawnsec) {
 		ents[i].spawned = false;           // even if someone else gets it first
 	};
 }
-;
 
-void teleport(int n, dynent *d)     // also used by monsters
+void teleport(int n, Sprite *d)     // also used by monsters
 		{
 	int e = -1, tag = ents[n].attr1, beenhere = -1;
 	for (;;) {
@@ -172,9 +166,8 @@ void teleport(int n, dynent *d)     // also used by monsters
 		};
 	};
 }
-;
 
-void pickup(int n, dynent *d) {
+void pickup(int n, Sprite *d) {
 	int np = 1;
 	loopv(players)
 		if (players[i])
@@ -247,7 +240,6 @@ void pickup(int n, dynent *d) {
 		;
 	};
 }
-;
 
 void checkitems() {
 	if (editmode)
@@ -266,7 +258,6 @@ void checkitems() {
 			pickup(i, player1);
 	};
 }
-;
 
 void checkquad(int time) {
 	if (player1->quadmillis && (player1->quadmillis -= time) < 0) {
@@ -275,7 +266,6 @@ void checkquad(int time) {
 		conoutf("quad damage is over");
 	};
 }
-;
 
 void putitems(uchar *&p) // puts items in network stream and also spawns them locally
 		{
@@ -286,15 +276,14 @@ void putitems(uchar *&p) // puts items in network stream and also spawns them lo
 			ents[i].spawned = true;
 		};
 }
-;
 
 void resetspawns() {
 	loopv(ents)
 		ents[i].spawned = false;
 }
-;
+
 void setspawn(uint i, bool on) {
-	if (i < (uint) ents.length())
+	if (i < (uint) ents.size())
 		ents[i].spawned = on;
 }
-;
+

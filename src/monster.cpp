@@ -2,21 +2,21 @@
 
 #include "cube.h"
 
-dvector monsters;
+std::vector<Sprite *> monsters;
 int nextmonster, spawnremain, numkilled, monstertotal, mtimestart;
 
 VARF(skill, 1, 3, 10, conoutf("skill is now %d", skill));
 
-dvector &getmonsters() {
+std::vector<Sprite *> &getmonsters() {
 	return monsters;
 }
-;
+
 void restoremonsterstate() {
 	loopv(monsters)
 		if (monsters[i]->state == CS_DEAD)
 			numkilled++;
 }
-;
+
 // for savegames
 
 #define TOTMFREQ 13
@@ -44,12 +44,12 @@ monstertypes[NUMMONSTERTYPES] = { { GUN_FIREBALL, 15, 100, 3, 0, 100, 800, 1,
 				200, 400, 2, 13, 10, S_PAIND, S_DEATHD, "a goblin",
 				"monster/goblin" }, };
 
-dynent *basicmonster(int type, int yaw, int state, int trigger, int move) {
+Sprite *basicmonster(int type, int yaw, int state, int trigger, int move) {
 	if (type >= NUMMONSTERTYPES) {
 		conoutf("warning: unknown monster in spawn: %d", type);
 		type = 0;
 	};
-	dynent *m = newdynent();
+	Sprite *m = newSprite();
 	monstertype *t = &monstertypes[m->mtype = type];
 	m->eyeheight = 2.0f;
 	m->aboveeye = 1.9f;
@@ -74,10 +74,9 @@ dynent *basicmonster(int type, int yaw, int state, int trigger, int move) {
 	m->state = CS_ALIVE;
 	m->anger = 0;
 	strcpy_s(m->name, t->name);
-	monsters.add(m);
+	monsters.emplace_back(m);
 	return m;
 }
-;
 
 void spawnmonster() // spawn a random monster according to freq distribution in DMSP
 {
@@ -89,13 +88,12 @@ void spawnmonster() // spawn a random monster according to freq distribution in 
 		};
 	basicmonster(type, rnd(360), M_SEARCH, 1000, 1);
 }
-;
 
 void monsterclear() // called after map start of when toggling edit mode to reset/spawn all monsters to initial state
 {
 	loopv(monsters)
-		gp()->dealloc(monsters[i], sizeof(dynent));
-	monsters.setsize(0);
+		gp()->dealloc(monsters[i], sizeof(Sprite));
+	monsters.resize(0);
 	numkilled = 0;
 	monstertotal = 0;
 	spawnremain = 0;
@@ -106,7 +104,7 @@ void monsterclear() // called after map start of when toggling edit mode to rese
 		mtimestart = lastmillis;
 		loopv(ents)
 			if (ents[i].type == MONSTER) {
-				dynent *m = basicmonster(ents[i].attr2, ents[i].attr1, M_SLEEP,
+				Sprite *m = basicmonster(ents[i].attr2, ents[i].attr1, M_SLEEP,
 						100, 0);
 				m->o.x = ents[i].x;
 				m->o.y = ents[i].y;
@@ -116,7 +114,6 @@ void monsterclear() // called after map start of when toggling edit mode to rese
 			};
 	};
 }
-;
 
 bool los(float lx, float ly, float lz, float bx, float by, float bz, vec &v) // height-correct line of sight for monster shooting/seeing
 		{
@@ -152,14 +149,12 @@ bool los(float lx, float ly, float lz, float bx, float by, float bz, vec &v) // 
 	};
 	return i >= steps;
 }
-;
 
-bool enemylos(dynent *m, vec &v) {
+bool enemylos(Sprite *m, vec &v) {
 	v = m->o;
 	return los(m->o.x, m->o.y, m->o.z, m->enemy->o.x, m->enemy->o.y,
 			m->enemy->o.z, v);
 }
-;
 
 // monster AI is sequenced using transitions: they are in a particular state where
 // they execute a particular behaviour until the trigger time is hit, and then they
@@ -167,24 +162,22 @@ bool enemylos(dynent *m, vec &v) {
 // transition to the next state. Transition timeframes are parametrized by difficulty
 // level (skill), faster transitions means quicker decision making means tougher AI.
 
-void transition(dynent *m, int state, int moving, int n, int r) // n = at skill 0, n/2 = at skill 10, r = added random factor
+void transition(Sprite *m, int state, int moving, int n, int r) // n = at skill 0, n/2 = at skill 10, r = added random factor
 		{
 	m->monsterstate = state;
 	m->move = moving;
 	n = n * 130 / 100;
 	m->trigger = lastmillis + n - skill * (n / 16) + rnd(r + 1);
 }
-;
 
-void normalise(dynent *m, float angle) {
+void normalise(Sprite *m, float angle) {
 	while (m->yaw < angle - 180.0f)
 		m->yaw += 360.0f;
 	while (m->yaw > angle + 180.0f)
 		m->yaw -= 360.0f;
 }
-;
 
-void monsteraction(dynent *m) // main AI thinking routine, called every frame for every monster
+void monsteraction(Sprite *m) // main AI thinking routine, called every frame for every monster
 		{
 	if (m->enemy->state == CS_DEAD) {
 		m->enemy = player1;
@@ -283,9 +276,8 @@ void monsteraction(dynent *m) // main AI thinking routine, called every frame fo
 
 	moveplayer(m, 1, false);        // use physics to move monster
 }
-;
 
-void monsterpain(dynent *m, int damage, dynent *d) {
+void monsterpain(Sprite *m, int damage, Sprite *d) {
 	if (d->monsterstate)     // a monster hit us
 	{
 		if (m != d)            // guard for RL guys shooting themselves :)
@@ -314,7 +306,6 @@ void monsterpain(dynent *m, int damage, dynent *d) {
 		playsound(monstertypes[m->mtype].painsound, &m->o);
 	};
 }
-;
 
 void endsp(bool allkilled) {
 	conoutf(allkilled ? "you have cleared the map!" : "you reached the exit!");
@@ -323,7 +314,6 @@ void endsp(bool allkilled) {
 	monstertotal = 0;
 	startintermission();
 }
-;
 
 void monsterthink() {
 	if (m_dmsp && spawnremain && lastmillis > nextmonster) {
@@ -363,7 +353,6 @@ void monsterthink() {
 		if (monsters[i]->state == CS_ALIVE)
 			monsteraction(monsters[i]);
 }
-;
 
 void monsterrender() {
 	loopv(monsters)
@@ -372,4 +361,4 @@ void monsterrender() {
 				monsters[i]->mtype == 5,
 				monstertypes[monsters[i]->mtype].mscale / 10.0f);
 }
-;
+

@@ -7,20 +7,20 @@ enum {
 	ST_EMPTY, ST_LOCAL, ST_TCPIP
 };
 
-struct client                   // server side version of "dynent" type
+struct client                   // server side version of "Sprite" type
 {
 	int type;
 	ENetPeer *peer;
-	string hostname;
-	string mapvote;
-	string name;
+	IString hostname;
+	IString mapvote;
+	IString name;
 	int modevote;
 };
 
-vector<client> clients;
+std::vector<client> clients;
 
 int maxclients = 8;
-string smapname;
+IString smapname;
 
 struct server_entity            // server side version of "entity" type
 {
@@ -28,19 +28,18 @@ struct server_entity            // server side version of "entity" type
 	int spawnsecs;
 };
 
-vector<server_entity> sents;
+std::vector<server_entity> sents;
 
 bool notgotitems = true; // true when map has changed and waiting for clients to send item
 int mode = 0;
 
-void restoreserverstate(vector<entity> &ents) // hack: called from savegame code, only works in SP
+void restoreserverstate(std::vector<entity> &ents) // hack: called from savegame code, only works in SP
 		{
 	loopv(sents) {
 		sents[i].spawned = ents[i].spawned;
 		sents[i].spawnsecs = 0;
 	};
 }
-;
 
 int interm = 0, minremain = 0, mapend = 0;
 bool mapreload = false;
@@ -74,7 +73,6 @@ void send(int n, ENetPacket *packet) {
 
 	};
 }
-;
 
 void send2(bool rel, int cn, int a, int b) {
 	ENetPacket *packet = enet_packet_create(NULL, 32,
@@ -92,7 +90,6 @@ void send2(bool rel, int cn, int a, int b) {
 	if (packet->referenceCount == 0)
 		enet_packet_destroy(packet);
 }
-;
 
 void sendservmsg(char *msg) {
 	ENetPacket *packet = enet_packet_create(NULL, _MAXDEFSTR + 10,
@@ -100,14 +97,13 @@ void sendservmsg(char *msg) {
 	uchar *start = packet->data;
 	uchar *p = start + 2;
 	putint(p, SV_SERVMSG);
-	sendstring(msg, p);
+	sendIString(msg, p);
 	*(ushort *) start = ENET_HOST_TO_NET_16(p - start);
 	enet_packet_resize(packet, p - start);
 	multicast(packet, -1);
 	if (packet->referenceCount == 0)
 		enet_packet_destroy(packet);
 }
-;
 
 void disconnect_client(int n, char *reason) {
 	printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
@@ -115,17 +111,15 @@ void disconnect_client(int n, char *reason) {
 	clients[n].type = ST_EMPTY;
 	send2(true, -1, SV_CDIS, n);
 }
-;
 
 void resetitems() {
-	sents.setsize(0);
+	sents.resize(0);
 	notgotitems = true;
 }
-;
 
 void pickup(uint i, int sec, int sender) // server side item pickup, acknowledge first client that gets it
 		{
-	if (i >= (uint) sents.length())
+	if (i >= (uint) sents.size())
 		return;
 	if (sents[i].spawned) {
 		sents[i].spawned = false;
@@ -133,13 +127,11 @@ void pickup(uint i, int sec, int sender) // server side item pickup, acknowledge
 		send2(true, sender, SV_ITEMACC, i);
 	};
 }
-;
 
 void resetvotes() {
 	loopv(clients)
 		clients[i].mapvote[0] = 0;
 }
-;
 
 bool vote(char *map, int reqmode, int sender) {
 	strcpy_s(clients[sender].mapvote, map);
@@ -159,7 +151,7 @@ bool vote(char *map, int reqmode, int sender) {
 	if (yes == 1 && no == 0)
 		return true;  // single player
 
-	string msg;
+	IString msg;
 	std::sprintf(msg, "%s suggests %s on map %s (set map to vote)",
 			clients[sender].name, modestr(reqmode), map);
 	sendservmsg(msg);
@@ -169,7 +161,6 @@ bool vote(char *map, int reqmode, int sender) {
 	resetvotes();
 	return true;
 }
-;
 
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
@@ -227,8 +218,8 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			while ((n = getint(p)) != -1)
 				if (notgotitems) {
 					server_entity se = { false, 0 };
-					while (sents.length() <= n)
-						sents.add(se);
+					while (sents.size() <= n)
+						sents.emplace_back(se);
 					sents[n].spawned = true;
 				};
 			notgotitems = false;
@@ -249,7 +240,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
 		case SV_POS: {
 			cn = getint(p);
-			if (cn < 0 || cn >= clients.length()
+			if (cn < 0 || cn >= clients.size()
 					|| clients[cn].type == ST_EMPTY) {
 				disconnect_client(sender, "client num");
 				return;
@@ -300,7 +291,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 	};
 	multicast(packet, sender);
 }
-;
 
 void send_welcome(int n) {
 	ENetPacket * packet = enet_packet_create(NULL, MAXTRANS,
@@ -311,11 +301,11 @@ void send_welcome(int n) {
 	putint(p, n);
 	putint(p, PROTOCOL_VERSION);
 	putint(p, smapname[0]);
-	sendstring(serverpassword, p);
-	putint(p, clients.length() > maxclients);
+	sendIString(serverpassword, p);
+	putint(p, clients.size() > maxclients);
 	if (smapname[0]) {
 		putint(p, SV_MAPCHANGE);
-		sendstring(smapname, p);
+		sendIString(smapname, p);
 		putint(p, mode);
 		putint(p, SV_ITEMLIST);
 		loopv(sents)
@@ -327,7 +317,6 @@ void send_welcome(int n) {
 	enet_packet_resize(packet, p - start);
 	send(n, packet);
 }
-;
 
 void multicast(ENetPacket *packet, int sender) {
 	loopv(clients) {
@@ -336,22 +325,20 @@ void multicast(ENetPacket *packet, int sender) {
 		send(i, packet);
 	};
 }
-;
 
 void localclienttoserver(ENetPacket *packet) {
 	process(packet, 0);
 	if (!packet->referenceCount)
 		enet_packet_destroy(packet);
 }
-;
 
 client &addclient() {
 	loopv(clients)
 		if (clients[i].type == ST_EMPTY)
 			return clients[i];
-	return clients.add();
+	clients.emplace_back(client());
+	return clients.back();
 }
-;
 
 void checkintermission() {
 	if (!minremain) {
@@ -360,19 +347,17 @@ void checkintermission() {
 	};
 	send2(true, -1, SV_TIMEUP, minremain--);
 }
-;
 
 void startintermission() {
 	minremain = 0;
 	checkintermission();
 }
-;
 
 void resetserverifempty() {
 	loopv(clients)
 		if (clients[i].type != ST_EMPTY)
 			return;
-	clients.setsize(0);
+	clients.resize(0);
 	smapname[0] = 0;
 	resetvotes();
 	resetitems();
@@ -382,7 +367,6 @@ void resetserverifempty() {
 	mapend = lastsec + minremain * 60;
 	interm = 0;
 }
-;
 
 int nonlocalclients = 0;
 int lastconnect = 0;
@@ -424,7 +408,7 @@ void serverslice(int seconds, unsigned int timeout) // main server update, calle
 		if (clients[i].type != ST_EMPTY)
 			++numplayers;
 	serverms(mode, numplayers, minremain, smapname, seconds,
-			clients.length() >= maxclients);
+			clients.size() >= maxclients);
 
 	if (seconds - laststatus > 60) // display bandwidth stats, useful for server ops
 			{
@@ -481,20 +465,17 @@ void serverslice(int seconds, unsigned int timeout) // main server update, calle
 	fflush(stdout);
 #endif
 }
-;
 
 void cleanupserver() {
 	if (serverhost)
 		enet_host_destroy(serverhost);
 }
-;
 
 void localdisconnect() {
 	loopv(clients)
 		if (clients[i].type == ST_LOCAL)
 			clients[i].type = ST_EMPTY;
 }
-;
 
 void localconnect() {
 	client &c = addclient();
@@ -502,7 +483,6 @@ void localconnect() {
 	strcpy_s(c.hostname, "local");
 	send_welcome(&c - &clients[0]);
 }
-;
 
 void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 		char *passwd, int maxcl) {
@@ -537,4 +517,4 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 			serverslice(/*enet_time_get_sec()*/time(NULL), 5);
 	};
 }
-;
+

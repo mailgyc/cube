@@ -4,33 +4,30 @@
 
 extern int clientnum;
 extern bool c2sinit, senditemstoserver;
-extern string toservermap;
-extern string clientpassword;
+extern IString toservermap;
+extern IString clientpassword;
 
 void neterr(char *s) {
 	conoutf("illegal network message (%s)", s);
 	disconnect();
 }
-;
 
 void changemapserv(char *name, int mode)    // forced map change from the server
 		{
 	gamemode = mode;
 	load_world(name);
 }
-;
 
 void changemap(char *name)              // request map change, server may ignore
 		{
 	strcpy_s(toservermap, name);
 }
-;
 
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
 // just don't overlap with our client
 
-void updatepos(dynent *d) {
+void updatepos(Sprite *d) {
 	const float r = player1->radius + d->radius;
 	const float dx = player1->o.x - d->o.x;
 	const float dy = player1->o.y - d->o.y;
@@ -50,7 +47,6 @@ void updatepos(dynent *d) {
 		d->lastupdate = lastmillis;
 	};
 }
-;
 
 void localservertoclient(uchar *buf, int len) // processes any updates from the server
 		{
@@ -62,7 +58,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 	uchar *p = buf + 2;
 	char text[MAXTRANS];
 	int cn = -1, type;
-	dynent *d = NULL;
+	Sprite *d = NULL;
 	bool mapchanged = false;
 
 	while (p < end)
@@ -160,7 +156,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_MAPRELOAD:          // server requests next map
 		{
 			getint(p);
-			string nextmapalias;
+			IString nextmapalias;
 			std::sprintf(nextmapalias, "nextmap_%s", getclientmap());
 			char *map = getalias(nextmapalias);     // look up map in the cycle
 			changemap(map ? map : getclientmap());
@@ -196,7 +192,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				break;
 			conoutf("player %s disconnected",
 					d->name[0] ? d->name : "[incompatible client]");
-			zapdynent(players[cn]);
+			zapSprite(players[cn]);
 			break;
 
 		case SV_SHOT: {
@@ -243,7 +239,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				};
 				addmsg(1, 2, SV_FRAGS, player1->frags += frags);
 			} else {
-				dynent *a = getclient(actor);
+				Sprite *a = getclient(actor);
 				if (a) {
 					if (isteam(a->team, d->name)) {
 						conoutf("%s fragged his teammate (%s)", a->name,
@@ -271,7 +267,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_ITEMSPAWN: {
 			uint i = getint(p);
 			setspawn(i, true);
-			if (i >= (uint) ents.length())
+			if (i >= (uint) ents.size())
 				break;
 			vec v = { ents[i].x, ents[i].y, ents[i].z };
 			playsound(S_ITEMSPAWN, &v);
@@ -318,8 +314,10 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_EDITENT:            // coop edit of ent
 		{
 			uint i = getint(p);
-			while ((uint) ents.length() <= i)
-				ents.add().type = NOTUSED;
+			while ((uint) ents.size() <= i) {
+				ents.emplace_back(entity());
+				ents.back().type = NOTUSED;
+			}
 			int to = ents[i].type;
 			ents[i].type = getint(p);
 			ents[i].x = getint(p);
@@ -389,4 +387,4 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			return;
 		};
 }
-;
+

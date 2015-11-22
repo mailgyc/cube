@@ -108,12 +108,10 @@ bool md2::load(char* filename) {
 
 	return true;
 }
-;
 
 float snap(int sn, float f) {
 	return sn ? (float) (((int) (f + sn * 0.5f)) & (~(sn - 1))) : f;
 }
-;
 
 void md2::scale(int frame, float scale, int sn) {
 	mverts[frame] = new vec[numVerts];
@@ -128,7 +126,6 @@ void md2::scale(int frame, float scale, int sn) {
 		v->z = (snap(sn, cv[2] * cf->scale[2]) + cf->translate[2]) / sc;
 	};
 }
-;
 
 void md2::render(vec &light, int frame, int range, float x, float y, float z,
 		float yaw, float pitch, float sc, float speed, int snap, int basetime) {
@@ -200,25 +197,24 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z,
 }
 
 hashtable<md2 *> *mdllookup = NULL;
-vector<md2 *> mapmodels;
+std::vector<md2 *> mapmodels;
 const int FIRSTMDL = 20;
 
 void delayedload(md2 *m) {
 	if (!m->loaded) {
 
-		string name1;
+		IString name1;
 		std::sprintf(name1, "packages/models/%s/tris.md2", m->loadname);
 		if (!m->load(path(name1)))
 			fatal("loadmodel: ", name1);
 
-		string name2;
+		IString name2;
 		std::sprintf(name2, "packages/models/%s/skin.jpg", m->loadname);
 		int xs, ys;
 		installtex(FIRSTMDL + m->mdlnum, path(name2), xs, ys);
 		m->loaded = true;
 	};
 }
-;
 
 int modelnum = 0;
 
@@ -232,30 +228,26 @@ md2 *loadmodel(char *name) {
 	m->mdlnum = modelnum++;
 	mapmodelinfo mmi = { 2, 2, 0, 0, "" };
 	m->mmi = mmi;
-	m->loadname = newstring(name);
+	m->loadname = newIString(name);
 	mdllookup->access(m->loadname, &m);
 	return m;
 }
-;
 
 void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name) {
 	md2 *m = loadmodel(name);
 	mapmodelinfo mmi =
 			{ atoi(rad), atoi(h), atoi(zoff), atoi(snap), m->loadname };
 	m->mmi = mmi;
-	mapmodels.add(m);
+	mapmodels.emplace_back(m);
 }
-;
 
 void mapmodelreset() {
-	mapmodels.setsize(0);
+	mapmodels.resize(0);
 }
-;
 
 mapmodelinfo &getmminfo(int i) {
-	return i < mapmodels.length() ? mapmodels[i]->mmi : *(mapmodelinfo *) 0;
+	return i < mapmodels.size() ? mapmodels[i]->mmi : *(mapmodelinfo *) 0;
 }
-;
 
 COMMAND(mapmodel, ARG_5STR);
 COMMAND(mapmodelreset, ARG_NONE);
@@ -296,4 +288,4 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x,
 	m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap,
 			basetime);
 }
-;
+

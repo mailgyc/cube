@@ -12,7 +12,6 @@ bool c2sinit = false;     // whether we need to tell the other clients our stats
 int getclientnum() {
 	return clientnum;
 }
-;
 
 bool multiplayer() {
 	// check not correct on listen server?
@@ -20,7 +19,6 @@ bool multiplayer() {
 		conoutf("operation not available in multiplayer");
 	return clienthost != NULL;
 }
-;
 
 bool allowedittoggle() {
 	bool allow = !clienthost || gamemode == 1;
@@ -28,7 +26,6 @@ bool allowedittoggle() {
 		conoutf("editing in multiplayer requires coopedit mode (1)");
 	return allow;
 }
-;
 
 VARF(rate, 0, 0, 25000,
 		if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
@@ -46,18 +43,16 @@ void throttle() {
 	enet_peer_throttle_configure(clienthost->peers, throttle_interval * 1000,
 			throttle_accel, throttle_decel);
 }
-;
 
 void newname(char *name) {
 	c2sinit = false;
 	strn0cpy(player1->name, name, 16);
 }
-;
+
 void newteam(char *name) {
 	c2sinit = false;
 	strn0cpy(player1->team, name, 5);
 }
-;
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
@@ -65,7 +60,6 @@ COMMANDN(name, newname, ARG_1STR);
 void writeclientinfo(FILE *f) {
 	fprintf(f, "name \"%s\"\nteam \"%s\"\n", player1->name, player1->team);
 }
-;
 
 void connects(char *servername) {
 	disconnect(1);  // reset state
@@ -90,7 +84,6 @@ void connects(char *servername) {
 		disconnect();
 	};
 }
-;
 
 void disconnect(int onlyclean, int async) {
 	if (clienthost) {
@@ -117,7 +110,7 @@ void disconnect(int onlyclean, int async) {
 	c2sinit = false;
 	player1->lifesequence = 0;
 	loopv(players)
-		zapdynent(players[i]);
+		zapSprite(players[i]);
 
 	localdisconnect();
 
@@ -126,7 +119,6 @@ void disconnect(int onlyclean, int async) {
 		localconnect();
 	};
 }
-;
 
 void trydisconnect() {
 	if (!clienthost) {
@@ -141,18 +133,16 @@ void trydisconnect() {
 	conoutf("attempting to disconnect...");
 	disconnect(0, !disconnecting);
 }
-;
 
-string ctext;
+IString ctext;
 void toserver(char *text) {
 	conoutf("%s:\f %s", player1->name, text);
 	strn0cpy(ctext, text, 80);
 }
-;
+
 void echo(char *text) {
 	conoutf("%s", text);
 }
-;
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
@@ -161,54 +151,53 @@ COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
 // collect c2s messages conveniently
 
-vector<ivector> messages;
+std::vector<std::vector<int>> messages;
 
 void addmsg(int rel, int num, int type, ...) {
 	if (demoplayback)
 		return;
 	if (num != msgsizelookup(type)) {
-		string s;
-		std::sprintf(s, "inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type));
+		IString s;
+		std::sprintf(s, "inconsistant msg size for %d (%d != %d)", type, num,
+				msgsizelookup(type));
 		fatal(s);
 	};
-	if (messages.length() == 100) {
+	if (messages.size() == 100) {
 		conoutf("command flood protection (type %d)", type);
 		return;
 	};
-	ivector &msg = messages.add();
-	msg.add(num);
-	msg.add(rel);
-	msg.add(type);
+	std::vector<int> msg;
+	msg.emplace_back(num);
+	msg.emplace_back(rel);
+	msg.emplace_back(type);
 	va_list marker;
 	va_start(marker, type);
 	loopi(num-1)
-		msg.add(va_arg(marker, int));
+		msg.emplace_back(va_arg(marker, int));
 	va_end(marker);
+	messages.emplace_back(msg);
 }
-;
 
 void server_err() {
 	conoutf("server network error, disconnecting...");
 	disconnect();
 }
-;
 
 int lastupdate = 0, lastping = 0;
-string toservermap;
+IString toservermap;
 bool senditemstoserver = false; // after a map change, since server doesn't have map data
 
-string clientpassword;
+IString clientpassword;
 void password(char *p) {
 	strcpy_s(clientpassword, p);
 }
-;
+
 COMMAND(password, ARG_1STR);
 
 bool netmapstart() {
 	senditemstoserver = true;
 	return clienthost != NULL;
 }
-;
 
 void initclientnet() {
 	ctext[0] = 0;
@@ -217,7 +206,6 @@ void initclientnet() {
 	newname("unnamed");
 	newteam("red");
 }
-;
 
 void sendpackettoserv(void *packet) {
 	if (clienthost) {
@@ -227,7 +215,7 @@ void sendpackettoserv(void *packet) {
 		localclienttoserver((ENetPacket *) packet);
 }
 
-void c2sinfo(dynent *d)                     // send update to the server
+void c2sinfo(Sprite *d)                     // send update to the server
 		{
 	if (clientnum < 0)
 		return;          // we haven't had a welcome message from the server yet
@@ -241,7 +229,7 @@ void c2sinfo(dynent *d)                     // send update to the server
 	{         // do this exclusively as map change may invalidate rest of update
 		packet->flags = ENET_PACKET_FLAG_RELIABLE;
 		putint(p, SV_MAPCHANGE);
-		sendstring(toservermap, p);
+		sendIString(toservermap, p);
 		toservermap[0] = 0;
 		putint(p, nextmode);
 	} else {
@@ -275,7 +263,7 @@ void c2sinfo(dynent *d)                     // send update to the server
 		{
 			packet->flags = ENET_PACKET_FLAG_RELIABLE;
 			putint(p, SV_TEXT);
-			sendstring(ctext, p);
+			sendIString(ctext, p);
 			ctext[0] = 0;
 		};
 		if (!c2sinit)    // tell other clients who I am
@@ -283,19 +271,19 @@ void c2sinfo(dynent *d)                     // send update to the server
 			packet->flags = ENET_PACKET_FLAG_RELIABLE;
 			c2sinit = true;
 			putint(p, SV_INITC2S);
-			sendstring(player1->name, p);
-			sendstring(player1->team, p);
+			sendIString(player1->name, p);
+			sendIString(player1->team, p);
 			putint(p, player1->lifesequence);
 		};
 		loopv(messages) // send messages collected during the previous frames
 		{
-			ivector &msg = messages[i];
+			std::vector<int> &msg = messages[i];
 			if (msg[1])
 				packet->flags = ENET_PACKET_FLAG_RELIABLE;
 			loopi(msg[0])
 				putint(p, msg[i + 2]);
 		};
-		messages.setsize(0);
+		messages.resize(0);
 		if (lastmillis - lastping > 250) {
 			putint(p, SV_PING);
 			putint(p, lastmillis);
@@ -314,7 +302,6 @@ void c2sinfo(dynent *d)                     // send update to the server
 	if (serveriteminitdone)
 		loadgamerest();  // hack
 }
-;
 
 void gets2c()           // get updates from the server
 {
@@ -356,5 +343,4 @@ void gets2c()           // get updates from the server
 			return;
 		}
 }
-;
 

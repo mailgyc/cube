@@ -196,8 +196,8 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z,
 	glPopMatrix();
 }
 
-hashtable<md2 *> *mdllookup = NULL;
-std::vector<md2 *> mapmodels;
+static std::map<std::string, md2 *> mdllookup;
+static std::vector<md2 *> mapmodels;
 const int FIRSTMDL = 20;
 
 void delayedload(md2 *m) {
@@ -219,17 +219,15 @@ void delayedload(md2 *m) {
 int modelnum = 0;
 
 md2 *loadmodel(char *name) {
-	if (!mdllookup)
-		mdllookup = new hashtable<md2 *>;
-	md2 **mm = mdllookup->access(name);
-	if (mm)
-		return *mm;
+	if (mdllookup.find(name) != mdllookup.end()) {
+		return mdllookup[name];
+	}
 	md2 *m = new md2();
 	m->mdlnum = modelnum++;
 	mapmodelinfo mmi = { 2, 2, 0, 0, "" };
 	m->mmi = mmi;
 	m->loadname = newIString(name);
-	mdllookup->access(m->loadname, &m);
+	mdllookup[m->loadname] = m;
 	return m;
 }
 

@@ -48,7 +48,6 @@ void toggleedit() {
 	editing = editmode;
 }
 
-
 COMMANDN(edittoggle, toggleedit, ARG_NONE);
 
 void correctsel()                                     // ensures above invariant
@@ -63,7 +62,6 @@ void correctsel()                                     // ensures above invariant
 		selset = false;
 }
 
-
 bool noteditmode() {
 	correctsel();
 	if (!editmode)
@@ -71,13 +69,11 @@ bool noteditmode() {
 	return !editmode;
 }
 
-
 bool noselection() {
 	if (!selset)
 		conoutf("no selection");
 	return !selset;
 }
-
 
 #define EDITSEL   if(noteditmode() || noselection()) return;
 #define EDITSELMP if(noteditmode() || noselection() || multiplayer()) return;
@@ -90,7 +86,6 @@ void selectpos(int x, int y, int xs, int ys) {
 	correctsel();
 }
 
-
 void makesel() {
 	block s = { min(lastx, cx), min(lasty, cy), abs(lastx - cx) + 1, abs(
 			lasty - cy) + 1 };
@@ -101,7 +96,6 @@ void makesel() {
 		rtex = *S(sel.x, sel.y);
 }
 
-
 VAR(flrceil, 0, 0, 2);
 
 float sheight(sqr *s, sqr *t, float z) // finds out z height when cursor points at wall
@@ -110,7 +104,6 @@ float sheight(sqr *s, sqr *t, float z) // finds out z height when cursor points 
 	? (s->type == FHF ? s->floor - t->vdelta / 4.0f : (float) s->floor) : (
 			s->type == CHF ? s->ceil + t->vdelta / 4.0f : (float) s->ceil);
 }
-
 
 void cursorupdate()                               // called every frame from hud
 {
@@ -198,26 +191,24 @@ void cursorupdate()                               // called every frame from hud
 	};
 }
 
-
-vector<block *> undos;                                  // unlimited undo
+std::vector<block *> undos;                                  // unlimited undo
 VARP(undomegs, 0, 1, 10);                                // bounded by n megs
 
 void pruneundos(int maxremain)                          // bound memory
 		{
 	int t = 0;
-	loopvrev(undos) {
-		t += undos[i]->xs * undos[i]->ys * sizeof(sqr);
-		if (t > maxremain)
-			free(undos.remove(i));
-	};
+	for (auto it = undos.begin(); it != undos.end();) {
+		block *b = *it;
+		t += b->xs * b->ys * sizeof(sqr);
+		free(b);
+		it = undos.erase(it);
+	}
 }
-
 
 void makeundo() {
-	undos.add(blockcopy(sel));
+	undos.emplace_back(blockcopy(sel));
 	pruneundos(undomegs << 20);
 }
-
 
 void editundo() {
 	EDITMP;
@@ -225,11 +216,11 @@ void editundo() {
 		conoutf("nothing more to undo");
 		return;
 	};
-	block *p = undos.pop();
+	block *p = undos.back();
+	undos.pop_back();
 	blockpaste(*p);
 	free(p);
 }
-
 
 block *copybuf = NULL;
 
@@ -239,7 +230,6 @@ void copy() {
 		free(copybuf);
 	copybuf = blockcopy(sel);
 }
-
 
 void paste() {
 	EDITMP;
@@ -260,7 +250,6 @@ void paste() {
 	blockpaste(*copybuf);
 }
 
-
 void tofronttex() // maintain most recently used of the texture lists when applying texture
 {
 	loopi(3)
@@ -277,7 +266,6 @@ void tofronttex() // maintain most recently used of the texture lists when apply
 	};
 }
 
-
 void editdrag(bool isdown) {
 	if (dragging = isdown) {
 		lastx = cx;
@@ -288,7 +276,6 @@ void editdrag(bool isdown) {
 	};
 	makesel();
 }
-
 
 // the core editing function. all the *xy functions perform the core operations
 // and are also called directly from the network, the function below it is strictly
@@ -310,14 +297,12 @@ void editheightxy(bool isfloor, int amount, block &sel) {
 	});
 }
 
-
 void editheight(int flr, int amount) {
 	EDITSEL;
 	bool isfloor = flr == 0;
 	editheightxy(isfloor, amount, sel);
 	addmsg(1, 7, SV_EDITH, sel.x, sel.y, sel.xs, sel.ys, isfloor, amount);
 }
-
 
 COMMAND(editheight, ARG_2INT);
 
@@ -342,7 +327,6 @@ void edittexxy(int type, int t, block &sel) {
 	});
 }
 
-
 void edittex(int type, int dir) {
 	EDITSEL;
 	if (type < 0 || type > 3)
@@ -359,7 +343,6 @@ void edittex(int type, int dir) {
 	edittexxy(type, t, sel);
 	addmsg(1, 7, SV_EDITT, sel.x, sel.y, sel.xs, sel.ys, type, t);
 }
-
 
 void replace() {
 	EDITSELMP;
@@ -390,11 +373,9 @@ void replace() {
 	remip(b);
 }
 
-
 void edittypexy(int type, block &sel) {
 	loopselxy(s->type = type);
 }
-
 
 void edittype(int type) {
 	EDITSEL;
@@ -408,7 +389,6 @@ void edittype(int type) {
 	addmsg(1, 6, SV_EDITS, sel.x, sel.y, sel.xs, sel.ys, type);
 }
 
-
 void heightfield(int t) {
 	edittype(t == 0 ? FHF : CHF);
 }
@@ -420,7 +400,6 @@ void solid(int t) {
 void corner() {
 	edittype(CORNER);
 }
-
 
 COMMAND(heightfield, ARG_1INT);
 COMMAND(solid, ARG_1INT);
@@ -449,14 +428,12 @@ void editequalisexy(bool isfloor, block &sel) {
 	});
 }
 
-
 void equalize(int flr) {
 	bool isfloor = flr == 0;
 	EDITSEL;
 	editequalisexy(isfloor, sel);
 	addmsg(1, 6, SV_EDITE, sel.x, sel.y, sel.xs, sel.ys, isfloor);
 }
-
 
 COMMAND(equalize, ARG_1INT);
 
@@ -465,13 +442,11 @@ void setvdeltaxy(int delta, block &sel) {
 	remipmore(sel);
 }
 
-
 void setvdelta(int delta) {
 	EDITSEL;
 	setvdeltaxy(delta, sel);
 	addmsg(1, 6, SV_EDITD, sel.x, sel.y, sel.xs, sel.ys, delta);
 }
-
 
 const int MAXARCHVERT = 50;
 int archverts[MAXARCHVERT][MAXARCHVERT];
@@ -488,7 +463,6 @@ void archvertex(int span, int vert, int delta) {
 		return;
 	archverts[span][vert] = delta;
 }
-
 
 void arch(int sidedelta, int _a) {
 	EDITSELMP;
@@ -508,7 +482,6 @@ void arch(int sidedelta, int _a) {
 	remipmore(sel);
 }
 
-
 void slope(int xd, int yd) {
 	EDITSELMP;
 	int off = 0;
@@ -521,7 +494,6 @@ void slope(int xd, int yd) {
 	loopselxy(s->vdelta = xd * x + yd * y + off);
 	remipmore(sel);
 }
-
 
 void perlin(int scale, int seed, int psize) {
 	EDITSELMP;
@@ -538,7 +510,6 @@ void perlin(int scale, int seed, int psize) {
 	sel.ys--;
 }
 
-
 VARF(fullbright, 0, 0, 1,
 		if(fullbright) { if(noteditmode()) return; loopi(mipsize) world[i].r = world[i].g = world[i].b = 176; };);
 
@@ -547,13 +518,11 @@ void edittag(int tag) {
 	loopselxy(s->tag = tag);
 }
 
-
 void newent(char *what, char *a1, char *a2, char *a3, char *a4) {
 	EDITSEL;
 	newentity(sel.x, sel.y, (int) player1->o.z, what, ATOI(a1), ATOI(a2),
 			ATOI(a3), ATOI(a4));
 }
-
 
 COMMANDN(select, selectpos, ARG_4INT);
 COMMAND(edittag, ARG_1INT);

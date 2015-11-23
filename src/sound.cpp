@@ -50,7 +50,6 @@ void stopsound() {
 	};
 }
 
-
 VAR(soundbufferlen, 128, 1024, 4096);
 
 void initsound() {
@@ -71,13 +70,12 @@ void initsound() {
 #endif
 }
 
-
 void music(char *name) {
 	if (nosound)
 		return;
 	stopsound();
 	if (soundvol && musicvol) {
-		string sn;
+		IString sn;
 		strcpy_s(sn, "packages/");
 		strcat_s(sn, name);
 #ifdef USE_MIXER
@@ -104,26 +102,24 @@ void music(char *name) {
 	};
 }
 
-
 COMMAND(music, ARG_1STR);
 
 #ifdef USE_MIXER
-vector<Mix_Chunk *> samples;
+std::vector<Mix_Chunk *> samples;
 #else
-vector<FSOUND_SAMPLE *> samples;
+std::vector<FSOUND_SAMPLE *> samples;
 #endif
 
-cvector snames;
+std::vector<char *> snames;
 
 int registersound(char *name) {
 	loopv(snames)
 		if (strcmp(snames[i], name) == 0)
 			return i;
-	snames.add(newstring(name));
-	samples.add(NULL);
-	return samples.length() - 1;
+	snames.emplace_back(newIString(name));
+	samples.emplace_back(NULL);
+	return samples.size() - 1;
 }
-
 
 COMMAND(registersound, ARG_1EST);
 
@@ -137,7 +133,6 @@ void cleansound() {
 	FSOUND_Close();
 #endif
 }
-
 
 VAR(stereo, 0, 1, 1);
 
@@ -161,13 +156,11 @@ void updatechanvol(int chan, vec *loc) {
 #endif
 }
 
-
 void newsoundloc(int chan, vec *loc) {
 	assert(chan>=0 && chan<MAXCHAN);
 	soundlocs[chan].loc = *loc;
 	soundlocs[chan].inuse = true;
 }
-
 
 void updatevol() {
 	if (nosound)
@@ -185,12 +178,10 @@ void updatevol() {
 		};
 }
 
-
 void playsoundc(int n) {
 	addmsg(0, 2, SV_SOUND, n);
 	playsound(n);
 }
-
 
 int soundsatonce = 0, lastsoundmillis = 0;
 
@@ -206,13 +197,13 @@ void playsound(int n, vec *loc) {
 	lastsoundmillis = lastmillis;
 	if (soundsatonce > 5)
 		return;  // avoid bursts of sounds with heavy packetloss and in sp
-	if (n < 0 || n >= samples.length()) {
+	if (n < 0 || n >= samples.size()) {
 		conoutf("unregistered sound: %d", n);
 		return;
 	};
 
 	if (!samples[n]) {
-		string buf;
+		IString buf;
 		std::sprintf(buf, "packages/sounds/%s.wav", snames[n]);
 
 #ifdef USE_MIXER
@@ -241,7 +232,6 @@ void playsound(int n, vec *loc) {
 	FSOUND_SetPaused(chan, false);
 #endif
 }
-
 
 void sound(int n) {
 	playsound(n, NULL);

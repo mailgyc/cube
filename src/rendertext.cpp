@@ -122,7 +122,7 @@ int text_width(char *str) {
 }
 
 void draw_textf(char *fstr, int left, int top, int gl_num, ...) {
-	string str;
+	IString str;
 
 	va_list ap;
 	va_start(ap, gl_num);

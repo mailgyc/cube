@@ -12,7 +12,6 @@ Pool::Pool() {
 		reuse[i] = NULL;
 }
 
-
 void *Pool::alloc(size_t size) {
 	if (size > MAXREUSESIZE) {
 		return malloc(size);
@@ -34,7 +33,6 @@ void *Pool::alloc(size_t size) {
 	};
 }
 
-
 void Pool::dealloc(void *p, size_t size) {
 	if (size > MAXREUSESIZE) {
 		free(p);
@@ -48,7 +46,6 @@ void Pool::dealloc(void *p, size_t size) {
 	};
 }
 
-
 void *Pool::realloc(void *p, size_t oldsize, size_t newsize) {
 	void *np = alloc(newsize);
 	if (!oldsize)
@@ -57,7 +54,6 @@ void *Pool::realloc(void *p, size_t oldsize, size_t newsize) {
 	dealloc(p, oldsize);
 	return np;
 }
-
 
 void Pool::dealloc_block(void *b) {
 	if (b) {
@@ -74,21 +70,18 @@ void Pool::allocnext(size_t allocsize) {
 	left = allocsize;
 }
 
-
-char *Pool::string(char *s, size_t l) {
+char *Pool::IString(char *s, size_t l) {
 	char *b = (char *) alloc(l + 1);
 	strncpy(b, s, l);
 	b[l] = 0;
 	return b;
 }
 
-
 Pool *gp() // useful for global buffers that need to be initialisation order independant
 {
 	static Pool *p = NULL;
 	return p ? p : (p = new Pool());
 }
-
 
 ///////////////////////// misc tools ///////////////////////
 
@@ -97,7 +90,6 @@ char *path(char *s) {
 		;
 	return s;
 }
-
 
 char *loadfile(char *fn, int *size) {
 	FILE *f = fopen(fn, "rb");
@@ -120,7 +112,6 @@ char *loadfile(char *fn, int *size) {
 		*size = len;
 	return buf;
 }
-
 
 void endianswap(void *memory, int stride, int length) // little indians as storage format
 		{

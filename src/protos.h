@@ -74,7 +74,7 @@ extern bool multiplayer();
 extern bool allowedittoggle();
 extern void sendpackettoserv(void *packet);
 extern void gets2c();
-extern void c2sinfo(dynent *d);
+extern void c2sinfo(Sprite *d);
 extern void neterr(char *s);
 extern void initclientnet();
 extern bool netmapstart();
@@ -88,20 +88,20 @@ extern void updateworld(int millis);
 extern void startmap(char *name);
 extern void changemap(char *name);
 extern void initclient();
-extern void spawnplayer(dynent *d);
-extern void selfdamage(int damage, int actor, dynent *act);
-extern dynent *newdynent();
+extern void spawnplayer(Sprite *d);
+extern void selfdamage(int damage, int actor, Sprite *act);
+extern Sprite *newSprite();
 extern char *getclientmap();
 extern const char *modestr(int n);
-extern void zapdynent(dynent *&d);
-extern dynent *getclient(int cn);
+extern void zapSprite(Sprite *&d);
+extern Sprite *getclient(int cn);
 extern void timeupdate(int timeremain);
-extern void resetmovement(dynent *d);
+extern void resetmovement(Sprite *d);
 extern void fixplayer1range();
 
 // clientextras
 extern void renderclients();
-extern void renderclient(dynent *d, bool team, char *mdlname, bool hellpig,
+extern void renderclient(Sprite *d, bool team, char *mdlname, bool hellpig,
 		float scale);
 void showscores(bool on);
 extern void renderscores();
@@ -122,7 +122,7 @@ extern entity *newentity(int x, int y, int z, char *what, int v1, int v2,
 // worldlight
 extern void calclight();
 extern void dodynlight(vec &vold, vec &v, int reach, int strength,
-		dynent *owner);
+		Sprite *owner);
 extern void cleardlights();
 extern block *blockcopy(block &b);
 extern void blockpaste(block &b);
@@ -190,9 +190,9 @@ extern void demodamage(int damage, vec &o);
 extern void demoblend(int damage);
 
 // physics
-extern void moveplayer(dynent *pl, int moveres, bool local);
-extern bool collide(dynent *d, bool spawn, float drop, float rise);
-extern void entinmap(dynent *d);
+extern void moveplayer(Sprite *pl, int moveres, bool local);
+extern bool collide(Sprite *d, bool spawn, float drop, float rise);
+extern void entinmap(Sprite *d);
 extern void setentphysics(int mml, int mmr);
 extern void physicsframe();
 
@@ -218,21 +218,21 @@ extern void localclienttoserver(struct _ENetPacket *);
 extern void serverslice(int seconds, unsigned int timeout);
 extern void putint(uchar *&p, int n);
 extern int getint(uchar *&p);
-extern void sendstring(char *t, uchar *&p);
+extern void sendIString(char *t, uchar *&p);
 extern void startintermission();
-extern void restoreserverstate(vector<entity> &ents);
+extern void restoreserverstate(std::vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname,
 		int seconds, bool isfull);
 extern void servermsinit(const char *master, char *sdesc, bool listen);
-extern void sendmaps(int n, string mapname, int mapsize, uchar *mapdata);
+extern void sendmaps(int n, IString mapname, int mapsize, uchar *mapdata);
 extern ENetPacket *recvmap(int n);
 
 // weapon
 extern void selectgun(int a = -1, int b = -1, int c = -1);
-extern void shoot(dynent *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local =
+extern void shoot(Sprite *d, vec &to);
+extern void shootv(int gun, vec &from, vec &to, Sprite *d = 0, bool local =
 		false);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
@@ -245,8 +245,8 @@ extern void monsterclear();
 extern void restoremonsterstate();
 extern void monsterthink();
 extern void monsterrender();
-extern dvector &getmonsters();
-extern void monsterpain(dynent *m, int damage, dynent *d);
+extern std::vector<Sprite *> &getmonsters();
+extern void monsterpain(Sprite *m, int damage, Sprite *d);
 extern void endsp(bool allkilled);
 
 // entities
@@ -254,11 +254,11 @@ extern void renderents();
 extern void putitems(uchar *&p);
 extern void checkquad(int time);
 extern void checkitems();
-extern void realpickup(int n, dynent *d);
+extern void realpickup(int n, Sprite *d);
 extern void renderentities();
 extern void resetspawns();
 extern void setspawn(uint i, bool on);
-extern void teleport(int n, dynent *d);
+extern void teleport(int n, Sprite *d);
 extern void baseammo(int gun);
 
 // rndmap

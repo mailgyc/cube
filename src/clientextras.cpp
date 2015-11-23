@@ -11,19 +11,19 @@ int frame[] = { 178, 184, 190, 137, 183, 189, 197, 164, 46, 51, 54, 32, 0, 0,
 int range[] =
 		{ 6, 6, 8, 28, 1, 1, 1, 1, 8, 19, 4, 18, 40, 1, 6, 15, 1, 1, 1, 1 };
 
-void renderclient(dynent *d, bool team, char *mdlname, bool hellpig,
+void renderclient(Sprite *d, bool team, char *mdlname, bool hellpig,
 		float scale) {
 	int n = 3;
 	float speed = 100.0f;
 	float mz = d->o.z - d->eyeheight + 1.55f * scale;
-	int basetime = -((int)(size_t) d & 0xFFF);
+	int basetime = -((int) d & 0xFFF);
 	if (d->state == CS_DEAD) {
 		int r;
 		if (hellpig) {
 			n = 2;
 			r = range[3];
 		} else {
-			n = (int)(size_t) d % 3;
+			n = (int) d % 3;
 			r = range[n];
 		};
 		basetime = d->lastaction;
@@ -69,17 +69,16 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig,
 			d->yaw + 90, d->pitch / 2, team, scale, speed, 0, basetime);
 }
 
-
 extern int democlientnum;
 
 void renderclients() {
-	dynent *d;
-	loopv(players)
+	Sprite *d;
+	for (int i = 0; i < players.size(); ++i) {
 		if ((d = players[i]) && (!demoplayback || i != democlientnum))
 			renderclient(d, isteam(player1->team, d->team), "monster/ogro",
 					false, 1.0f);
+	}
 }
-
 
 // creation of scoreboard pseudo-menu
 
@@ -90,28 +89,30 @@ void showscores(bool on) {
 	menuset(((int) on) - 1);
 }
 
-
 struct sline {
-	string s;
+	IString s;
 };
-vector<sline> scorelines;
+std::vector<sline> scorelines;
 
-void renderscore(dynent *d) {
-	string lag;
-	string name;
+void renderscore(Sprite *d) {
+	IString lag;
+	IString name;
 	std::sprintf(lag, "%d", d->plag);
 	std::sprintf(name, "(%s)", d->name);
-	std::sprintf(scorelines.add().s, "%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
-	menumanual(0, scorelines.length() - 1, scorelines.last().s);
+	scorelines.emplace_back(sline());
+	std::sprintf(scorelines.back().s, "%d\t%s\t%d\t%s\t%s", d->frags,
+			d->state == CS_LAGGED ? "LAG" : lag, d->ping, d->team,
+			d->state == CS_DEAD ? name : d->name);
+	menumanual(0, scorelines.size() - 1, scorelines.back().s);
 }
 
 const int maxteams = 4;
 char *teamname[maxteams];
 int teamscore[maxteams], teamsused;
-string teamscores;
+IString teamscores;
 int timeremain = 0;
 
-void addteamscore(dynent *d) {
+void addteamscore(Sprite *d) {
 	if (!d)
 		return;
 	loopi(teamsused)
@@ -125,35 +126,35 @@ void addteamscore(dynent *d) {
 	teamscore[teamsused++] = d->frags;
 }
 
-
 void renderscores() {
 	if (!scoreson)
 		return;
-	scorelines.setsize(0);
+	scorelines.resize(0);
 	if (!demoplayback)
 		renderscore(player1);
-	loopv(players)
+	for (int i = 0; i < players.size(); ++i) {
 		if (players[i])
 			renderscore(players[i]);
-	sortmenu(0, scorelines.length());
+	}
+	sortmenu(0, scorelines.size());
 	if (m_teammode) {
 		teamsused = 0;
-		loopv(players)
+		for (int i = 0; i < players.size(); ++i) {
 			addteamscore(players[i]);
+		}
 		if (!demoplayback)
 			addteamscore(player1);
 		teamscores[0] = 0;
 		loopj(teamsused)
 		{
-			string sc;
+			IString sc;
 			std::sprintf(sc, "[ %s: %d ]", teamname[j], teamscore[j]);
 			strcat_s(teamscores, sc);
 		};
-		menumanual(0, scorelines.length(), "");
-		menumanual(0, scorelines.length() + 1, teamscores);
+		menumanual(0, scorelines.size(), "");
+		menumanual(0, scorelines.size() + 1, teamscores);
 	};
 }
-
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
@@ -171,7 +172,7 @@ void sendmap(char *mapname) {
 	uchar *start = packet->data;
 	uchar *p = start + 2;
 	putint(p, SV_SENDMAP);
-	sendstring(mapname, p);
+	sendIString(mapname, p);
 	putint(p, mapsize);
 	if (65535 - (p - start) < mapsize) {
 		conoutf("map %s is too large to send", mapname);
@@ -186,8 +187,9 @@ void sendmap(char *mapname) {
 	enet_packet_resize(packet, p - start);
 	sendpackettoserv(packet);
 	conoutf("sending map %s to server...", mapname);
-	string msg;
-	std::sprintf(msg, "[map %s uploaded to server, \"getmap\" to receive it]", mapname);
+	IString msg;
+	std::sprintf(msg, "[map %s uploaded to server, \"getmap\" to receive it]",
+			mapname);
 	toserver(msg);
 }
 

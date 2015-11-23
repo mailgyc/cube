@@ -1,4 +1,4 @@
-// loading and saving of savegames & demos, dumps the spawn state of all mapents, the full state of all dynents (monsters + player)
+// loading and saving of savegames & demos, dumps the spawn state of all mapents, the full state of all Sprites (monsters + player)
 
 #include "cube.h"
 
@@ -8,7 +8,7 @@ gzFile f = NULL;
 bool demorecording = false;
 bool demoplayback = false;
 bool demoloading = false;
-dvector playerhistory;
+std::vector<Sprite *> playerhistory;
 int democlientnum = 0;
 
 void startdemo();
@@ -24,7 +24,6 @@ void gzputi(int i) {
 void gzputv(vec &v) {
 	gzwrite(f, &v, sizeof(vec));
 }
-
 
 void gzcheck(int a, int b) {
 	if (a != b)
@@ -46,7 +45,6 @@ void gzgetv(vec &v) {
 	gzcheck(gzread(f, &v, sizeof(vec)), sizeof(vec));
 }
 
-
 void stop() {
 	if (f) {
 		if (demorecording)
@@ -58,16 +56,14 @@ void stop() {
 	demoplayback = false;
 	demoloading = false;
 	loopv(playerhistory)
-		zapdynent(playerhistory[i]);
-	playerhistory.setsize(0);
+		zapSprite(playerhistory[i]);
+	playerhistory.resize(0);
 }
-
 
 void stopifrecording() {
 	if (demorecording)
 		stop();
 }
-
 
 void savestate(char *fn) {
 	stop();
@@ -79,37 +75,35 @@ void savestate(char *fn) {
 	gzwrite(f, (void *) "CUBESAVE", 8);
 	gzputc(f, islittleendian);
 	gzputi(SAVEGAMEVERSION);
-	gzputi(sizeof(dynent));
+	gzputi(sizeof(Sprite));
 	gzwrite(f, getclientmap(), _MAXDEFSTR);
 	gzputi(gamemode);
-	gzputi(ents.length());
+	gzputi(ents.size());
 	loopv(ents)
 		gzputc(f, ents[i].spawned);
-	gzwrite(f, player1, sizeof(dynent));
-	dvector &monsters = getmonsters();
-	gzputi(monsters.length());
+	gzwrite(f, player1, sizeof(Sprite));
+	std::vector<Sprite *> &monsters = getmonsters();
+	gzputi(monsters.size());
 	loopv(monsters)
-		gzwrite(f, monsters[i], sizeof(dynent));
-	gzputi(players.length());
+		gzwrite(f, monsters[i], sizeof(Sprite));
+	gzputi(players.size());
 	loopv(players) {
 		gzput(players[i] == NULL);
-		gzwrite(f, players[i], sizeof(dynent));
+		gzwrite(f, players[i], sizeof(Sprite));
 	};
 }
-
 
 void savegame(char *name) {
 	if (!m_classicsp) {
 		conoutf("can only save classic sp games");
 		return;
 	};
-	string fn;
+	IString fn;
 	std::sprintf(fn, "savegames/%s.csgz", name);
 	savestate(fn);
 	stop();
 	conoutf("wrote %s", fn);
 }
-
 
 void loadstate(char *fn) {
 	stop();
@@ -121,16 +115,16 @@ void loadstate(char *fn) {
 		return;
 	};
 
-	string buf;
+	IString buf;
 	gzread(f, buf, 8);
 	if (strncmp(buf, "CUBESAVE", 8))
 		goto out;
 	if (gzgetc(f) != islittleendian)
 		goto out;
 	// not supporting save->load accross incompatible architectures simpifies things a LOT
-	if (gzgeti() != SAVEGAMEVERSION || gzgeti() != sizeof(dynent))
+	if (gzgeti() != SAVEGAMEVERSION || gzgeti() != sizeof(Sprite))
 		goto out;
-	string mapname;
+	IString mapname;
 	gzread(f, mapname, _MAXDEFSTR);
 	nextmode = gzgeti();
 	changemap(mapname); // continue below once map has been loaded and client & server have updated 
@@ -140,13 +134,11 @@ void loadstate(char *fn) {
 	stop();
 }
 
-
 void loadgame(char *name) {
-	string fn;
+	IString fn;
 	std::sprintf(fn, "savegames/%s.csgz", name);
 	loadstate(fn);
 }
-
 
 void loadgameout() {
 	stop();
@@ -154,12 +146,11 @@ void loadgameout() {
 			"loadgame incomplete: savegame from a different version of this map");
 }
 
-
 void loadgamerest() {
 	if (demoplayback || !f)
 		return;
 
-	if (gzgeti() != ents.length())
+	if (gzgeti() != ents.size())
 		return loadgameout();
 	loopv(ents) {
 		ents[i].spawned = gzgetc(f) != 0;
@@ -168,15 +159,15 @@ void loadgamerest() {
 	};
 	restoreserverstate(ents);
 
-	gzread(f, player1, sizeof(dynent));
+	gzread(f, player1, sizeof(Sprite));
 	player1->lastaction = lastmillis;
 
 	int nmonsters = gzgeti();
-	dvector &monsters = getmonsters();
-	if (nmonsters != monsters.length())
+	std::vector<Sprite *> &monsters = getmonsters();
+	if (nmonsters != monsters.size())
 		return loadgameout();
 	loopv(monsters) {
-		gzread(f, monsters[i], sizeof(dynent));
+		gzread(f, monsters[i], sizeof(Sprite));
 		monsters[i]->enemy = player1;    // lazy, could save id of enemy instead
 		monsters[i]->lastaction = monsters[i]->trigger = lastmillis + 500; // also lazy, but no real noticable effect on game
 		if (monsters[i]->state == CS_DEAD)
@@ -187,9 +178,9 @@ void loadgamerest() {
 	int nplayers = gzgeti();
 	loopi(nplayers)
 		if (!gzget()) {
-			dynent *d = getclient(i);
+			Sprite *d = getclient(i);
 			assert(d);
-			gzread(f, d, sizeof(dynent));
+			gzread(f, d, sizeof(Sprite));
 		};
 
 	conoutf("savegame restored");
@@ -198,7 +189,6 @@ void loadgamerest() {
 	else
 		stop();
 }
-
 
 // demo functions
 
@@ -215,7 +205,7 @@ void record(char *name) {
 	int cn = getclientnum();
 	if (cn < 0)
 		return;
-	string fn;
+	IString fn;
 	std::sprintf(fn, "demos/%s.cdgz", name);
 	savestate(fn);
 	gzputi(cn);
@@ -225,7 +215,6 @@ void record(char *name) {
 	ddamage = bdamage = 0;
 }
 
-
 void demodamage(int damage, vec &o) {
 	ddamage = damage;
 	dorig = o;
@@ -234,7 +223,6 @@ void demodamage(int damage, vec &o) {
 void demoblend(int damage) {
 	bdamage = damage;
 }
-
 
 void incomingdemodata(uchar *buf, int len, bool extras) {
 	if (!demorecording)
@@ -265,29 +253,25 @@ void incomingdemodata(uchar *buf, int len, bool extras) {
 	};
 }
 
-
 void demo(char *name) {
-	string fn;
+	IString fn;
 	std::sprintf(fn, "demos/%s.cdgz", name);
 	loadstate(fn);
 	demoloading = true;
 }
 
-
 void stopreset() {
 	conoutf("demo stopped (%d msec elapsed)", lastmillis - starttime);
 	stop();
 	loopv(players)
-		zapdynent(players[i]);
+		zapSprite(players[i]);
 	disconnect(0, 0);
 }
-
 
 VAR(demoplaybackspeed, 10, 100, 1000);
 int scaletime(int t) {
 	return (int) (t * (100.0f / demoplaybackspeed)) + starttime;
 }
-
 
 void readdemotime() {
 	if (gzeof(f) || (playbacktime = gzgeti()) == -1) {
@@ -297,22 +281,20 @@ void readdemotime() {
 	playbacktime = scaletime(playbacktime);
 }
 
-
 void startdemo() {
 	democlientnum = gzgeti();
 	demoplayback = true;
 	starttime = lastmillis;
 	conoutf("now playing demo");
-	dynent *d = getclient(democlientnum);
+	Sprite *d = getclient(democlientnum);
 	assert(d);
 	*d = *player1;
 	readdemotime();
 }
 
-
 VAR(demodelaymsec, 0, 120, 500);
 
-void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest)// spline interpolation
+void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest) // spline interpolation
 		{
 	vec t1 = b, t2 = c;
 
@@ -336,14 +318,12 @@ void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest)// spline inte
 	vadd(dest, t2);
 }
 
-
-void fixwrap(dynent *a, dynent *b) {
+void fixwrap(Sprite *a, Sprite *b) {
 	while (b->yaw - a->yaw > 180)
 		a->yaw += 360;
 	while (b->yaw - a->yaw < -180)
 		a->yaw -= 360;
 }
-
 
 void demoplaybackstep() {
 	while (demoplayback && lastmillis >= playbacktime) {
@@ -357,7 +337,7 @@ void demoplaybackstep() {
 		gzread(f, buf, len);
 		localservertoclient(buf, len);  // update game state
 
-		dynent *target = players[democlientnum];
+		Sprite *target = players[democlientnum];
 		assert(target);
 
 		int extras;
@@ -386,14 +366,14 @@ void demoplaybackstep() {
 		// insert latest copy of player into history
 		if (extras
 				&& (playerhistory.empty()
-						|| playerhistory.last()->lastupdate != playbacktime)) {
-			dynent *d = newdynent();
+						|| playerhistory.back()->lastupdate != playbacktime)) {
+			Sprite *d = newSprite();
 			*d = *target;
 			d->lastupdate = playbacktime;
-			playerhistory.add(d);
-			if (playerhistory.length() > 20) {
-				zapdynent(playerhistory[0]);
-				playerhistory.remove(0);
+			playerhistory.emplace_back(d);
+			if (playerhistory.size() > 20) {
+				zapSprite(playerhistory[0]);
+				playerhistory.erase(playerhistory.begin());
 			};
 		};
 
@@ -402,20 +382,20 @@ void demoplaybackstep() {
 
 	if (demoplayback) {
 		int itime = lastmillis - demodelaymsec;
-		loopvrev(playerhistory)
+		for (int i = playerhistory.size() - 1; i >= 0; --i)
 			if (playerhistory[i]->lastupdate < itime) // find 2 positions in history that surround interpolation time point
 					{
-				dynent *a = playerhistory[i];
-				dynent *b = a;
-				if (i + 1 < playerhistory.length())
+				Sprite *a = playerhistory[i];
+				Sprite *b = a;
+				if (i + 1 < playerhistory.size())
 					b = playerhistory[i + 1];
 				*player1 = *b;
 				if (a != b)                          // interpolate pos & angles
 						{
-					dynent *c = b;
-					if (i + 2 < playerhistory.length())
+					Sprite *c = b;
+					if (i + 2 < playerhistory.size())
 						c = playerhistory[i + 2];
-					dynent *z = a;
+					Sprite *z = a;
 					if (i - 1 >= 0)
 						z = playerhistory[i - 1];
 					//if(a==z || b==c) printf("* %d\n", lastmillis);
@@ -440,7 +420,6 @@ void demoplaybackstep() {
 	};
 }
 
-
 void stopn() {
 	if (demoplayback)
 		stopreset();
@@ -448,7 +427,6 @@ void stopn() {
 		stop();
 	conoutf("demo stopped");
 }
-
 
 COMMAND(record, ARG_1STR);
 COMMAND(demo, ARG_1STR);

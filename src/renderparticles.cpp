@@ -37,7 +37,6 @@ void newparticle(vec &o, vec &d, int fade, int type) {
 	};
 }
 
-
 VAR(demotracking, 0, 0, 1);
 VARP(particlesize, 20, 100, 500);
 
@@ -47,7 +46,6 @@ void setorient(vec &r, vec &u) {
 	right = r;
 	up = u;
 }
-
 
 void render_particles(int time) {
 	if (demoplayback && demotracking) {
@@ -124,7 +122,6 @@ void render_particles(int time) {
 	glDepthMask(GL_TRUE);
 }
 
-
 void particle_splash(int type, int num, int fade, vec &p) {
 	loopi(num)
 	{
@@ -140,7 +137,6 @@ void particle_splash(int type, int num, int fade, vec &p) {
 	};
 }
 
-
 void particle_trail(int type, int fade, vec &s, vec &e) {
 	vdist(d, v, s, e);
 	vdiv(v, d * 2 + 0.1f);
@@ -152,5 +148,4 @@ void particle_trail(int type, int fade, vec &s, vec &e) {
 		newparticle(p, d, rnd(fade) + fade, type);
 	};
 }
-
 

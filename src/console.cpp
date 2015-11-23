@@ -7,14 +7,14 @@ struct cline {
 	char *cref;
 	int outtime;
 };
-vector<cline> conlines;
+std::vector<cline> conlines;
 
 const int ndraw = 5;
 const int WORDWRAP = 80;
 int conskip = 0;
 
 bool saycommandon = false;
-string commandbuf;
+IString commandbuf;
 
 void setconskip(int n) {
 	conskip += n;
@@ -22,15 +22,19 @@ void setconskip(int n) {
 		conskip = 0;
 }
 
-
 COMMANDN(conskip, setconskip, ARG_1INT);
 
 void conline(const char *sf, bool highlight) // add a line to the console buffer
 		{
 	cline cl;
-	cl.cref = conlines.length() > 100 ? conlines.pop().cref : newstringbuf(""); // constrain the buffer size
+	if (conlines.size() > 100) {
+		cl.cref = conlines.back().cref;
+		conlines.pop_back();
+	} else {
+		cl.cref = newIStringbuf(""); // constrain the buffer size
+	}
 	cl.outtime = lastmillis;              // for how long to keep line on screen
-	conlines.insert(0, cl);
+	conlines.insert(conlines.begin(), cl);
 	if (highlight)             // show line in a different colour, for chat etc.
 	{
 		cl.cref[0] = '\f';
@@ -45,10 +49,9 @@ void conline(const char *sf, bool highlight) // add a line to the console buffer
 #endif
 }
 
-
 void conoutf(const char *s, ...) {
 
-	string sf = {0};
+	IString sf = { 0 };
 	va_list ap;
 	va_start(ap, s);
 //	std::snprintf(sf, _MAXDEFSTR, s, ap);
@@ -58,9 +61,9 @@ void conoutf(const char *s, ...) {
 
 	s = sf;
 	int n = 0;
-	while (strlen(s) > WORDWRAP)                 // cut strings to fit on screen
+	while (strlen(s) > WORDWRAP)                 // cut IStrings to fit on screen
 	{
-		string t;
+		IString t;
 		strn0cpy(t, s, WORDWRAP + 1);
 		conline(t, n++ != 0);
 		s += WORDWRAP;
@@ -72,19 +75,21 @@ void renderconsole()       // render buffer taking into account time & scrolling
 {
 	int nd = 0;
 	char *refs[ndraw];
-	for (int i = 0; i < conlines.length(); ++i) {
-		if (conskip ? i >= conskip - 1 || i >= conlines.length() - ndraw :lastmillis - conlines[i].outtime < 20000) {
+	for (int i = 0; i < conlines.size(); ++i) {
+		if (conskip ?
+				i >= conskip - 1 || i >= conlines.size() - ndraw :
+				lastmillis - conlines[i].outtime < 20000) {
 			refs[nd++] = conlines[i].cref;
 			if (nd == ndraw)
 				break;
-		}
+		};
 	}
-	for(int j = 0; j < nd; ++j)
+	loopj(nd)
 	{
-		draw_text(refs[j], FONTH / 3, (FONTH / 4 * 5) * (nd - j - 1) + FONTH / 3, 2);
-	}
+		draw_text(refs[j], FONTH / 3,
+				(FONTH / 4 * 5) * (nd - j - 1) + FONTH / 3, 2);
+	};
 }
-
 
 // keymap is defined externally in keymap.cfg
 
@@ -97,10 +102,9 @@ int numkm = 0;
 
 void keymap(char *code, char *key, char *action) {
 	keyms[numkm].code = atoi(code);
-	keyms[numkm].name = newstring(key);
-	keyms[numkm++].action = newstringbuf(action);
+	keyms[numkm].name = newIString(key);
+	keyms[numkm++].action = newIStringbuf(action);
 }
-
 
 COMMAND(keymap, ARG_3STR);
 
@@ -115,7 +119,6 @@ void bindkey(char *key, char *action) {
 	conoutf("unknown key \"%s\"", key);
 }
 
-
 COMMANDN(bind, bindkey, ARG_2STR);
 
 void saycommand(char *init)         // turns input to the command line on or off
@@ -125,59 +128,58 @@ void saycommand(char *init)         // turns input to the command line on or off
 	strcpy_s(commandbuf, init);
 }
 
-
 void mapmsg(char *s) {
 	strn0cpy(hdr.maptitle, s, 128);
 }
 
-
 COMMAND(saycommand, ARG_VARI);
 COMMAND(mapmsg, ARG_1STR);
 
-//#include <X11/Xlib.h>
+#ifndef WIN32
+#include <X11/Xlib.h>
 #include <SDL2/SDL_syswm.h>
+#endif
 
 void pasteconsole() {
-//	SDL_SysWMinfo wminfo;
-//	SDL_VERSION(&wminfo.version);
-//	wminfo.subsystem = SDL_SYSWM_X11;
-//	//SDL_GetWindowWMInfo( &wminfo);
-//
-//	int cbsize;
-//	char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
-//	if (!cb || !cbsize)
-//		return;
-//	int commandlen = strlen(commandbuf);
-//	for (char *cbline = cb, *cbend;
-//			commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize];
-//			cbline = cbend + 1) {
-//		cbend = (char *) memchr(cbline, '\0', &cb[cbsize] - cbline);
-//		if (!cbend)
-//			cbend = &cb[cbsize];
-//		if (commandlen + cbend - cbline + 1 > _MAXDEFSTR)
-//			cbend = cbline + _MAXDEFSTR - commandlen - 1;
-//		memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
-//		commandlen += cbend - cbline;
-//		commandbuf[commandlen] = '\n';
-//		if (commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize])
-//			++commandlen;
-//		commandbuf[commandlen] = '\0';
-//	};
-//	XFree(cb);
+	SDL_SysWMinfo wminfo;
+	SDL_VERSION(&wminfo.version);
+	wminfo.subsystem = SDL_SYSWM_X11;
+	//SDL_GetWindowWMInfo( &wminfo);
+
+	int cbsize;
+	char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
+	if (!cb || !cbsize)
+		return;
+	int commandlen = strlen(commandbuf);
+	for (char *cbline = cb, *cbend;
+			commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize];
+			cbline = cbend + 1) {
+		cbend = (char *) memchr(cbline, '\0', &cb[cbsize] - cbline);
+		if (!cbend)
+			cbend = &cb[cbsize];
+		if (commandlen + cbend - cbline + 1 > _MAXDEFSTR)
+			cbend = cbline + _MAXDEFSTR - commandlen - 1;
+		memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
+		commandlen += cbend - cbline;
+		commandbuf[commandlen] = '\n';
+		if (commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize])
+			++commandlen;
+		commandbuf[commandlen] = '\0';
+	};
+	XFree(cb);
 }
 
-cvector vhistory;
+std::vector<char *> vhistory;
 int histpos = 0;
 
 void history(int n) {
 	static bool rec = false;
-	if (!rec && n >= 0 && n < vhistory.length()) {
+	if (!rec && n >= 0 && n < vhistory.size()) {
 		rec = true;
-		execute(vhistory[vhistory.length() - n - 1]);
+		execute(vhistory[vhistory.size() - n - 1]);
 		rec = false;
 	};
 }
-
 
 COMMAND(history, ARG_1INT);
 
@@ -205,7 +207,7 @@ void keypress(int code, bool isdown) {
 				break;
 
 			case SDLK_DOWN:
-				if (histpos < vhistory.length())
+				if (histpos < vhistory.size())
 					strcpy_s(commandbuf, vhistory[histpos++]);
 				break;
 
@@ -228,10 +230,10 @@ void keypress(int code, bool isdown) {
 			if (code == SDLK_RETURN) {
 				if (commandbuf[0]) {
 					if (vhistory.empty()
-							|| strcmp(vhistory.last(), commandbuf)) {
-						vhistory.add(newstring(commandbuf));  // cap this?
+							|| strcmp(vhistory.back(), commandbuf)) {
+						vhistory.emplace_back(newIString(commandbuf)); // cap this?
 					};
-					histpos = vhistory.length();
+					histpos = vhistory.size();
 					if (commandbuf[0] == '/')
 						execute(commandbuf, true);
 					else
@@ -247,7 +249,7 @@ void keypress(int code, bool isdown) {
 		loopi(numkm)
 			if (keyms[i].code == code) // keystrokes go to game, lookup in keymap and execute
 					{
-				string temp;
+				IString temp;
 				strcpy_s(temp, keyms[i].action);
 				execute(temp, isdown);
 				return;
@@ -255,11 +257,9 @@ void keypress(int code, bool isdown) {
 	};
 }
 
-
 char *getcurcommand() {
 	return saycommandon ? commandbuf : NULL;
 }
-
 
 void writebinds(FILE *f) {
 	loopi(numkm)

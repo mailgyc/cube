@@ -7,11 +7,10 @@ void backup(char *name, char *backupname) {
 	rename(name, backupname);
 }
 
-
-string cgzname, bakname, pcfname, mcfname;
+IString cgzname, bakname, pcfname, mcfname;
 
 void setnames(char *name) {
-	string pakname, mapname;
+	IString pakname, mapname;
 	char *slash = strpbrk(name, "/\\");
 	if (slash) {
 		strn0cpy(pakname, name, slash - name + 1);
@@ -21,14 +20,14 @@ void setnames(char *name) {
 		strcpy_s(mapname, name);
 	};
 	std::sprintf(cgzname, "packages/%s/%s.cgz", pakname, mapname);
-	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname, mapname, lastmillis);
+	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname, mapname,
+			lastmillis);
 	std::sprintf(pcfname, "packages/%s/package.cfg", pakname);
 	std::sprintf(mcfname, "packages/%s/%s.cfg", pakname, mapname);
 
 	path(cgzname);
 	path(bakname);
 }
-
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by
 // setting certain properties (vdeltas and textures) to neighbouring values wherever there is no
@@ -39,7 +38,6 @@ void setnames(char *name) {
 inline bool nhf(sqr *s) {
 	return s->type != FHF && s->type != CHF;
 }
-
 
 void voptimize()        // reset vdeltas on non-hf cubes
 {
@@ -55,7 +53,6 @@ void voptimize()        // reset vdeltas on non-hf cubes
 				s->vdelta = 0;
 		};
 }
-
 
 void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut) {
 	sqr *o[4];
@@ -88,7 +85,6 @@ void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut) {
 	};
 }
 
-
 void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 {
 	bool wf[4], uf[4];
@@ -110,7 +106,6 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 			};
 		};
 }
-
 
 // these two are used by getmap/sendmap.. transfers compressed maps directly 
 
@@ -218,7 +213,6 @@ void save_world(char *mname) {
 	settagareas();
 }
 
-
 void load_world(char *mname) // still supports all map formats that have existed since the earliest cube betas!
 		{
 	stopifrecording();
@@ -244,10 +238,10 @@ void load_world(char *mname) // still supports all map formats that have existed
 	} else {
 		hdr.waterlevel = -100000;
 	};
-	ents.setsize(0);
+	ents.resize(0);
 	loopi(hdr.numents)
 	{
-		entity &e = ents.add();
+		entity e;
 		gzread(f, &e, sizeof(persistent_entity));
 		endianswap(&e, sizeof(short), 4);
 		e.spawned = false;
@@ -257,6 +251,7 @@ void load_world(char *mname) // still supports all map formats that have existed
 			if (e.attr1 > 32)
 				e.attr1 = 32; // 12_03 and below
 		};
+		ents.emplace_back(e);
 	};
 	free(world);
 	setupworld(hdr.sfactor);
@@ -303,7 +298,7 @@ void load_world(char *mname) // still supports all map formats that have existed
 			;
 		default: {
 			if (type < 0 || type >= MAXTYPE) {
-				string t;
+				IString t;
 				std::sprintf(t, "%d @ %d", type, k);
 				fatal("while reading map: type out of range: ", t);
 			};
@@ -342,10 +337,10 @@ void load_world(char *mname) // still supports all map formats that have existed
 			SDL_GetTicks() - lastmillis);
 	conoutf("%s", hdr.maptitle);
 	startmap(mname);
-	loopl(256)
+	for(int i = 0; i < 256; i++)
 	{
-		string aliasname;
-		std::sprintf(aliasname, "level_trigger_%d", l); // can this be done smarter?
+		IString aliasname;
+		std::sprintf(aliasname, "level_trigger_%d", i); // can this be done smarter?
 		if (identexists(aliasname))
 			alias(aliasname, "");
 	};
@@ -353,7 +348,6 @@ void load_world(char *mname) // still supports all map formats that have existed
 	execfile(pcfname);
 	execfile(mcfname);
 }
-
 
 COMMANDN(savemap, save_world, ARG_1STR);
 

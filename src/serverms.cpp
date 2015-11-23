@@ -25,14 +25,15 @@ void httpgetsend(ENetAddress &ad, char *hostname, char *req, char *ref,
 	};
 	ENetBuffer buf;
 
-	string httpget;
-	std::sprintf(httpget, "GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
+	IString httpget;
+	std::sprintf(httpget,
+			"GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req,
+			hostname, ref, agent);
 	buf.data = httpget;
 	buf.dataLength = strlen((char *) buf.data);
 	printf("sending request to %s...\n", hostname);
 	enet_socket_send(mssock, NULL, &buf, 1);
 }
-
 
 void httpgetrecieve(ENetBuffer &buf) {
 	if (mssock == ENET_SOCKET_NULL)
@@ -51,7 +52,6 @@ void httpgetrecieve(ENetBuffer &buf) {
 	};
 }
 
-
 uchar *stripheader(uchar *b) {
 	char *s = strstr((char *) b, "\n\r\n");
 	if (!s)
@@ -59,18 +59,17 @@ uchar *stripheader(uchar *b) {
 	return s ? (uchar *) s : b;
 }
 
-
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
 int updmaster = 0;
-string masterbase;
-string masterpath;
+IString masterbase;
+IString masterpath;
 uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
 
 void updatemasterserver(int seconds) {
 	if (seconds > updmaster) // send alive signal to masterserver every hour of uptime
-	{
-		string path;
+			{
+		IString path;
 		std::sprintf(path, "%sregister.do?action=add", masterpath);
 		httpgetsend(masterserver, masterbase, path, "cubeserver",
 				"Cube Server");
@@ -81,7 +80,6 @@ void updatemasterserver(int seconds) {
 	};
 }
 
-
 void checkmasterreply() {
 	bool busy = mssock != ENET_SOCKET_NULL;
 	httpgetrecieve(masterb);
@@ -89,9 +87,8 @@ void checkmasterreply() {
 		printf("masterserver reply: %s\n", stripheader(masterrep));
 }
 
-
 uchar *retrieveservers(uchar *buf, int buflen) {
-	string path;
+	IString path;
 	std::sprintf(path, "%sretrieve.do?item=list", masterpath);
 	httpgetsend(masterserver, masterbase, path, "cubeserver", "Cube Server");
 	ENetBuffer eb;
@@ -103,9 +100,8 @@ uchar *retrieveservers(uchar *buf, int buflen) {
 	return stripheader(buf);
 }
 
-
 ENetSocket pongsock = ENET_SOCKET_NULL;
-string serverdesc;
+IString serverdesc;
 
 void serverms(int mode, int numplayers, int minremain, char *smapname,
 		int seconds, bool isfull) {
@@ -129,16 +125,15 @@ void serverms(int mode, int numplayers, int minremain, char *smapname,
 		putint(p, mode);
 		putint(p, numplayers);
 		putint(p, minremain);
-		string mname;
+		IString mname;
 		strcpy_s(mname, isfull ? "[FULL] " : "");
 		strcat_s(mname, smapname);
-		sendstring(mname, p);
-		sendstring(serverdesc, p);
+		sendIString(mname, p);
+		sendIString(serverdesc, p);
 		buf.dataLength = p - pong;
 		enet_socket_send(pongsock, &addr, &buf, 1);
 	};
 }
-
 
 void servermsinit(const char *master, char *sdesc, bool listen) {
 	const char *mid = strstr(master, "/");

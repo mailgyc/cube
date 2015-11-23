@@ -7,7 +7,7 @@ extern bool hasoverbright;
 VAR(lightscale, 1, 4, 100);
 
 void lightray(float bx, float by, persistent_entity &light) // done in realtime, needs to be fast
-{
+		{
 	float lx = light.x + (rnd(21) - 10) * 0.1f;
 	float ly = light.y + (rnd(21) - 10) * 0.1f;
 	float dx = bx - lx;
@@ -109,7 +109,6 @@ void lightray(float bx, float by, persistent_entity &light) // done in realtime,
 
 }
 
-
 void calclightsource(persistent_entity &l) {
 	int reach = l.attr1;
 	int sx = l.x - reach;
@@ -131,9 +130,8 @@ void calclightsource(persistent_entity &l) {
 	};
 
 	rndtime()
-	;
+		;
 }
-
 
 void postlightarea(block &a) // median filter, smooths out random noise in light and makes it more mipable
 		{
@@ -152,7 +150,6 @@ void postlightarea(block &a) // median filter, smooths out random noise in light
 
 	remip(a);
 }
-
 
 void calclight() {
 	loop(x,ssize)
@@ -173,21 +170,20 @@ void calclight() {
 	setvar("fullbright", 0);
 }
 
-
 VARP(dynlight, 0, 16, 32);
 
-vector<block *> dlights;
+std::vector<block *> dlights;
 
 void cleardlights() {
 	while (!dlights.empty()) {
-		block *backup = dlights.pop();
+		block *backup = dlights.back();
+		dlights.pop_back();
 		blockpaste(*backup);
 		free(backup);
 	};
 }
 
-
-void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner) {
+void dodynlight(vec &vold, vec &v, int reach, int strength, Sprite *owner) {
 	if (!reach)
 		reach = dynlight;
 	if (owner->monsterstate)
@@ -210,14 +206,13 @@ void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner) {
 	if (b.ys + b.y > ssize - 2)
 		b.ys = ssize - 2 - b.y;
 
-	dlights.add(blockcopy(b));      // backup area before rendering in dynlight
+	dlights.emplace_back(blockcopy(b)); // backup area before rendering in dynlight
 
 	persistent_entity l = { (int) v.x, (int) v.y, (int) v.z, reach, LIGHT,
 			strength, 0, 0 };
 	calclightsource(l);
 	postlightarea(b);
 }
-
 
 // utility functions also used by editing code
 
@@ -231,7 +226,6 @@ block *blockcopy(block &s) {
 	return b;
 }
 
-
 void blockpaste(block &b) {
 	sqr *q = (sqr *) ((&b) + 1);
 	for (int x = b.x; x < b.xs + b.x; x++)
@@ -239,5 +233,4 @@ void blockpaste(block &b) {
 			*S(x, y) = *q++;
 	remipmore(b);
 }
-
 

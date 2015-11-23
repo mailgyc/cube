@@ -12,7 +12,6 @@ void setarraypointers() {
 	glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &verts[0].u);
 }
 
-
 void reallocv() {
 	verts = (vertex *) realloc(verts, (curmaxverts *= 2) * sizeof(vertex));
 	curmaxverts -= 10;
@@ -20,7 +19,6 @@ void reallocv() {
 		fatal("no vertex memory!");
 	setarraypointers();
 }
-
 
 // generating the actual vertices is done dynamically every frame and sits at the
 // leaves of all these functions, and are part of the cpu bottleneck on really slow
@@ -52,14 +50,12 @@ void mipstats(int a, int b, int c) {
 		conoutf("1x1/2x2/4x4: %d / %d / %d", a, b, c);
 }
 
-
 COMMAND(showmip, ARG_NONE);
 
 #define stripend() { if(floorstrip || deltastrip) { addstrip(ogltex, firstindex, curvert-firstindex); floorstrip = deltastrip = false; }; };
 void finishstrips() {
 	stripend();
 }
-
 
 sqr sbright, sdark;
 VAR(lighterror, 1, 8, 100);
@@ -139,7 +135,6 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2,
 	nquads++;
 }
 
-
 void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2,
 		float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil) // floor/ceil quads on a slope
 		{
@@ -193,7 +188,6 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2,
 	nquads++;
 }
 
-
 void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3,
 		int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
 		{
@@ -221,7 +215,6 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3,
 	nquads++;
 }
 
-
 void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s,
 		sqr *t, sqr *u, sqr *v) {
 	if (topleft) {
@@ -237,7 +230,6 @@ void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s,
 					u, v);
 	};
 }
-
 
 void render_square(int wtex, float floor1, float floor2, float ceil1,
 		float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2,
@@ -273,7 +265,6 @@ void render_square(int wtex, float floor1, float floor2, float ceil1,
 	addstrip(gltex, curvert - 4, 4);
 }
 
-
 int wx1, wy1, wx2, wy2;
 
 VAR(watersubdiv, 1, 4, 64);
@@ -287,7 +278,6 @@ inline void vertw(int v1, float v2, int v3, sqr *c, float t1, float t2,
 			t1, t2);
 }
 
-
 inline float dx(float x) {
 	return x + (float) sin(x * 2 + lastmillis / 1000.0f) * 0.04f;
 }
@@ -295,7 +285,6 @@ inline float dx(float x) {
 inline float dy(float x) {
 	return x + (float) sin(x * 2 + lastmillis / 900.0f + PI / 5) * 0.05f;
 }
-
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 
@@ -346,7 +335,6 @@ int renderwater(float hf) {
 	return nquads;
 }
 
-
 void addwaterquad(int x, int y, int size) // update bounding rect that contains water
 		{
 	int x2 = x + size;
@@ -368,7 +356,6 @@ void addwaterquad(int x, int y, int size) // update bounding rect that contains 
 	};
 }
 
-
 void resetcubes() {
 	if (!verts)
 		reallocv();
@@ -378,5 +365,4 @@ void resetcubes() {
 	sbright.r = sbright.g = sbright.b = 255;
 	sdark.r = sdark.g = sdark.b = 0;
 }
-
 

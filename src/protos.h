@@ -1,5 +1,4 @@
 // protos for ALL external functions in cube... 
-
 // console
 extern void keypress(int code, bool isdown);
 extern void renderconsole();

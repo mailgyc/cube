@@ -116,7 +116,8 @@ void calclightsource(persistent_entity &l) {
 	int sy = l.y - reach;
 	int ey = l.y + reach;
 
-	rndreset();
+	//random reset
+	srand(1);
 
 	const float s = 0.8f;
 
@@ -129,8 +130,10 @@ void calclightsource(persistent_entity &l) {
 		lightray((float) ex, sy2, l);
 	};
 
-	rndtime()
-		;
+	// random time
+	for (int i = 0; i < lastmillis&0xF; ++i) {
+		rand();
+	}
 }
 
 void postlightarea(block &a) // median filter, smooths out random noise in light and makes it more mipable

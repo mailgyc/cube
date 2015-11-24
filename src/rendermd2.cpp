@@ -103,8 +103,9 @@ bool md2::load(char* filename) {
 	fclose(file);
 
 	mverts = new vec*[numFrames];
-	loopj(numFrames)
-		mverts[j] = NULL;
+	for(int i = 0; i < numFrames; ++i) {
+		mverts[i] = NULL;
+	}
 
 	return true;
 }

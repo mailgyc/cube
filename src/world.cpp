@@ -107,10 +107,11 @@ void remip(block &b, int level) {
 			uchar nums[MAXTYPE];
 			loopi(MAXTYPE)
 				nums[i] = 0;
-			loopj(4)
-				nums[o[j]->type]++;
+			for(int i = 0; i < 4; ++i) {
+				nums[o[i]->type]++;
+			}
 			r->type = SEMISOLID; // cube contains both solid and space, treated specially in the renderer
-			loopk(MAXTYPE)
+			for(int k = 0; k < MAXTYPE; k++)
 				if (nums[k] == 4)
 					r->type = k;
 			if (!SOLID(r)) {
@@ -343,9 +344,9 @@ int findentity(int type, int index) {
 	for (int i = index; i < ents.size(); i++)
 		if (ents[i].type == type)
 			return i;
-	loopj(index)
-		if (ents[j].type == type)
-			return j;
+	for(int i = 0; i < index; ++i)
+		if (ents[i].type == type)
+			return i;
 	return -1;
 }
 
@@ -417,9 +418,11 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 		hdr.waterlevel = -100000;
 		loopi(15)
 			hdr.reserved[i] = 0;
-		loopk(3)
-			loopi(256)
+		for(int k = 0; k < 3; k++) {
+			for(int i = 0; i < 256; i++) {
 				hdr.texlists[k][i] = i;
+			}
+		}
 		ents.resize(0);
 		block b = { 8, 8, ssize - 16, ssize - 16 };
 		edittypexy(SPACE, b);

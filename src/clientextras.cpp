@@ -145,10 +145,10 @@ void renderscores() {
 		if (!demoplayback)
 			addteamscore(player1);
 		teamscores[0] = 0;
-		loopj(teamsused)
+		for(int i = 0; i < teamsused; ++i)
 		{
 			IString sc;
-			std::sprintf(sc, "[ %s: %d ]", teamname[j], teamscore[j]);
+			std::sprintf(sc, "[ %s: %d ]", teamname[i], teamscore[i]);
 			strcat_s(teamscores, sc);
 		};
 		menumanual(0, scorelines.size(), "");

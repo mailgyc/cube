@@ -345,7 +345,6 @@ enum    // function signatures for script functions, see command.cpp
 #define COMMAND(name, nargs) COMMANDN(name, name, nargs)
 #define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
 #define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)
-//#define VARF(name, min, cur, max, body)  void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
 
 #define ATOI(s) strtol(s, NULL, 0)		// supports hexadecimal numbers
 
@@ -363,4 +362,5 @@ enum    // function signatures for script functions, see command.cpp
 #include <zlib.h>
 
 #include "protos.h"				// external function decls
+#include "env.h"
 

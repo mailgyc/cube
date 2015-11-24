@@ -39,11 +39,8 @@ typedef unsigned int uint;
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define rnd(max) (rand()%(max))
 #define rndreset() (srand(1))
-#define rndtime() { loopi(lastmillis&0xF) rnd(i+1); }
 #define loop(v,m) for(int v = 0; v<(m); v++)
 #define loopi(m) loop(i,m)
-#define loopj(m) loop(j,m)
-#define loopk(m) loop(k,m)
 
 #define __cdecl
 #define _vsnprintf vsnprintf

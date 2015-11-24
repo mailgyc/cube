@@ -27,17 +27,33 @@ bool allowedittoggle() {
 	return allow;
 }
 
-#define VARF(name, min, cur, max, body)  void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
+void var_rate();
+static int rate = variable("rate", 0, 0, 25000, &rate, var_rate, false);
+void var_rate() {
+	if(clienthost && (!rate || rate>1000))
+		enet_host_bandwidth_limit (clienthost, rate, rate);
+}
 
-
-VARF(rate, 0, 0, 25000,
-		if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
 
 void throttle();
 
-VARF(throttle_interval, 0, 5, 30, throttle());
-VARF(throttle_accel, 0, 2, 32, throttle());
-VARF(throttle_decel, 0, 2, 32, throttle());
+void var_throttle_interval();
+static int throttle_interval = variable("throttle_interval", 0, 5, 30, &throttle_interval, var_throttle_interval, false);
+void var_throttle_interval() {
+	throttle();
+}
+
+void var_throttle_accel();
+static int throttle_accel = variable("throttle_accel", 0, 2, 32, &throttle_accel, var_throttle_accel, false);
+void var_throttle_accel() {
+	throttle();
+}
+
+void var_throttle_decel();
+static int throttle_decel = variable("throttle_decel", 0, 2, 32, &throttle_decel, var_throttle_decel, false);
+void var_throttle_decel() {
+	throttle();
+}
 
 void throttle() {
 	if (!clienthost || connecting)

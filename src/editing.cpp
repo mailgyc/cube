@@ -510,8 +510,16 @@ void perlin(int scale, int seed, int psize) {
 	sel.ys--;
 }
 
-VARF(fullbright, 0, 0, 1,
-		if(fullbright) { if(noteditmode()) return; loopi(mipsize) world[i].r = world[i].g = world[i].b = 176; };);
+void var_fullbright();
+static int fullbright = variable("fullbright", 0, 0, 1, &fullbright, var_fullbright, false);
+void var_fullbright() {
+	if(fullbright) {
+		if(noteditmode())
+			return;
+		for(int i = 0; i < mipsize; ++i)
+			world[i].r = world[i].g = world[i].b = 176;
+	}
+}
 
 void edittag(int tag) {
 	EDITSELMP;

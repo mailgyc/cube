@@ -1,21 +1,5 @@
 // protos for ALL external functions in cube... 
 
-// command
-extern int variable(char *name, int min, int cur, int max, int *storage,
-		void (*fun)(), bool persist);
-extern void setvar(char *name, int i);
-extern int getvar(char *name);
-extern bool identexists(char *name);
-extern bool addcommand(char *name, void (*fun)(), int narg);
-extern int execute(char *p, bool down = true);
-extern void exec(char *cfgfile);
-extern bool execfile(char *cfgfile);
-extern void resetcomplete();
-extern void complete(char *s);
-extern void alias(char *name, char *action);
-extern char *getalias(char *name);
-extern void writecfg();
-
 // console
 extern void keypress(int code, bool isdown);
 extern void renderconsole();

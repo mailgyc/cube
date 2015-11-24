@@ -7,17 +7,6 @@ enum {
 	ID_VAR, ID_COMMAND, ID_ALIAS
 };
 
-struct Ident {
-	int type;           // one of ID_* above
-	char *name;
-	int min, max;       // ID_VAR
-	int *storage;       // ID_VAR
-	void (*fun)();      // ID_VAR, ID_COMMAND
-	int narg;           // ID_VAR, ID_COMMAND
-	char *action;       // ID_ALIAS
-	bool persist;
-};
-
 void itoa(char *s, int i) {
 	std::sprintf(s, "%d", i);
 }
@@ -27,15 +16,39 @@ char *exchangestr(char *o, char *n) {
 	return newIString(n);
 }
 
-static std::map<std::string, Ident> idents;    // contains ALL vars/commands/aliases
+static std::map<std::string, Token> idents;    // contains ALL vars/commands/aliases
 
-void alias(char *name, char *action) {
+static VM *vm = nullptr;
+
+VM* VM::getInstance() {
+	if (vm == nullptr) {
+		vm = new VM();
+	}
+	return vm;
+}
+
+// variable's and commands are registered through globals, see cube.h
+int VM::variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist) {
+	Token v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
+	idents[name] = v;
+	return cur;
+}
+
+void VM::setvar(char *name, int i) {
+	idents.at(name).storage = i;
+}
+
+int VM::getvar(char *name) {
+	return *(idents.at(name).storage);
+}
+
+void VM::alias(char *name, char *action) {
 	if (idents.find(name) == idents.end()) {
 		name = newIString(name);
-		Ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newIString(action), true };
+		Token b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newIString(action), true };
 		idents[name] =  b;
 	} else {
-		Ident &b = idents[name];
+		Token &b = idents[name];
 		if (b.type == ID_ALIAS)
 			b.action = exchangestr(b.action, action);
 		else
@@ -45,25 +58,6 @@ void alias(char *name, char *action) {
 
 COMMAND(alias, ARG_2STR);
 
-// variable's and commands are registered through globals, see cube.h
-int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist) {
-	Ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
-	idents[name] = v;
-	return cur;
-}
-
-void setvar(char *name, int i) {
-	idents.at(name).storage = i;
-}
-
-int getvar(char *name) {
-	return *(idents.at(name).storage);
-}
-
-bool identexists(char *name) {
-	return idents.find(name) != idents.end();
-}
-
 char *getalias(char *name) {
 	if (idents.find(name) != idents.end()) {
 		return idents[name].type == ID_ALIAS ? idents[name].action : NULL;
@@ -71,14 +65,18 @@ char *getalias(char *name) {
 	return NULL;
 }
 
-bool addcommand(char *name, void (*fun)(), int narg) {
-	Ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, false };
+bool VM::identexists(char *name) {
+	return idents.find(name) != idents.end();
+}
+
+bool VM::addcommand(char *name, void (*fun)(), int narg) {
+	Token c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, false };
 	idents[name] = c;
 	return false;
 }
 
-char *parseexp(char *&p, int right)          // parse any nested set of () or []
-		{
+char* VM::parseexp(char *&p, int right)  // parse any nested set of () or []
+{
 	int left = *p++;
 	char *word = p;
 	for (int brak = 1; brak;) {
@@ -104,8 +102,8 @@ char *parseexp(char *&p, int right)          // parse any nested set of () or []
 	return s;
 }
 
-char *parseword(char *&p)        // parse single argument, including expressions
-		{
+char* VM::parseword(char *&p)        // parse single argument, including expressions
+{
 	p += strspn(p, " \t\r");
 	if (p[0] == '/' && p[1] == '/')
 		p += strcspn(p, "\n\0");
@@ -129,10 +127,10 @@ char *parseword(char *&p)        // parse single argument, including expressions
 	return newIString(word, p - word);
 }
 
-char *lookup(char *n)            // find value of ident referenced with $ in exp
+char* VM::lookup(char *n)            // find value of ident referenced with $ in exp
 {
 	if (idents.find(n + 1) != idents.end()) {
-		Ident &id = idents.at(n + 1);
+		Token &id = idents.at(n + 1);
 		switch (id.type) {
 		case ID_VAR:
 			IString t;
@@ -146,15 +144,15 @@ char *lookup(char *n)            // find value of ident referenced with $ in exp
 	return n;
 }
 
-int execute(char *p, bool isdown)    // all evaluation happens here, recursively
-		{
+int VM::execute(char *p, bool isdown)    // all evaluation happens here, recursively
+{
 	const int MAXWORDS = 25;                    // limit, remove
 	char *w[MAXWORDS];
 	int val = 0;
 	for (bool cont = true; cont;)              // for each ; seperated statement
-			{
+	{
 		int numargs = MAXWORDS;
-		loopi(MAXWORDS)                         // collect all argument values
+		for(int i = 0; i < MAXWORDS; ++i)                         // collect all argument values
 		{
 			w[i] = "";
 			if (i > numargs)
@@ -182,7 +180,7 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 			if (!val && *c != '0')
 				conoutf("unknown command: %s", c);
 		} else {
-			Ident &id = idents.at(c);
+			Token &id = idents.at(c);
 			switch (id.type) {
 			case ID_COMMAND:                    // game defined commands       
 				switch (id.narg) // use very ad-hoc function signature, and just call it
@@ -313,14 +311,11 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 }
 
 // tab-completion of all idents
-
-int completesize = 0, completeidx = 0;
-
-void resetcomplete() {
+void VM::resetcomplete() {
 	completesize = 0;
 }
 
-void complete(char *s) {
+void VM::complete(char *s) {
 	if (*s != '/') {
 		IString t;
 		strcpy_s(t, s);
@@ -345,7 +340,7 @@ void complete(char *s) {
 		completeidx = 0;
 }
 
-bool execfile(char *cfgfile) {
+bool VM::execfile(char *cfgfile) {
 	IString s;
 	strcpy_s(s, cfgfile);
 	char *buf = loadfile(path(s), NULL);
@@ -356,17 +351,16 @@ bool execfile(char *cfgfile) {
 	return true;
 }
 
-void exec(char *cfgfile) {
+void VM::exec(char *cfgfile) {
 	if (!execfile(cfgfile))
 		conoutf("could not read \"%s\"", cfgfile);
 }
 
-void writecfg() {
+void VM::writecfg() {
 	FILE *f = fopen("config.cfg", "w");
 	if (!f)
 		return;
-	fprintf(f,
-			"// automatically written on exit, do not modify\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+	fprintf(f, "// automatically written on exit, do not modify\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
 	writeclientinfo(f);
 	fprintf(f, "\n");
 	for (auto &id : idents) {
@@ -402,7 +396,7 @@ void ifthen(char *cond, char *thenp, char *elsep) {
 
 void loopa(char *times, char *body) {
 	int t = atoi(times);
-	loopi(t)
+	for(int i = 0; i < t; ++i)
 	{
 		intset("i", i);
 		execute(body);

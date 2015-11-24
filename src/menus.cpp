@@ -83,9 +83,9 @@ bool rendermenu() {
 		int bh = y + m.menusel * step;
 		blendbox(x - FONTH, bh - 10, x + w + FONTH, bh + FONTH + 10, false);
 	};
-	loopj(mdisp)
+	for(int i = 0; i < mdisp; ++i)
 	{
-		draw_text(m.items[j].text, x, y, 2);
+		draw_text(m.items[i].text, x, y, 2);
 		y += step;
 	};
 	return true;

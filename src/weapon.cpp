@@ -59,20 +59,19 @@ void weapon(char *a1, char *a2, char *a3) {
 COMMAND(weapon, ARG_3STR);
 
 void createrays(vec &from, vec &to) // create random spread of rays for the shotgun
-		{
+{
 	vdist(dist, dvec, from, to);
 	float f = dist * SGSPREAD / 1000;
-	loopi(SGRAYS)
+	for(int i = 0; i < SGRAYS; ++i)
 	{
-#define RNDD (rnd(101)-50)*f
-		vec r = { RNDD, RNDD, RNDD };
+		vec r = { (rnd(101)-50)*f, (rnd(101)-50)*f, (rnd(101)-50)*f };
 		sg[i] = to;
 		vadd(sg[i], r);
 	};
 }
 
 bool intersect(Sprite *d, vec &from, vec &to) // if lineseg hits entity bounding box
-		{
+{
 	vec v = to, w = d->o, *p;
 	vsub(v, from);
 	vsub(w, from);

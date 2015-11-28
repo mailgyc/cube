@@ -112,6 +112,7 @@ char *parseexp(char *&p, int right)          // parse any nested set of () or []
 	return s;
 }
 
+#define __cdecl
 char *parseword(char *&p)        // parse single argument, including expressions
 		{
 	p += strspn(p, " \t\r");
@@ -314,8 +315,8 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 				break;
 			};
 		}
-		loopj(numargs)
-			gp()->deallocstr(w[j]);
+		for(int i = 0; i < numargs; ++i)
+			gp()->deallocstr(w[i]);
 	};
 	return val;
 }

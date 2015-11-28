@@ -265,6 +265,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1,
 int wx1, wy1, wx2, wy2;
 
 int watersubdiv = variable("watersubdiv", 1, 4, 64, &watersubdiv, NULL, false);
+
 void var_waterlevel();
 static int waterlevel = variable("waterlevel", -128, -128, 127, &waterlevel, var_waterlevel, false);
 void var_waterlevel() {

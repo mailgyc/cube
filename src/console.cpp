@@ -82,10 +82,9 @@ void renderconsole()       // render buffer taking into account time & scrolling
 				break;
 		};
 	}
-	loopj(nd)
+	for(int i = 0; i < nd; ++i)
 	{
-		draw_text(refs[j], FONTH / 3,
-				(FONTH / 4 * 5) * (nd - j - 1) + FONTH / 3, 2);
+		draw_text(refs[i], FONTH / 3, (FONTH / 4 * 5) * (nd - i - 1) + FONTH / 3, 2);
 	};
 }
 

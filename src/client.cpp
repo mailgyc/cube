@@ -36,7 +36,6 @@ void var_rate() {
 }
 
 void throttle();
-
 void var_throttle_interval();
 static int throttle_interval = variable("throttle_interval", 0, 5, 30, &throttle_interval, var_throttle_interval, false);
 void var_throttle_interval() {

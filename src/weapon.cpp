@@ -59,20 +59,19 @@ void weapon(char *a1, char *a2, char *a3) {
 COMMAND(weapon, ARG_3STR);
 
 void createrays(Vec3 &from, Vec3 &to) // create random spread of rays for the shotgun
-		{
+{
 	vdist(dist, dvec, from, to);
 	float f = dist * SGSPREAD / 1000;
-	loopi(SGRAYS)
+	for(int i = 0; i < SGRAYS; ++i)
 	{
-#define RNDD (rnd(101)-50)*f
-		Vec3 r = { RNDD, RNDD, RNDD };
+		Vec3 r = { (rnd(101)-50)*f, (rnd(101)-50)*f, (rnd(101)-50)*f };
 		sg[i] = to;
 		vadd(sg[i], r);
-	};
+	}
 }
 
 bool intersect(Sprite *d, Vec3 &from, Vec3 &to) // if lineseg hits entity bounding box
-		{
+{
 	Vec3 v = to, w = d->o, *p;
 	vsub(v, from);
 	vsub(w, from);
@@ -82,19 +81,17 @@ bool intersect(Sprite *d, Vec3 &from, Vec3 &to) // if lineseg hits entity boundi
 		p = &from;
 	else {
 		float c2 = dotprod(v, v);
-		if (c2 <= c1)
+		if (c2 <= c1) {
 			p = &to;
-		else {
+		} else {
 			float f = c1 / c2;
 			vmul(v, f);
 			vadd(v, from);
 			p = &v;
-		};
-	};
+		}
+	}
 
-	return p->x <= d->o.x + d->radius && p->x >= d->o.x - d->radius
-			&& p->y <= d->o.y + d->radius && p->y >= d->o.y - d->radius
-			&& p->z <= d->o.z + d->aboveeye && p->z >= d->o.z - d->eyeheight;
+	return p->x <= d->o.x + d->radius && p->x >= d->o.x - d->radius && p->y <= d->o.y + d->radius && p->y >= d->o.y - d->radius && p->z <= d->o.z + d->aboveeye && p->z >= d->o.z - d->eyeheight;
 }
 
 char *playerincrosshair() {

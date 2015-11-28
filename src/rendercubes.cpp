@@ -58,11 +58,10 @@ void finishstrips() {
 }
 
 sqr sbright, sdark;
-VAR(lighterror, 1, 8, 100);
+int lighterror = variable("lighterror", 1, 8, 100, &lighterror, NULL, false);
 
-void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2,
-		sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
-		{
+void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
+{
 	vertcheck();
 	if (showm) {
 		l3 = l1 = &sbright;
@@ -78,9 +77,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2,
 	float xo = xf * x;
 	float yo = yf * y;
 
-	bool first = !floorstrip || y != oy + size || ogltex != gltex || h != oh
-			|| x != ox;
-
+	bool first = !floorstrip || y != oy + size || ogltex != gltex || h != oh || x != ox;
 	if (first)       // start strip here
 	{
 		stripend();
@@ -267,9 +264,14 @@ void render_square(int wtex, float floor1, float floor2, float ceil1,
 
 int wx1, wy1, wx2, wy2;
 
-VAR(watersubdiv, 1, 4, 64);
-VARF(waterlevel, -128, -128, 127,
-		if(!noteditmode()) hdr.waterlevel = waterlevel);
+int watersubdiv = variable("watersubdiv", 1, 4, 64, &watersubdiv, NULL, false);
+void var_waterlevel();
+static int waterlevel = variable("waterlevel", -128, -128, 127, &waterlevel, var_waterlevel, false);
+void var_waterlevel() {
+	if(!noteditmode()) {
+		hdr.waterlevel = waterlevel;
+	}
+}
 
 inline void vertw(int v1, float v2, int v3, sqr *c, float t1, float t2,
 		float t) {

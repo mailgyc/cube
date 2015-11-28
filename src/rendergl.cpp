@@ -242,14 +242,16 @@ void addstrip(int tex, int start, int n) {
 	strips.emplace_back(s);
 }
 
-VARFP(gamma, 30, 100, 300, {
+void var_gamma();
+static int gamma = variable("gamma", 30, 100, 300, &gamma, var_gamma, true);
+void var_gamma() {
 //    float f = gamma/100.0f;
 //    if(SDL_SetGamma(f,f,f)==-1)
 //    {
 //        conoutf("Could not set gamma (card/driver doesn't support it?)");
 //        conoutf("sdl: %s", SDL_GetError());
 //    };
-	});
+}
 
 void transplayer() {
 	glLoadIdentity();
@@ -263,22 +265,19 @@ void transplayer() {
 					- player1->o.z, -player1->o.y);
 }
 
-VARP(fov, 10, 105, 120);
+int fov = variable("fov", 10, 105, 120, &fov, NULL, true);
 
 int xtraverts;
 
-VAR(fog, 64, 180, 1024);
-VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
+int fog = variable("fog", 64, 180, 1024, &fog, NULL, false);
+int fogcolour = variable("fogcolour", 0, 0x8099B3, 0xFFFFFF, &fogcolour, NULL, false);
 
-VARP(hudgun, 0, 1, 1);
+int hudgun = variable("hudgun", 0, 1, 1, &hudgun, NULL, true);
 
-char *hudgunnames[] = { "hudguns/fist", "hudguns/shotg", "hudguns/chaing",
-		"hudguns/rocket", "hudguns/rifle" };
+char *hudgunnames[] = { "hudguns/fist", "hudguns/shotg", "hudguns/chaing", "hudguns/rocket", "hudguns/rifle" };
 
 void drawhudmodel(int start, int end, float speed, int base) {
-	rendermodel(hudgunnames[player1->gunselect], start, end, 0, 1.0f,
-			player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90,
-			player1->pitch, false, 1.0f, speed, 0, base);
+	rendermodel(hudgunnames[player1->gunselect], start, end, 0, 1.0f, player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90, player1->pitch, false, 1.0f, speed, 0, base);
 }
 
 void drawhudgun(float fovy, float aspect, int farplane) {

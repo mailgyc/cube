@@ -4,7 +4,7 @@
 
 extern bool hasoverbright;
 
-VAR(lightscale, 1, 4, 100);
+int lightscale = variable("lightscale", 1, 4, 100, &lightscale, NULL, false);
 
 void lightray(float bx, float by, persistent_entity &light) // done in realtime, needs to be fast
 {
@@ -170,7 +170,7 @@ void calclight() {
 	setvar("fullbright", 0);
 }
 
-VARP(dynlight, 0, 16, 32);
+int dynlight = variable("dynlight", 0, 16, 32, &dynlight, NULL, true);
 
 std::vector<block *> dlights;
 

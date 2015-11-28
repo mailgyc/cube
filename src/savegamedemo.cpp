@@ -268,7 +268,7 @@ void stopreset() {
 	disconnect(0, 0);
 }
 
-VAR(demoplaybackspeed, 10, 100, 1000);
+int demoplaybackspeed = variable("demoplaybackspeed", 10, 100, 1000, &demoplaybackspeed, NULL, false);
 int scaletime(int t) {
 	return (int) (t * (100.0f / demoplaybackspeed)) + starttime;
 }
@@ -292,10 +292,10 @@ void startdemo() {
 	readdemotime();
 }
 
-VAR(demodelaymsec, 0, 120, 500);
+int demodelaymsec = variable("demodelaymsec", 0, 120, 500, &demodelaymsec, NULL, false);
 
 void catmulrom(Vec3 &z, Vec3 &a, Vec3 &b, Vec3 &c, float s, Vec3 &dest) // spline interpolation
-		{
+{
 	Vec3 t1 = b, t2 = c;
 
 	vsub(t1, z);

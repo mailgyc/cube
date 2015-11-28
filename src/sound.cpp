@@ -2,8 +2,8 @@
 
 #include "cube.h"
 
-VARP(soundvol, 0, 255, 255);
-VARP(musicvol, 0, 128, 255);
+int soundvol = variable("soundvol", 0, 255, 255, &soundvol, NULL, true);
+int musicvol = variable("musicvol", 0, 128, 255, &musicvol, NULL, true);
 bool nosound = false;
 
 #define MAXCHAN 32
@@ -32,7 +32,7 @@ void stopsound() {
 	}
 }
 
-VAR(soundbufferlen, 128, 1024, 4096);
+int soundbufferlen = variable("soundbufferlen", 128, 1024, 4096, &soundbufferlen, NULL, false);
 
 void initsound() {
 	memset(soundlocs, 0, sizeof(soundloc) * MAXCHAN);
@@ -81,7 +81,7 @@ void cleansound() {
 	Mix_CloseAudio();
 }
 
-VAR(stereo, 0, 1, 1);
+int stereo = variable("stereo", 0, 1, 1, &stereo, NULL, false);
 
 void updatechanvol(int chan, Vec3 *loc) {
 	int vol = soundvol, pan = 255 / 2;

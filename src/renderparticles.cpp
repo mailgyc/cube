@@ -13,17 +13,16 @@ struct particle {
 particle particles[MAXPARTICLES], *parlist = NULL, *parempty = NULL;
 bool parinit = false;
 
-VARP(maxparticles, 100, 2000, MAXPARTICLES - 500);
+int maxparticles = variable("maxparticles", 100, 2000, MAXPARTICLES - 500, &maxparticles, NULL, true);
 
 void newparticle(Vec3 &o, Vec3 &d, int fade, int type) {
 	if (!parinit) {
-		loopi(MAXPARTICLES)
-		{
+		for(int i = 0; i < MAXPARTICLES; ++i) {
 			particles[i].next = parempty;
 			parempty = &particles[i];
-		};
+		}
 		parinit = true;
-	};
+	}
 	if (parempty) {
 		particle *p = parempty;
 		parempty = p->next;
@@ -37,8 +36,8 @@ void newparticle(Vec3 &o, Vec3 &d, int fade, int type) {
 	};
 }
 
-VAR(demotracking, 0, 0, 1);
-VARP(particlesize, 20, 100, 500);
+int demotracking = variable("demotracking", 0, 0, 1, &demotracking, NULL, false);
+int particlesize = variable("particlesize", 20, 100, 500, &particlesize, NULL, true);
 
 Vec3 right, up;
 

@@ -3,7 +3,7 @@
 #include "cube.h"
 
 int nextmode = 0;         // nextmode becomes gamemode after next map load
-VAR(gamemode, 1, 0, 0);
+int gamemode = variable("gamemode", 1, 0, 0, &gamemode, NULL, false);
 
 void mode(int n) {
 	addmsg(1, 2, SV_GAMEMODE, nextmode = n);
@@ -16,9 +16,9 @@ bool intermission = false;
 Sprite *player1 = newSprite();          // our client
 std::vector<Sprite *> players;                        // other clients
 
-VARP(sensitivity, 0, 10, 10000);
-VARP(sensitivityscale, 1, 1, 10000);
-VARP(invmouse, 0, 0, 1);
+int sensitivity = variable("sensitivity", 0, 10, 10000, &sensitivity, NULL, true);
+int sensitivityscale = variable("sensitivityscale", 1, 1, 10000, &sensitivityscale, NULL, true);
+int invmouse = variable("invmouse", 0, 0, 1, &invmouse, NULL, true);
 
 int lastmillis = 0;
 int curtime = 10;

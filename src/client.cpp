@@ -27,21 +27,39 @@ bool allowedittoggle() {
 	return allow;
 }
 
-VARF(rate, 0, 0, 25000,
-		if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
+void var_rate();
+static int rate = variable("rate", 0, 0, 25000, &rate, var_rate, false);
+void var_rate() {
+	if(clienthost && (!rate || rate>1000)) {
+		enet_host_bandwidth_limit (clienthost, rate, rate);
+	}
+}
 
 void throttle();
 
-VARF(throttle_interval, 0, 5, 30, throttle());
-VARF(throttle_accel, 0, 2, 32, throttle());
-VARF(throttle_decel, 0, 2, 32, throttle());
+void var_throttle_interval();
+static int throttle_interval = variable("throttle_interval", 0, 5, 30, &throttle_interval, var_throttle_interval, false);
+void var_throttle_interval() {
+	throttle();
+}
+
+void var_throttle_accel();
+static int throttle_accel = variable("throttle_accel", 0, 2, 32, &throttle_accel, var_throttle_accel, false);
+void var_throttle_accel() {
+	throttle();
+}
+
+void var_throttle_decel();
+static int throttle_decel = variable("throttle_decel", 0, 2, 32, &throttle_decel, var_throttle_decel, false);
+void var_throttle_decel() {
+	throttle();
+}
 
 void throttle() {
 	if (!clienthost || connecting)
 		return;
 	assert(ENET_PEER_PACKET_THROTTLE_SCALE == 32);
-	enet_peer_throttle_configure(clienthost->peers, throttle_interval * 1000,
-			throttle_accel, throttle_decel);
+	enet_peer_throttle_configure(clienthost->peers, throttle_interval * 1000, throttle_accel, throttle_decel);
 }
 
 void newname(char *name) {
@@ -109,8 +127,9 @@ void disconnect(int onlyclean, int async) {
 	clientnum = -1;
 	c2sinit = false;
 	player1->lifesequence = 0;
-	loopv(players)
-		zapSprite(players[i]);
+	for(Sprite *player : players) {
+		zapSprite(player);
+	}
 
 	localdisconnect();
 

@@ -64,8 +64,15 @@ void screenshot() {
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
 
-VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
-VARP(minmillis, 0, 5, 1000);
+void var_gamespeed();
+static int gamespeed = variable("gamespeed", 10, 100, 1000, &gamespeed, var_gamespeed, false);
+void var_gamespeed() {
+	if(multiplayer()) {
+		gamespeed = 100;
+	}
+}
+
+int minmillis = variable("minmillis", 0, 5, 1000, &minmillis, NULL, true);
 
 int islittleendian = 1;
 int framesinmap = 0;

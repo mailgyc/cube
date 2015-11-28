@@ -248,15 +248,15 @@ void invertperspective() {
 	glLoadMatrixd(inv);
 }
 
-VARP(crosshairsize, 0, 15, 50);
+int crosshairsize = variable("crosshairsize", 0, 15, 50, &crosshairsize, NULL, true);
 
 int dblend = 0;
 void damageblend(int n) {
 	dblend += n;
 }
 
-VAR(hidestats, 0, 0, 1);
-VARP(crosshairfx, 0, 1, 1);
+int hidestats = variable("hidestats", 0, 0, 1, &hidestats, NULL, false);
+int crosshairfx = variable("crosshairfx", 0, 1, 1, &crosshairfx, NULL, true);
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
 		bool underwater) {

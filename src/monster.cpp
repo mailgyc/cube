@@ -5,16 +5,22 @@
 std::vector<Sprite *> monsters;
 int nextmonster, spawnremain, numkilled, monstertotal, mtimestart;
 
-VARF(skill, 1, 3, 10, conoutf("skill is now %d", skill));
+void var_skill();
+static int skill = variable("skill", 1, 3, 10, &skill, var_skill, false);
+void var_skill() {
+	conoutf("skill is now %d", skill);
+}
 
 std::vector<Sprite *> &getmonsters() {
 	return monsters;
 }
 
 void restoremonsterstate() {
-	loopv(monsters)
-		if (monsters[i]->state == CS_DEAD)
+	for(int i = 0; i < monsters.size(); ++i) {
+		if (monsters[i]->state == CS_DEAD) {
 			numkilled++;
+		}
+	}
 }
 
 // for savegames

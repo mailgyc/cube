@@ -7,10 +7,12 @@ bool editmode = false;
 // the current selection, used by almost all editing commands
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
 
-block sel = { variable("selx", 0, 0, 4096, &sel.x, NULL, false), variable(
-		"sely", 0, 0, 4096, &sel.y, NULL, false), variable("selxs", 0, 0, 4096,
-		&sel.xs, NULL, false), variable("selys", 0, 0, 4096, &sel.ys, NULL,
-		false), };
+block sel = {
+	variable("selx",  0, 0, 4096, &sel.x, NULL, false),
+	variable("sely",  0, 0, 4096, &sel.y, NULL, false),
+	variable("selxs", 0, 0, 4096, &sel.xs, NULL, false),
+	variable("selys", 0, 0, 4096, &sel.ys, NULL, false),
+};
 
 int selh = 0;
 bool selset = false;
@@ -27,7 +29,7 @@ int lastx, lasty, lasth;
 int lasttype = 0, lasttex = 0;
 sqr rtex;
 
-VAR(editing, 0, 0, 1);
+int editing = variable("editing", 0, 0, 1, &editing, NULL, false);
 
 void toggleedit() {
 	if (player1->state == CS_DEAD)
@@ -87,8 +89,7 @@ void selectpos(int x, int y, int xs, int ys) {
 }
 
 void makesel() {
-	block s = { min(lastx, cx), min(lasty, cy), abs(lastx - cx) + 1, abs(
-			lasty - cy) + 1 };
+	block s = { min(lastx, cx), min(lasty, cy), abs(lastx - cx) + 1, abs( lasty - cy) + 1 };
 	sel = s;
 	selh = max(lasth, ch);
 	correctsel();
@@ -96,13 +97,13 @@ void makesel() {
 		rtex = *S(sel.x, sel.y);
 }
 
-VAR(flrceil, 0, 0, 2);
+int flrceil = variable("flrceil", 0, 0, 2, &flrceil, NULL, false);
 
 float sheight(sqr *s, sqr *t, float z) // finds out z height when cursor points at wall
-		{
-	return !flrceil //z-s->floor<s->ceil-z
-	? (s->type == FHF ? s->floor - t->vdelta / 4.0f : (float) s->floor) : (
-			s->type == CHF ? s->ceil + t->vdelta / 4.0f : (float) s->ceil);
+{
+	//z-s->floor<s->ceil-z
+	return !flrceil
+	? (s->type == FHF ? s->floor - t->vdelta / 4.0f : (float) s->floor) : ( s->type == CHF ? s->ceil + t->vdelta / 4.0f : (float) s->ceil);
 }
 
 void cursorupdate()                               // called every frame from hud
@@ -191,8 +192,9 @@ void cursorupdate()                               // called every frame from hud
 	};
 }
 
-std::vector<block *> undos;                                  // unlimited undo
-VARP(undomegs, 0, 1, 10);                                // bounded by n megs
+std::vector<block *> undos; // unlimited undo
+// bounded by n megs
+int undomegs = variable("undomegs", 0, 1, 10, &undomegs, NULL, true);
 
 void pruneundos(int maxremain)                          // bound memory
 		{
@@ -510,8 +512,18 @@ void perlin(int scale, int seed, int psize) {
 	sel.ys--;
 }
 
-VARF(fullbright, 0, 0, 1,
-		if(fullbright) { if(noteditmode()) return; loopi(mipsize) world[i].r = world[i].g = world[i].b = 176; };);
+void var_fullbright();
+static int fullbright = variable("fullbright", 0, 0, 1, &fullbright, var_fullbright, false);
+void var_fullbright() {
+	if(fullbright) {
+		if(noteditmode()) {
+			return;
+		}
+		for(int i = 0; i < mipsize; ++i) {
+			world[i].r = world[i].g = world[i].b = 176;
+		}
+	}
+}
 
 void edittag(int tag) {
 	EDITSELMP;

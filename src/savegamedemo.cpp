@@ -21,8 +21,8 @@ void gzputi(int i) {
 	gzwrite(f, &i, sizeof(int));
 }
 
-void gzputv(vec &v) {
-	gzwrite(f, &v, sizeof(vec));
+void gzputv(Vec3 &v) {
+	gzwrite(f, &v, sizeof(Vec3));
 }
 
 void gzcheck(int a, int b) {
@@ -41,8 +41,8 @@ int gzgeti() {
 	return i;
 }
 
-void gzgetv(vec &v) {
-	gzcheck(gzread(f, &v, sizeof(vec)), sizeof(vec));
+void gzgetv(Vec3 &v) {
+	gzcheck(gzread(f, &v, sizeof(Vec3)), sizeof(Vec3));
 }
 
 void stop() {
@@ -195,7 +195,7 @@ void loadgamerest() {
 int starttime = 0;
 int playbacktime = 0;
 int ddamage, bdamage;
-vec dorig;
+Vec3 dorig;
 
 void record(char *name) {
 	if (m_sp) {
@@ -215,7 +215,7 @@ void record(char *name) {
 	ddamage = bdamage = 0;
 }
 
-void demodamage(int damage, vec &o) {
+void demodamage(int damage, Vec3 &o) {
 	ddamage = damage;
 	dorig = o;
 }
@@ -294,9 +294,9 @@ void startdemo() {
 
 VAR(demodelaymsec, 0, 120, 500);
 
-void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest) // spline interpolation
+void catmulrom(Vec3 &z, Vec3 &a, Vec3 &b, Vec3 &c, float s, Vec3 &dest) // spline interpolation
 		{
-	vec t1 = b, t2 = c;
+	Vec3 t1 = b, t2 = c;
 
 	vsub(t1, z);
 	vmul(t1, 0.5f)
@@ -307,7 +307,7 @@ void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest) // spline int
 	float s3 = s * s2;
 
 	dest = a;
-	vec t = b;
+	Vec3 t = b;
 
 	vmul(dest, 2 * s3 - 3 * s2 + 1);
 	vmul(t, -2 * s3 + 3 * s2);
@@ -408,9 +408,9 @@ void demoplaybackstep() {
 					if (dist < 16)	// if teleport or spawn, dont't interpolate
 							{
 						catmulrom(z->o, a->o, b->o, c->o, bf, player1->o);
-						catmulrom(*(vec *) &z->yaw, *(vec *) &a->yaw,
-								*(vec *) &b->yaw, *(vec *) &c->yaw, bf,
-								*(vec *) &player1->yaw);
+						catmulrom(*(Vec3 *) &z->yaw, *(Vec3 *) &a->yaw,
+								*(Vec3 *) &b->yaw, *(Vec3 *) &c->yaw, bf,
+								*(Vec3 *) &player1->yaw);
 					};
 					fixplayer1range();
 				};

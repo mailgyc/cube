@@ -5,7 +5,7 @@
 const int MAXPARTICLES = 10500;
 const int NUMPARTCUTOFF = 20;
 struct particle {
-	vec o, d;
+	Vec3 o, d;
 	int fade, type;
 	int millis;
 	particle *next;
@@ -15,7 +15,7 @@ bool parinit = false;
 
 VARP(maxparticles, 100, 2000, MAXPARTICLES - 500);
 
-void newparticle(vec &o, vec &d, int fade, int type) {
+void newparticle(Vec3 &o, Vec3 &d, int fade, int type) {
 	if (!parinit) {
 		loopi(MAXPARTICLES)
 		{
@@ -40,16 +40,16 @@ void newparticle(vec &o, vec &d, int fade, int type) {
 VAR(demotracking, 0, 0, 1);
 VARP(particlesize, 20, 100, 500);
 
-vec right, up;
+Vec3 right, up;
 
-void setorient(vec &r, vec &u) {
+void setorient(Vec3 &r, Vec3 &u) {
 	right = r;
 	up = u;
 }
 
 void render_particles(int time) {
 	if (demoplayback && demotracking) {
-		vec nom = { 0, 0, 0 };
+		Vec3 nom = { 0, 0, 0 };
 		newparticle(player1->o, nom, 100000000, 8);
 	};
 
@@ -109,7 +109,7 @@ void render_particles(int time) {
 			if (pt->gr)
 				p->o.z -= ((lastmillis - p->millis) / 3.0f) * curtime
 						/ (pt->gr * 10000);
-			vec a = p->d;
+			Vec3 a = p->d;
 			vmul(a, time);
 			vdiv(a, 20000.0f);
 			vadd(p->o, a);
@@ -122,7 +122,7 @@ void render_particles(int time) {
 	glDepthMask(GL_TRUE);
 }
 
-void particle_splash(int type, int num, int fade, vec &p) {
+void particle_splash(int type, int num, int fade, Vec3 &p) {
 	loopi(num)
 	{
 		const int radius = type == 5 ? 50 : 150;
@@ -132,19 +132,19 @@ void particle_splash(int type, int num, int fade, vec &p) {
 			y = rnd(radius*2) - radius;
 			z = rnd(radius*2) - radius;
 		} while (x * x + y * y + z * z > radius * radius);
-		vec d = { (float) x, (float) y, (float) z };
+		Vec3 d = { (float) x, (float) y, (float) z };
 		newparticle(p, d, rnd(fade * 3), type);
 	};
 }
 
-void particle_trail(int type, int fade, vec &s, vec &e) {
+void particle_trail(int type, int fade, Vec3 &s, Vec3 &e) {
 	vdist(d, v, s, e);
 	vdiv(v, d * 2 + 0.1f);
-	vec p = s;
+	Vec3 p = s;
 	loopi((int)d*2)
 	{
 		vadd(p, v);
-		vec d = { float(rnd(11) - 5), float(rnd(11) - 5), float(rnd(11) - 5) };
+		Vec3 d = { float(rnd(11) - 5), float(rnd(11) - 5), float(rnd(11) - 5) };
 		newparticle(p, d, rnd(fade) + fade, type);
 	};
 }

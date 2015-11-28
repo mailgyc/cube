@@ -115,7 +115,7 @@ void monsterclear() // called after map start of when toggling edit mode to rese
 	};
 }
 
-bool los(float lx, float ly, float lz, float bx, float by, float bz, vec &v) // height-correct line of sight for monster shooting/seeing
+bool los(float lx, float ly, float lz, float bx, float by, float bz, Vec3 &v) // height-correct line of sight for monster shooting/seeing
 		{
 	if (OUTBORD((int)lx, (int)ly) || OUTBORD((int )bx, (int )by))
 		return false;
@@ -150,7 +150,7 @@ bool los(float lx, float ly, float lz, float bx, float by, float bz, vec &v) // 
 	return i >= steps;
 }
 
-bool enemylos(Sprite *m, vec &v) {
+bool enemylos(Sprite *m, Vec3 &v) {
 	v = m->o;
 	return los(m->o.x, m->o.y, m->o.z, m->enemy->o.x, m->enemy->o.y,
 			m->enemy->o.z, v);
@@ -225,7 +225,7 @@ void monsteraction(Sprite *m) // main AI thinking routine, called every frame fo
 
 	case M_SLEEP:  // state classic sp monster start in, wait for visual contact
 	{
-		vec target;
+		Vec3 target;
 		if (editmode || !enemylos(m, target))
 			return;   // skip running physics
 		normalise(m, enemyyaw);
@@ -253,7 +253,7 @@ void monsteraction(Sprite *m) // main AI thinking routine, called every frame fo
 	case M_HOME: // monster has visual contact, heads straight for player and may want to shoot at any time
 		m->targetyaw = enemyyaw;
 		if (m->trigger < lastmillis) {
-			vec target;
+			Vec3 target;
 			if (!enemylos(m, target)) // no visual contact anymore, let monster get as close as possible then search for player
 					{
 				transition(m, M_HOME, 1, 800, 500);
@@ -333,7 +333,7 @@ void monsterthink() {
 			continue;
 		if (OUTBORD(e.x, e.y))
 			continue;
-		vec v = { e.x, e.y, S(e.x, e.y)->floor };
+		Vec3 v = { e.x, e.y, S(e.x, e.y)->floor };
 		loopv(monsters)
 			if (monsters[i]->state == CS_DEAD) {
 				if (lastmillis - monsters[i]->lastaction < 2000) {

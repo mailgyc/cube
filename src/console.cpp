@@ -44,9 +44,7 @@ void conline(const char *sf, bool highlight) // add a line to the console buffer
 		strcpy_s(cl.cref, sf);
 	};
 	puts(cl.cref);
-#ifndef WIN32
 	fflush(stdout);
-#endif
 }
 
 void conoutf(const char *s, ...) {
@@ -55,7 +53,7 @@ void conoutf(const char *s, ...) {
 	va_list ap;
 	va_start(ap, s);
 //	std::snprintf(sf, _MAXDEFSTR, s, ap);
-	_vsnprintf(sf, _MAXDEFSTR, s, ap);
+	vsnprintf(sf, _MAXDEFSTR, s, ap);
 	sf[_MAXDEFSTR - 1] = 0;
 	va_end(ap);
 

@@ -70,7 +70,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border) {
 
 const int MAXSPHERES = 50;
 struct sphere {
-	vec o;
+	Vec3 o;
 	float size, max;
 	int type;
 	sphere *next;
@@ -78,7 +78,7 @@ struct sphere {
 sphere spheres[MAXSPHERES], *slist = NULL, *sempty = NULL;
 bool sinit = false;
 
-void newsphere(vec &o, float max, int type) {
+void newsphere(Vec3 &o, float max, int type) {
 	if (!sinit) {
 		loopi(MAXSPHERES)
 		{
@@ -147,7 +147,7 @@ void renderents()       // show sparkly thingies for map entities in edit mode
 		entity &e = ents[i];
 		if (e.type == NOTUSED)
 			continue;
-		vec v = { e.x, e.y, e.z };
+		Vec3 v = { e.x, e.y, e.z };
 		particle_splash(2, 2, 40, v);
 	};
 	int e = closestent();
@@ -182,7 +182,7 @@ COMMAND(loadsky, ARG_1STR);
 float cursordepth = 0.9f;
 GLint viewport[4];
 GLdouble mm[16], pm[16];
-vec worldpos;
+Vec3 worldpos;
 
 void readmatrices() {
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -210,8 +210,8 @@ void readdepth(int w, int h) {
 	worldpos.x = (float) worldx;
 	worldpos.y = (float) worldy;
 	worldpos.z = (float) worldz;
-	vec r = { (float) mm[0], (float) mm[4], (float) mm[8] };
-	vec u = { (float) mm[1], (float) mm[5], (float) mm[9] };
+	Vec3 r = { (float) mm[0], (float) mm[4], (float) mm[8] };
+	Vec3 u = { (float) mm[1], (float) mm[5], (float) mm[9] };
 	setorient(r, u);
 }
 

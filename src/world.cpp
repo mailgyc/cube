@@ -212,7 +212,7 @@ int closestent()        // used for delent and edit mode ent display
 		entity &e = ents[i];
 		if (e.type == NOTUSED)
 			continue;
-		vec v = { e.x, e.y, e.z };
+		Vec3 v = { e.x, e.y, e.z };
 		vdist(dist, t, player1->o, v);
 		if (dist < bdist) {
 			best = i;
@@ -364,7 +364,7 @@ void setupworld(int factor) {
 }
 
 void empty_world(int factor, bool force) // main empty world creation routine, if passed factor -1 will enlarge old world by 1
-		{
+{
 	if (!force && noteditmode())
 		return;
 	cleardlights();
@@ -381,10 +381,11 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 		factor = LARGEST_FACTOR;
 	setupworld(factor);
 
-	loop(x,ssize)
-		loop(y,ssize)
+	for(int x = 0; x < ssize; ++x) {
+		for(int y = 0; y < ssize; ++y)
 		{
-			sqr *s = S(x, y);
+			//sqr *s = S(x, y);
+			sqr *s = &world[y * ssize + x];
 			s->r = s->g = s->b = 150;
 			s->ftex = DEFAULT_FLOOR;
 			s->ctex = DEFAULT_CEIL;
@@ -394,7 +395,8 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 			s->ceil = 16;
 			s->vdelta = 0;
 			s->defer = 0;
-		};
+		}
+	}
 
 	strncpy(hdr.head, "CUBE", 4);
 	hdr.version = MAPVERSION;
@@ -402,24 +404,27 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 	hdr.sfactor = sfactor;
 
 	if (copy) {
-		loop(x,ssize/2)
-			loop(y,ssize/2)
-			{
-				*S(x + ssize / 4, y + ssize / 4) = *SWS(oldworld, x, y,
-						ssize / 2);
-			};
-		loopv(ents) {
+		int half = ssize / 2;
+		for(int x = 0; x < half; ++x) {
+			for(int y = 0; y < half; ++y) {
+				world[(y + ssize/4) * ssize + (x + ssize/4)] = oldworld[y * half + x];
+			}
+		}
+		for(int i = 0; i < ents.size(); ++i) {
 			ents[i].x += ssize / 4;
 			ents[i].y += ssize / 4;
-		};
+		}
 	} else {
 		strn0cpy(hdr.maptitle, "Untitled Map by Unknown", 128);
 		hdr.waterlevel = -100000;
-		loopi(15)
+		for(int i = 0; i < 15; ++i) {
 			hdr.reserved[i] = 0;
-		loopk(3)
-			loopi(256)
+		}
+		for(int k = 0; k < 3; ++k) {
+			for(int i = 0; i < 256; ++i) {
 				hdr.texlists[k][i] = i;
+			}
+		}
 		ents.resize(0);
 		block b = { 8, 8, ssize - 16, ssize - 16 };
 		edittypexy(SPACE, b);

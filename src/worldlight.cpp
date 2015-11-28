@@ -7,7 +7,7 @@ extern bool hasoverbright;
 VAR(lightscale, 1, 4, 100);
 
 void lightray(float bx, float by, persistent_entity &light) // done in realtime, needs to be fast
-		{
+{
 	float lx = light.x + (rnd(21) - 10) * 0.1f;
 	float ly = light.y + (rnd(21) - 10) * 0.1f;
 	float dx = bx - lx;
@@ -183,7 +183,7 @@ void cleardlights() {
 	};
 }
 
-void dodynlight(vec &vold, vec &v, int reach, int strength, Sprite *owner) {
+void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength, Sprite *owner) {
 	if (!reach)
 		reach = dynlight;
 	if (owner->monsterstate)

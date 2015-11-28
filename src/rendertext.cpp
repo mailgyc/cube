@@ -127,7 +127,7 @@ void draw_textf(char *fstr, int left, int top, int gl_num, ...) {
 	va_list ap;
 	va_start(ap, gl_num);
 //	std::snprintf(str, _MAXDEFSTR, fstr, ap);
-	_vsnprintf(str, _MAXDEFSTR, fstr, ap);
+	vsnprintf(str, _MAXDEFSTR, fstr, ap);
 	str[_MAXDEFSTR - 1] = 0;
 
 	va_end(ap);

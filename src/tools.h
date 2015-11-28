@@ -44,20 +44,16 @@ typedef unsigned int uint;
 #define loopi(m) loop(i,m)
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
-#define loopl(m) loop(l,m)
 
 #define __cdecl
-#define _vsnprintf vsnprintf
-#define PATHDIV '/'
 
 // easy safe IStrings
-
 #define _MAXDEFSTR 260
 typedef char IString[_MAXDEFSTR];
 
 inline void strn0cpy(char *d, const char *s, size_t m) {
 	strncpy(d, s, m);
-	d[(m) - 1] = 0;
+	d[m - 1] = 0;
 }
 
 inline void strcpy_s(char *d, const char *s) {
@@ -75,9 +71,7 @@ extern char *path(char *s);
 extern char *loadfile(char *fn, int *size);
 extern void endianswap(void *, int, int);
 
-// memory pool that uses buckets and linear allocation for small objects
-// VERY fast, and reasonably good memory reuse 
-
+// memory pool that uses buckets and linear allocation for small objects VERY fast, and reasonably good memory reuse
 struct Pool {
 	enum {
 		POOLSIZE = 4096
@@ -129,60 +123,6 @@ struct Pool {
 
 
 #define loopv(v)    if(false) {} else for(int i = 0; i<(v).size(); i++)
-
-//template<class T> struct hashtable {
-//	struct Chain {
-//		Chain *next;
-//		char *key;
-//		T data;
-//	};
-//
-//	int size;
-//	int numelems;
-//	Chain **table;
-//	Pool *parent;
-//	Chain *enumc;
-//
-//	hashtable() {
-//		this->size = 1 << 10;
-//		this->parent = gp();
-//		numelems = 0;
-//		table = (Chain **) parent->alloc(size * sizeof(T));
-//		for (int i = 0; i < size; i++)
-//			table[i] = NULL;
-//	}
-//
-//	hashtable(hashtable<T> &v);
-//	void operator=(hashtable<T> &v);
-//
-//	T *access(char *key, T *data = NULL) {
-//		unsigned int h = 5381;
-//		for (int i = 0, k; k = key[i]; i++)
-//			h = ((h << 5) + h) ^ k;    // bernstein k=33 xor
-//		h = h & (size - 1);                   // primes not much of an advantage
-//		for (Chain *c = table[h]; c; c = c->next) {
-//			for (char *p1 = key, *p2 = c->key, ch; (ch = *p1++) == *p2++;)
-//				if (!ch)    //if(strcmp(key,c->key)==0)
-//				{
-//					T *d = &c->data;
-//					if (data)
-//						c->data = *data;
-//					return d;
-//				};
-//		};
-//		if (data) {
-//			Chain *c = (Chain *) parent->alloc(sizeof(Chain));
-//			c->data = *data;
-//			c->key = key;
-//			c->next = table[h];
-//			table[h] = c;
-//			numelems++;
-//		};
-//		return NULL;
-//	}
-//};
-
-//#define enumerate(ht,t,e,b) loopi(ht->size) for(ht->enumc = ht->table[i]; ht->enumc; ht->enumc = ht->enumc->next) { t e = &ht->enumc->data; b; }
 
 Pool *gp();
 inline char *newIString(char *s) {

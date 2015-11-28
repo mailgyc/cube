@@ -20,7 +20,6 @@ GLUquadricObj *qsphere = NULL;
 int glmaxtexsize = 256;
 
 void gl_init(int w, int h) {
-	//#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
 
 	glViewport(0, 0, w, h);
 	glClearDepth(1.0);
@@ -81,13 +80,10 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 	// loopi(s->w*s->h*3) { uchar *p = (uchar *)s->pixels+i; *p = 255-*p; };  
 	glBindTexture(GL_TEXTURE_2D, tnum);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-			clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-			clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-	GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	xs = s->w;
 	ys = s->h;
@@ -99,8 +95,7 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 	if (xs != s->w) {
 		conoutf("warning: quality loss: scaling %s", texname); // for voodoo cards under linux
 		scaledimg = alloc(xs * ys * 3);
-		gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys,
-		GL_UNSIGNED_BYTE, scaledimg);
+		gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
 	};
 	if (gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, xs, ys, GL_RGB,
 	GL_UNSIGNED_BYTE, scaledimg))
@@ -173,8 +168,8 @@ int lookuptexture(int tex, int &xs, int &ys) {
 			xs = texx[i];
 			ys = texy[i];
 			return tid;
-		};
-	};
+		}
+	}
 
 	if (curtex == MAXTEX)
 		fatal("loaded too many textures");
@@ -182,10 +177,8 @@ int lookuptexture(int tex, int &xs, int &ys) {
 	int tnum = curtex + FIRSTTEX;
 	strcpy_s(texname[curtex], mapname[tex][frame]);
 
-	IString name;
-	std::sprintf(name, "packages%c%s", PATHDIV, texname[curtex]);
-
-	if (installtex(tnum, name, xs, ys)) {
+	std::string name = std::string("packages/") + texname[curtex];
+	if (installtex(tnum, name.c_str(), xs, ys)) {
 		mapping[tex][frame] = tnum;
 		texx[curtex] = xs;
 		texy[curtex] = ys;
@@ -193,7 +186,7 @@ int lookuptexture(int tex, int &xs, int &ys) {
 		return tnum;
 	} else {
 		return mapping[tex][frame] = FIRSTTEX;  // temp fix
-	};
+	}
 }
 
 void setupworld() {

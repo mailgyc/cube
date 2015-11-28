@@ -42,8 +42,8 @@ void Pool::dealloc(void *p, size_t size) {
 		{
 			*((void **) p) = reuse[size];
 			reuse[size] = p;
-		};
-	};
+		}
+	}
 }
 
 void *Pool::realloc(void *p, size_t oldsize, size_t newsize) {
@@ -59,7 +59,7 @@ void Pool::dealloc_block(void *b) {
 	if (b) {
 		dealloc_block(*((char **) b));
 		free(b);
-	};
+	}
 }
 
 void Pool::allocnext(size_t allocsize) {
@@ -84,9 +84,8 @@ Pool *gp() // useful for global buffers that need to be initialisation order ind
 }
 
 ///////////////////////// misc tools ///////////////////////
-
 char *path(char *s) {
-	for (char *t = s; t = strpbrk(t, "/\\"); *t++ = PATHDIV)
+	for (char *t = s; t = strpbrk(t, "/\\"); *t++ = '/')
 		;
 	return s;
 }
@@ -98,7 +97,7 @@ char *loadfile(char *fn, int *size) {
 	fseek(f, 0, SEEK_END);
 	int len = ftell(f);
 	fseek(f, 0, SEEK_SET);
-	char *buf = (char *) malloc(len + 1);
+	char *buf = malloc(len + 1);
 	if (!buf)
 		return NULL;
 	buf[len] = 0;
@@ -114,15 +113,16 @@ char *loadfile(char *fn, int *size) {
 }
 
 void endianswap(void *memory, int stride, int length) // little indians as storage format
-		{
+{
 	if (*((char *) &stride))
 		return;
-	loop(w, length)
-		loop(i, stride/2)
+	for(int w = 0; w < length; ++w) {
+		for(int i = 0; i < stride/2; ++i)
 		{
-			uchar *p = (uchar *) memory + w * stride;
-			uchar t = p[i];
+			unsigned char *p = (unsigned char *) memory + w * stride;
+			unsigned char t = p[i];
 			p[i] = p[stride - i - 1];
 			p[stride - i - 1] = t;
-		};
+		}
+	}
 }

@@ -40,8 +40,7 @@ extern void writeservercfg();
 extern void gl_init(int w, int h);
 extern void cleangl();
 extern void gl_drawframe(int w, int h, float curfps);
-extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp =
-		false);
+extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp = false);
 extern void mipstats(int a, int b, int c);
 extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
 extern void addstrip(int tex, int start, int n);
@@ -121,7 +120,7 @@ extern entity *newentity(int x, int y, int z, char *what, int v1, int v2,
 
 // worldlight
 extern void calclight();
-extern void dodynlight(vec &vold, vec &v, int reach, int strength,
+extern void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength,
 		Sprite *owner);
 extern void cleardlights();
 extern block *blockcopy(block &b);
@@ -162,7 +161,7 @@ extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
 extern void box(block &b, float z1, float z2, float z3, float z4);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
-extern void newsphere(vec &o, float max, int type);
+extern void newsphere(Vec3 &o, float max, int type);
 extern void renderspheres(int time);
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
 		bool underwater);
@@ -171,9 +170,9 @@ extern void blendbox(int x1, int y1, int x2, int y2, bool border);
 extern void damageblend(int n);
 
 // renderparticles
-extern void setorient(vec &r, vec &u);
-extern void particle_splash(int type, int num, int fade, vec &p);
-extern void particle_trail(int type, int fade, vec &from, vec &to);
+extern void setorient(Vec3 &r, Vec3 &u);
+extern void particle_splash(int type, int num, int fade, Vec3 &p);
+extern void particle_trail(int type, int fade, Vec3 &from, Vec3 &to);
 extern void render_particles(int time);
 
 // worldio
@@ -186,7 +185,7 @@ extern void incomingdemodata(uchar *buf, int len, bool extras = false);
 extern void demoplaybackstep();
 extern void stop();
 extern void stopifrecording();
-extern void demodamage(int damage, vec &o);
+extern void demodamage(int damage, Vec3 &o);
 extern void demoblend(int damage);
 
 // physics
@@ -197,7 +196,7 @@ extern void setentphysics(int mml, int mmr);
 extern void physicsframe();
 
 // sound
-extern void playsound(int n, vec *loc = 0);
+extern void playsound(int n, Vec3 *loc = nullptr);
 extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();
@@ -231,10 +230,10 @@ extern ENetPacket *recvmap(int n);
 
 // weapon
 extern void selectgun(int a = -1, int b = -1, int c = -1);
-extern void shoot(Sprite *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, Sprite *d = 0, bool local =
+extern void shoot(Sprite *d, Vec3 &to);
+extern void shootv(int gun, Vec3 &from, Vec3 &to, Sprite *d = 0, bool local =
 		false);
-extern void createrays(vec &from, vec &to);
+extern void createrays(Vec3 &from, Vec3 &to);
 extern void moveprojectiles(float time);
 extern void projreset();
 extern char *playerincrosshair();

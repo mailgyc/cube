@@ -32,7 +32,7 @@ struct md2 {
 	int numFrames;
 	int numVerts;
 	char* frames;
-	vec **mverts;
+	Vec3 **mverts;
 	int displaylist;
 	int displaylistverts;
 
@@ -42,7 +42,7 @@ struct md2 {
 	bool loaded;
 
 	bool load(char* filename);
-	void render(vec &light, int numFrame, int range, float x, float y, float z,
+	void render(Vec3 &light, int numFrame, int range, float x, float y, float z,
 			float yaw, float pitch, float scale, float speed, int snap,
 			int basetime);
 	void scale(int frame, float scale, int sn);
@@ -102,7 +102,7 @@ bool md2::load(char* filename) {
 
 	fclose(file);
 
-	mverts = new vec*[numFrames];
+	mverts = new Vec3*[numFrames];
 	loopj(numFrames)
 		mverts[j] = NULL;
 
@@ -114,31 +114,32 @@ float snap(int sn, float f) {
 }
 
 void md2::scale(int frame, float scale, int sn) {
-	mverts[frame] = new vec[numVerts];
+	mverts[frame] = new Vec3[numVerts];
 	md2_frame *cf = (md2_frame *) ((char*) frames + frameSize * frame);
 	float sc = 16.0f / scale;
 	loop(vi, numVerts)
 	{
 		uchar *cv = (uchar *) &cf->vertices[vi].vertex;
-		vec *v = &(mverts[frame])[vi];
+		Vec3 *v = &(mverts[frame])[vi];
 		v->x = (snap(sn, cv[0] * cf->scale[0]) + cf->translate[0]) / sc;
 		v->y = -(snap(sn, cv[1] * cf->scale[1]) + cf->translate[1]) / sc;
 		v->z = (snap(sn, cv[2] * cf->scale[2]) + cf->translate[2]) / sc;
 	};
 }
 
-void md2::render(vec &light, int frame, int range, float x, float y, float z,
+void md2::render(Vec3 &light, int frame, int range, float x, float y, float z,
 		float yaw, float pitch, float sc, float speed, int snap, int basetime) {
-	loopi(range)
+	for(int i = 0; i < range; ++i) {
 		if (!mverts[frame + i])
 			scale(frame + i, sc, snap);
+	}
 
 	glPushMatrix();
 	glTranslatef(x, y, z);
 	glRotatef(yaw + 180, 0, -1, 0);
 	glRotatef(pitch, 0, 0, 1);
 
-	glColor3fv((float *) &light);
+	glColor3f(light.x, light.y, light.z);
 
 	if (displaylist && frame == 0 && range == 1) {
 		glCallList(displaylist);
@@ -158,8 +159,8 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z,
 		int fr2 = fr1 + 1;
 		if (fr2 >= frame + range)
 			fr2 = frame;
-		vec *verts1 = mverts[fr1];
-		vec *verts2 = mverts[fr2];
+		Vec3 *verts1 = mverts[fr1];
+		Vec3 *verts2 = mverts[fr2];
 
 		for (int *command = glCommands; (*command) != 0;) {
 			int numVertex = *command++;
@@ -170,14 +171,14 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z,
 				numVertex = -numVertex;
 			};
 
-			loopi(numVertex)
+			for(int i = 0; i < numVertex; ++i)
 			{
 				float tu = *((float*) command++);
 				float tv = *((float*) command++);
 				glTexCoord2f(tu, tv);
 				int vn = *command++;
-				vec &v1 = verts1[vn];
-				vec &v2 = verts2[vn];
+				Vec3 &v1 = verts1[vn];
+				Vec3 &v2 = verts2[vn];
 #define ip(c) v1.c*frac2+v2.c*frac1
 				glVertex3f(ip(x), ip(z), ip(y));
 			};
@@ -268,7 +269,7 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x,
 
 	int ix = (int) x;
 	int iy = (int) z;
-	vec light = { 1.0f, 1.0f, 1.0f };
+	Vec3 light = { 1.0f, 1.0f, 1.0f };
 
 	if (!OUTBORD(ix, iy)) {
 		sqr *s = S(ix, iy);

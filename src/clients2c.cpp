@@ -197,7 +197,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 
 		case SV_SHOT: {
 			int gun = getint(p);
-			vec s, e;
+			Vec3 s, e;
 			s.x = getint(p) / DMF;
 			s.y = getint(p) / DMF;
 			s.z = getint(p) / DMF;
@@ -269,7 +269,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			setspawn(i, true);
 			if (i >= (uint) ents.size())
 				break;
-			vec v = { ents[i].x, ents[i].y, ents[i].z };
+			Vec3 v = { ents[i].x, ents[i].y, ents[i].z };
 			playsound(S_ITEMSPAWN, &v);
 			break;
 		}

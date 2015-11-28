@@ -9,10 +9,8 @@ char *entmdlnames[] = { "shells", "bullets", "rockets", "rrounds", "health",
 
 int triggertime = 0;
 
-void renderent(entity &e, char *mdlname, float z, float yaw, int frame = 0,
-		int numf = 1, int basetime = 0, float speed = 10.0f) {
-	rendermodel(mdlname, frame, numf, 0, 1.1f, e.x, z + S(e.x, e.y)->floor, e.y,
-			yaw, 0, false, 1.0f, speed, 0, basetime);
+void renderent(entity &e, char *mdlname, float z, float yaw, int frame = 0, int numf = 1, int basetime = 0, float speed = 10.0f) {
+	rendermodel(mdlname, frame, numf, 0, 1.1f, e.x, z + S(e.x, e.y)->floor, e.y, yaw, 0, false, 1.0f, speed, 0, basetime);
 }
 
 void renderentities() {
@@ -24,10 +22,7 @@ void renderentities() {
 			mapmodelinfo &mmi = getmminfo(e.attr2);
 			if (!&mmi)
 				continue;
-			rendermodel(mmi.name, 0, 1, e.attr4, (float) mmi.rad, e.x,
-					(float) S(e.x, e.y)->floor + mmi.zoff + e.attr3, e.y,
-					(float) ((e.attr1 + 7) - (e.attr1 + 7) % 15), 0, false,
-					1.0f, 10.0f, mmi.snap);
+			rendermodel(mmi.name, 0, 1, e.attr4, (float) mmi.rad, e.x, (float) S(e.x, e.y)->floor + mmi.zoff + e.attr3, e.y, (float) ((e.attr1 + 7) - (e.attr1 + 7) % 15), 0, false, 1.0f, 10.0f, mmi.snap);
 		} else {
 			if (OUTBORD(e.x, e.y))
 				continue;
@@ -36,9 +31,7 @@ void renderentities() {
 					continue;
 				if (e.type < I_SHELLS || e.type > TELEPORT)
 					continue;
-				renderent(e, entmdlnames[e.type - I_SHELLS],
-						(float) (1 + sin(lastmillis / 100.0 + e.x + e.y) / 20),
-						lastmillis / 10.0f);
+				renderent(e, entmdlnames[e.type - I_SHELLS], (float) (1 + sin(lastmillis / 100.0 + e.x + e.y) / 20), lastmillis / 10.0f);
 			} else
 				switch (e.attr2) {
 				case 1:
@@ -223,28 +216,27 @@ void pickup(int n, Sprite *d) {
 		teleport(n, d);
 		break;
 	}
-		;
+
 
 	case JUMPPAD: {
 		static int lastjumppad = 0;
 		if (lastmillis - lastjumppad < 300)
 			break;
 		lastjumppad = lastmillis;
-		vec v = { (int) (char) ents[n].attr3 / 10.0f, (int) (char) ents[n].attr2
-				/ 10.0f, ents[n].attr1 / 10.0f };
+		Vec3 v = { (int) (char) ents[n].attr3 / 10.0f, (int) (char) ents[n].attr2 / 10.0f, ents[n].attr1 / 10.0f };
 		player1->vel.z = 0;
 		vadd(player1->vel, v);
 		playsoundc(S_JUMPPAD);
 		break;
 	}
-		;
+
 	};
 }
 
 void checkitems() {
 	if (editmode)
 		return;
-	loopv(ents) {
+	for(int i = 0; i < ents.size(); ++i) {
 		entity &e = ents[i];
 		if (e.type == NOTUSED)
 			continue;
@@ -252,11 +244,12 @@ void checkitems() {
 			continue;
 		if (OUTBORD(e.x, e.y))
 			continue;
-		vec v = { e.x, e.y, S(e.x, e.y)->floor + player1->eyeheight };
+		Vec3 v = { e.x, e.y, S(e.x, e.y)->floor + player1->eyeheight };
 		vdist(dist, t, player1->o, v);
-		if (dist < (e.type == TELEPORT ? 4 : 2.5))
+		if (dist < (e.type == TELEPORT ? 4 : 2.5)) {
 			pickup(i, player1);
-	};
+		}
+	}
 }
 
 void checkquad(int time) {
@@ -264,26 +257,27 @@ void checkquad(int time) {
 		player1->quadmillis = 0;
 		playsoundc(S_PUPOUT);
 		conoutf("quad damage is over");
-	};
+	}
 }
 
 void putitems(uchar *&p) // puts items in network stream and also spawns them locally
-		{
-	loopv(ents)
-		if ((ents[i].type >= I_SHELLS && ents[i].type <= I_QUAD)
-				|| ents[i].type == CARROT) {
+{
+	for(int i = 0; i < ents.size(); ++i) {
+		if ((ents[i].type >= I_SHELLS && ents[i].type <= I_QUAD) || ents[i].type == CARROT) {
 			putint(p, i);
 			ents[i].spawned = true;
-		};
+		}
+	}
 }
 
 void resetspawns() {
-	loopv(ents)
+	for(int i = 0; i < ents.size(); ++i) {
 		ents[i].spawned = false;
+	}
 }
 
 void setspawn(uint i, bool on) {
-	if (i < (uint) ents.size())
+	if (i < ents.size())
 		ents[i].spawned = on;
 }
 

@@ -23,7 +23,7 @@ struct sqr {
 	uchar wtex, ftex, ctex;     // wall/floor/ceil texture ids
 	uchar r, g, b;              // light value at upper left vertex
 	uchar vdelta;               // vertex delta, used for heightfield cubes
-	char defer;  // used in mipmapping, when true this cube is not a perfect mip
+	char defer;  				// used in mipmapping, when true this cube is not a perfect mip
 	char occluded;              // true when occluded
 	uchar utex;                 // upper wall tex id
 	uchar tag;                  // used by triggers
@@ -94,11 +94,11 @@ struct header                   // map file format header
 #define MINBORD 2                       // 2 cubes from the edge of the world are always solid
 #define OUTBORD(x,y) ((x)<MINBORD || (y)<MINBORD || (x)>=ssize-MINBORD || (y)>=ssize-MINBORD)
 
-struct vec {
+struct Vec3 {
 	float x, y, z;
-	vec(){
+	Vec3(){
 	}
-	vec(short _x, short _y, short _z) {
+	Vec3(short _x, short _y, short _z) {
 		x = _x;
 		y = _y;
 		z = _z;
@@ -127,8 +127,8 @@ enum {
 
 struct Sprite                           // players & monsters
 {
-	vec o, vel;                         // origin, velocity
-	float yaw, pitch, roll;             // used as vec in one place
+	Vec3 o, vel;                         // origin, velocity
+	float yaw, pitch, roll;             // used as Vec3 in one place
 	float maxspeed;                     // cubes per second, 24 for player
 	bool outsidemap;                    // from his eyes
 	bool inwater;
@@ -152,7 +152,7 @@ struct Sprite                           // players & monsters
 	float targetyaw;                  // monster wants to look in this direction
 	bool blocked, moving;               // used by physics to signal ai
 	int trigger; // millis at which transition to another monsterstate takes place
-	vec attacktarget;                   // delayed attacks
+	Vec3 attacktarget;                   // delayed attacks
 	int anger;                   // how many times already hit by fellow monster
 	IString name, team;
 };
@@ -286,7 +286,7 @@ extern Sprite *player1; // special client ent that receives input and acts as ca
 extern std::vector<Sprite *> players;  // all the other clients (in multiplayer)
 extern bool editmode;
 extern std::vector<entity> ents;             // map entities
-extern vec worldpos;             // current target of the crosshair in the world
+extern Vec3 worldpos;             // current target of the crosshair in the world
 extern int lastmillis;                  // last time
 extern int curtime;                     // current frame time
 extern int gamemode, nextmode;
@@ -311,7 +311,7 @@ extern bool demoplayback;
 #define vdiv(u,f)    { (u).x /= (f); (u).y /= (f); (u).z /= (f); }
 #define vadd(u,v)    { (u).x += (v).x; (u).y += (v).y; (u).z += (v).z; };
 #define vsub(u,v)    { (u).x -= (v).x; (u).y -= (v).y; (u).z -= (v).z; };
-#define vdist(d,v,e,s) vec v = s; vsub(v,e); float d = (float)sqrt(dotprod(v,v));
+#define vdist(d,v,e,s) Vec3 v = s; vsub(v,e); float d = (float)sqrt(dotprod(v,v));
 #define vreject(v,u,max) ((v).x>(u).x+(max) || (v).x<(u).x-(max) || (v).y>(u).y+(max) || (v).y<(u).y-(max))
 #define vlinterp(v,f,u,g) { (v).x = (v).x*f+(u).x*g; (v).y = (v).y*f+(u).y*g; (v).z = (v).z*f+(u).z*g; }
 
@@ -359,9 +359,10 @@ enum    // function signatures for script functions, see command.cpp
 
 #include <time.h>
 
+//#include <SDL2/SDL_opengles.h>
+#include <SDL2/SDL_opengl.h>
 #include <GL/glu.h>
 //#include <GL/glext.h>
-#include <SDL2/SDL_opengl.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>

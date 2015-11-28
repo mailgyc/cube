@@ -1,9 +1,8 @@
-// main.cpp: initialisation & main loop
-
+#include <iostream>
 #include "cube.h"
 
-void cleanup(char *msg)         // single program exit point;
-		{
+void cleanup(const std::string &msg)         // single program exit point;
+{
 	stop();
 	disconnect(true);
 	writecfg();
@@ -11,8 +10,8 @@ void cleanup(char *msg)         // single program exit point;
 	cleansound();
 	cleanupserver();
 	SDL_ShowCursor(1);
-	if (msg) {
-		printf(msg);
+	if (!msg.empty()) {
+		std::cout << msg << std::endl;
 	};
 	SDL_Quit();
 	exit(1);
@@ -25,14 +24,14 @@ void quit()                     // normal exit
 }
 
 void fatal(char *s, char *o)    // failure exit
-		{
-	IString msg;
-	std::sprintf(msg, "%s%s (%s)\n", s, o, SDL_GetError());
-	cleanup(msg);
+{
+	std::string ss(s);
+	std::string oo(o);
+	cleanup(ss + oo + ":" + SDL_GetError());
 }
 
 void *alloc(int s) // for some big chunks... most other allocs use the memory pool
-		{
+{
 	void *b = calloc(1, s);
 	if (!b)
 		fatal("out of memory!");
@@ -43,23 +42,17 @@ int scr_w = 640;
 int scr_h = 480;
 
 void screenshot() {
-	SDL_Surface *image;
-	SDL_Surface *temp;
-	int idx;
-	if (image = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF,
-			0x00FF00, 0xFF0000, 0)) {
-		if (temp = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24,
-				0x0000FF, 0x00FF00, 0xFF0000, 0)) {
-			glReadPixels(0, 0, scr_w, scr_h, GL_RGB, GL_UNSIGNED_BYTE,
-					image->pixels);
-			for (idx = 0; idx < scr_h; idx++) {
+	SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
+	if (image) {
+		SDL_Surface *temp = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
+		if (temp) {
+			glReadPixels(0, 0, scr_w, scr_h, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+			for (int idx = 0; idx < scr_h; idx++) {
 				char *dest = (char *) temp->pixels + 3 * scr_w * idx;
-				memcpy(dest,
-						(char *) image->pixels + 3 * scr_w * (scr_h - 1 - idx),
-						3 * scr_w);
+				memcpy(dest, (char *) image->pixels + 3 * scr_w * (scr_h - 1 - idx), 3 * scr_w);
 				endianswap(dest, 3, scr_w);
 			};
-			IString buf;
+			char buf[80];
 			std::sprintf(buf, "screenshots/screenshot_%d.bmp", lastmillis);
 			SDL_SaveBMP(temp, path(buf));
 			SDL_FreeSurface(temp);
@@ -83,12 +76,11 @@ int main(int argc, char **argv) {
 	char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
 	islittleendian = *((char *) &islittleendian);
 
-#define log(s) conoutf("init: %s", s)
-	log("sdl");
+	printf("init");
 
 	for (int i = 1; i < argc; i++) {
 		char *a = &argv[i][2];
-		if (argv[i][0] == '-')
+		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			case 'd':
 				dedicated = true;
@@ -118,41 +110,41 @@ int main(int argc, char **argv) {
 				maxcl = atoi(a);
 				break;
 			default:
-				conoutf("unknown commandline option");
+				printf("unknown commandline option");
 			}
-		else
-			conoutf("unknown commandline argument");
+		} else {
+			printf("unknown commandline argument");
+		}
 	};
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | par) < 0)
 		fatal("Unable to initialize SDL");
 
-	log("net");
+	printf("net");
 	if (enet_initialize() < 0)
 		fatal("Unable to initialise network module");
 
 	initclient();
 	initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl); // never returns if dedicated
 
-	log("world");
+	printf("world");
 	empty_world(7, true);
 
-	log("video: sdl");
+	printf("video: sdl");
 	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
 		fatal("Unable to initialize SDL Video");
 
-	log("video: mode");
-	SDL_Window *window = SDL_CreateWindow("cube engine", 0, 0, scr_w, scr_h,
-			SDL_WINDOW_OPENGL);
+	printf("video: mode");
+	SDL_Window *window = SDL_CreateWindow("cube engine", 0, 0, scr_w, scr_h, SDL_WINDOW_OPENGL);
 	SDL_GL_CreateContext(window);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	log("video: misc");
+	printf("video: misc");
 	//SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	log("gl");
+	printf("gl");
 	gl_init(scr_w, scr_h);
 
-	log("basetex");
+	printf("basetex");
 	int xs, ys;
 	if (!installtex(2, path(newIString("data/newchars.png")), xs, ys)
 			|| !installtex(3, path(newIString("data/martin/base.png")), xs, ys)
@@ -166,10 +158,10 @@ int main(int argc, char **argv) {
 		fatal(
 				"could not find core textures (hint: run cube from the parent of the bin directory)");
 
-	log("sound");
+	printf("sound");
 	initsound();
 
-	log("cfg");
+	printf("cfg");
 	newmenu("frags\tpj\tping\tteam\tname");
 	newmenu("ping\tplr\tserver");
 	exec("data/keymap.cfg");
@@ -181,11 +173,11 @@ int main(int argc, char **argv) {
 		execfile("data/defaults.cfg");
 	exec("autoexec.cfg");
 
-	log("localconnect");
+	printf("localconnect");
 	localconnect();
 	changemap("metl3");	// if this map is changed, also change depthcorrect()
 
-	log("mainloop");
+	printf("mainloop");
 	int ignore = 5;
 	for (;;) {
 		int millis = SDL_GetTicks() * gamespeed / 100;
@@ -207,11 +199,11 @@ int main(int argc, char **argv) {
 		extern void updatevol();
 		updatevol();
 		if (framesinmap++ < 5)// cheap hack to get rid of initial sparklies, even when triple buffering etc.
-				{
+		{
 			player1->yaw += 5;
 			gl_drawframe(scr_w, scr_h, fps);
 			player1->yaw -= 5;
-		};
+		}
 		gl_drawframe(scr_w, scr_h, fps);
 		SDL_Event event;
 		unsigned int lasttype = 0, lastbut = 0;
@@ -224,7 +216,6 @@ int main(int argc, char **argv) {
 			case SDL_KEYUP:
 				keypress(event.key.keysym.sym, event.key.state == SDL_PRESSED);
 				break;
-
 			case SDL_MOUSEMOTION:
 				if (ignore) {
 					ignore--;
@@ -232,7 +223,6 @@ int main(int argc, char **argv) {
 				}
 				mousemove(event.motion.xrel, event.motion.yrel);
 				break;
-
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 				if (lasttype == event.type && lastbut == event.button.button)

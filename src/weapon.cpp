@@ -10,7 +10,7 @@ struct guninfo {
 const int MONSTERDAMAGEFACTOR = 4;
 const int SGRAYS = 20;
 const float SGSPREAD = 2;
-vec sg[SGRAYS];
+Vec3 sg[SGRAYS];
 
 guninfo guns[NUMGUNS] = { { S_PUNCH1, 250, 50, 0, 0, 1, "fist" }, { S_SG, 1400,
 		10, 0, 0, 20, "shotgun" },  // *SGRAYS
@@ -58,22 +58,22 @@ void weapon(char *a1, char *a2, char *a3) {
 
 COMMAND(weapon, ARG_3STR);
 
-void createrays(vec &from, vec &to) // create random spread of rays for the shotgun
+void createrays(Vec3 &from, Vec3 &to) // create random spread of rays for the shotgun
 		{
 	vdist(dist, dvec, from, to);
 	float f = dist * SGSPREAD / 1000;
 	loopi(SGRAYS)
 	{
 #define RNDD (rnd(101)-50)*f
-		vec r = { RNDD, RNDD, RNDD };
+		Vec3 r = { RNDD, RNDD, RNDD };
 		sg[i] = to;
 		vadd(sg[i], r);
 	};
 }
 
-bool intersect(Sprite *d, vec &from, vec &to) // if lineseg hits entity bounding box
+bool intersect(Sprite *d, Vec3 &from, Vec3 &to) // if lineseg hits entity bounding box
 		{
-	vec v = to, w = d->o, *p;
+	Vec3 v = to, w = d->o, *p;
 	vsub(v, from);
 	vsub(w, from);
 	float c1 = dotprod(w, v);
@@ -112,7 +112,7 @@ char *playerincrosshair() {
 
 const int MAXPROJ = 100;
 struct projectile {
-	vec o, to;
+	Vec3 o, to;
 	float speed;
 	Sprite *owner;
 	int gun;
@@ -125,7 +125,7 @@ void projreset() {
 		projs[i].inuse = false;
 }
 
-void newprojectile(vec &from, vec &to, float speed, bool local, Sprite *owner,
+void newprojectile(Vec3 &from, Vec3 &to, float speed, bool local, Sprite *owner,
 		int gun) {
 	loopi(MAXPROJ)
 	{
@@ -159,7 +159,7 @@ void hit(int target, int damage, Sprite *d, Sprite *at) {
 const float RL_RADIUS = 5;
 const float RL_DAMRAD = 7;   // hack
 
-void radialeffect(Sprite *o, vec &v, int cn, int qdam, Sprite *at) {
+void radialeffect(Sprite *o, Vec3 &v, int cn, int qdam, Sprite *at) {
 	if (o->state != CS_ALIVE)
 		return;
 	vdist(dist, temp, v, o->o);
@@ -174,7 +174,7 @@ void radialeffect(Sprite *o, vec &v, int cn, int qdam, Sprite *at) {
 	};
 }
 
-void splash(projectile *p, vec &v, vec &vold, int notthisplayer,
+void splash(projectile *p, Vec3 &v, Vec3 &vold, int notthisplayer,
 		int notthismonster, int qdam) {
 	particle_splash(0, 50, 300, v);
 	p->inuse = false;
@@ -203,7 +203,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer,
 	};
 }
 
-inline void projdamage(Sprite *o, projectile *p, vec &v, int i, int im,
+inline void projdamage(Sprite *o, projectile *p, Vec3 &v, int i, int im,
 		int qdam) {
 	if (o->state != CS_ALIVE)
 		return;
@@ -259,7 +259,7 @@ void moveprojectiles(float time) {
 	};
 }
 
-void shootv(int gun, vec &from, vec &to, Sprite *d, bool local) // create visual effect from a shot
+void shootv(int gun, Vec3 &from, Vec3 &to, Sprite *d, bool local) // create visual effect from a shot
 		{
 	playsound(guns[gun].sound, d == player1 ? NULL : &d->o);
 	int pspeed = 25;
@@ -296,15 +296,15 @@ void shootv(int gun, vec &from, vec &to, Sprite *d, bool local) // create visual
 	};
 }
 
-void hitpush(int target, int damage, Sprite *d, Sprite *at, vec &from,
-		vec &to) {
+void hitpush(int target, int damage, Sprite *d, Sprite *at, Vec3 &from,
+		Vec3 &to) {
 	hit(target, damage, d, at);
 	vdist(dist, v, from, to);
 	vmul(v, damage / dist / 50);
 	vadd(d->vel, v);
 }
 
-void raydamage(Sprite *o, vec &from, vec &to, Sprite *d, int i) {
+void raydamage(Sprite *o, Vec3 &from, Vec3 &to, Sprite *d, int i) {
 	if (o->state != CS_ALIVE)
 		return;
 	int qdam = guns[d->gunselect].damage;
@@ -323,7 +323,7 @@ void raydamage(Sprite *o, vec &from, vec &to, Sprite *d, int i) {
 		hitpush(i, qdam, o, d, from, to);
 }
 
-void shoot(Sprite *d, vec &targ) {
+void shoot(Sprite *d, Vec3 &targ) {
 	int attacktime = lastmillis - d->lastaction;
 	if (attacktime < d->gunwait)
 		return;
@@ -340,13 +340,13 @@ void shoot(Sprite *d, vec &targ) {
 	};
 	if (d->gunselect)
 		d->ammo[d->gunselect]--;
-	vec from = d->o;
-	vec to = targ;
+	Vec3 from = d->o;
+	Vec3 to = targ;
 	from.z -= 0.2f;    // below eye
 
 	vdist(dist, unitv, from, to);
 	vdiv(unitv, dist);
-	vec kickback = unitv;
+	Vec3 kickback = unitv;
 	vmul(kickback, guns[d->gunselect].kickamount * -0.01f);
 	vadd(d->vel, kickback);
 	if (d->pitch < 80.0f)

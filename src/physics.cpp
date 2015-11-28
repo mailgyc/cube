@@ -217,7 +217,7 @@ void moveplayer(Sprite *pl, int moveres, bool local, int curtime) {
 	const bool water = hdr.waterlevel > pl->o.z - 0.5f;
 	const bool floating = (editmode && local) || pl->state == CS_EDITING;
 
-	vec d;      // IVector of direction we ideally want to move in
+	Vec3 d;      // IVector of direction we ideally want to move in
 
 	d.x = (float) (pl->move * cos(rad(pl->yaw - 90)));
 	d.y = (float) (pl->move * sin(rad(pl->yaw - 90)));

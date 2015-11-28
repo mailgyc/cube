@@ -27,9 +27,6 @@ bool allowedittoggle() {
 	return allow;
 }
 
-#define VARF(name, min, cur, max, body)  void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
-
-
 VARF(rate, 0, 0, 25000,
 		if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
 
@@ -161,7 +158,8 @@ void addmsg(int rel, int num, int type, ...) {
 		return;
 	if (num != msgsizelookup(type)) {
 		IString s;
-		std::sprintf(s, "inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type));
+		std::sprintf(s, "inconsistant msg size for %d (%d != %d)", type, num,
+				msgsizelookup(type));
 		fatal(s);
 	};
 	if (messages.size() == 100) {

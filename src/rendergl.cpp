@@ -249,17 +249,14 @@ void addstrip(int tex, int start, int n) {
 	strips.emplace_back(s);
 }
 
-
-void var_gamma();
-static int gamma = variable("gamma", 30, 100, 300, &gamma, var_gamma, true);
-void var_gamma() {
-//	float f = gamma/100.0f;
-//	if(SDL_SetGamma(f,f,f)==-1)
-//	{
-//		conoutf("Could not set gamma (card/driver doesn't support it?)");
-//		conoutf("sdl: %s", SDL_GetError());
-//	};
-}
+VARFP(gamma, 30, 100, 300, {
+//    float f = gamma/100.0f;
+//    if(SDL_SetGamma(f,f,f)==-1)
+//    {
+//        conoutf("Could not set gamma (card/driver doesn't support it?)");
+//        conoutf("sdl: %s", SDL_GetError());
+//    };
+	});
 
 void transplayer() {
 	glLoadIdentity();

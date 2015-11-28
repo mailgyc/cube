@@ -206,8 +206,7 @@ void readdepth(int w, int h) {
 	glReadPixels(w / 2, h / 2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,
 			&cursordepth);
 	double worldx = 0, worldy = 0, worldz = 0;
-	gluUnProject(w / 2, h / 2, depthcorrect(cursordepth), mm, pm, viewport,
-			&worldx, &worldz, &worldy);
+	gluUnProject(w / 2, h / 2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldz, &worldy);
 	worldpos.x = (float) worldx;
 	worldpos.y = (float) worldy;
 	worldpos.z = (float) worldz;

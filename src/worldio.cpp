@@ -337,10 +337,10 @@ void load_world(char *mname) // still supports all map formats that have existed
 			SDL_GetTicks() - lastmillis);
 	conoutf("%s", hdr.maptitle);
 	startmap(mname);
-	for(int i = 0; i < 256; i++)
+	loopl(256)
 	{
 		IString aliasname;
-		std::sprintf(aliasname, "level_trigger_%d", i); // can this be done smarter?
+		std::sprintf(aliasname, "level_trigger_%d", l); // can this be done smarter?
 		if (identexists(aliasname))
 			alias(aliasname, "");
 	};

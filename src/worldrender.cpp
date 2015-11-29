@@ -3,8 +3,8 @@
 
 #include "cube.h"
 
-void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip,
-		sqr *d1, sqr *d2, bool topleft) {
+void render_wall(Block *o, Block *s, int x1, int y1, int x2, int y2, int mip,
+		Block *d1, Block *d2, bool topleft) {
 	if (SOLID(o) || o->type == SEMISOLID) {
 		float c1 = s->floor;
 		float c2 = s->floor;
@@ -76,7 +76,7 @@ int stats[LARGEST_FACTOR];
 bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2) {
 	if (!(mip--))
 		return true;
-	sqr *w = wmip[mip];
+	Block *w = wmip[mip];
 	int msize = ssize >> mip;
 	x *= 2;
 	y *= 2;
@@ -109,9 +109,8 @@ bool render_floor, render_ceil;
 // call itself for lower mip levels, on most modern machines however this function will use the higher
 // mip levels only for perfect mips.
 
-void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
-		int ys) {
-	sqr *w = wmip[mip];
+void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs, int ys) {
+	Block *w = wmip[mip];
 	int sz = ssize >> mip;
 	int vxx = ((int) vx + (1 << mip) / 2) >> mip;
 	int vyy = ((int) vy + (1 << mip) / 2) >> mip;
@@ -139,55 +138,49 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 #define df(x) s->floor-(x->vdelta/4.0f)
 #define dc(x) s->ceil+(x->vdelta/4.0f)
 
-	// loop through the rect 3 times (for floor/ceil/walls seperately, to facilitate dynamic stripify)
-	// for each we skip occluded cubes (occlusion at higher mip levels is a big time saver!).
-	// during the first loop (ceil) we collect cubes that lie within the lower mip rect and are
-	// also deferred, and render them recursively. Anything left (perfect mips and higher lods) we
-	// render here.
+// loop through the rect 3 times (for floor/ceil/walls seperately, to facilitate dynamic stripify)
+// for each we skip occluded cubes (occlusion at higher mip levels is a big time saver!).
+// during the first loop (ceil) we collect cubes that lie within the lower mip rect and are
+// also deferred, and render them recursively. Anything left (perfect mips and higher lods) we
+// render here.
 
 #define LOOPH {for(int xx = x; xx<xs; xx++) for(int yy = y; yy<ys; yy++) { \
-                  sqr *s = SWS(w,xx,yy,sz); if(s->occluded==1) continue; \
+                  Block *s = SWS(w,xx,yy,sz); if(s->occluded==1) continue; \
                   if(s->defer && !s->occluded && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
-#define LOOPD sqr *t = SWS(s,1,0,sz); \
-                  sqr *u = SWS(s,1,1,sz); \
-                  sqr *v = SWS(s,0,1,sz); \
 
 	LOOPH   // ceils
 			{
 				int start = yy;
-				sqr *next;
-				while (yy < ys - 1 && (next = SWS(w, xx, yy + 1, sz))->defer
-						&& !next->occluded)
+				Block *next;
+				while (yy < ys - 1 && (next = SWS(w, xx, yy + 1, sz))->defer && !next->occluded)
 					yy++;    // collect 2xN rect of lower mip
-				render_seg_new(vx, vy, vh, mip - 1, xx * 2, start * 2,
-						xx * 2 + 2, yy * 2 + 2);
+				render_seg_new(vx, vy, vh, mip - 1, xx * 2, start * 2, xx * 2 + 2, yy * 2 + 2);
 				continue;
 			};
 			stats[mip]++;
-			LOOPD
-			if ((s->type == SPACE || s->type == FHF) && s->ceil >= vh
-					&& render_ceil)
-				render_flat(s->ctex, xx << mip, yy << mip, 1 << mip, s->ceil, s,
-						t, u, v, true);
+			Block *t = SWS(s,1,0,sz);
+		    Block *u = SWS(s,1,1,sz);
+		    Block *v = SWS(s,0,1,sz);
+			if ((s->type == SPACE || s->type == FHF) && s->ceil >= vh && render_ceil)
+				render_flat(s->ctex, xx << mip, yy << mip, 1 << mip, s->ceil, s, t, u, v, true);
 			if (s->type == CHF) //if(s->ceil>=vh)
-				render_flatdelta(s->ctex, xx << mip, yy << mip, 1 << mip, dc(s),
-						dc(t), dc(u), dc(v), s, t, u, v, true);
+				render_flatdelta(s->ctex, xx << mip, yy << mip, 1 << mip, dc(s), dc(t), dc(u), dc(v), s, t, u, v, true);
 		}
 	};
 
 	LOOPH
 				continue;     // floors
-			LOOPD
-			if ((s->type == SPACE || s->type == CHF) && s->floor <= vh
-					&& render_floor) {
-				render_flat(s->ftex, xx << mip, yy << mip, 1 << mip, s->floor,
-						s, t, u, v, false);
+			Block *t = SWS(s,1,0,sz);
+			Block *u = SWS(s,1,1,sz);
+			Block *v = SWS(s,0,1,sz);
+
+			if ((s->type == SPACE || s->type == CHF) && s->floor <= vh && render_floor) {
+				render_flat(s->ftex, xx << mip, yy << mip, 1 << mip, s->floor, s, t, u, v, false);
 				if (s->floor < hdr.waterlevel && !SOLID(s))
 					addwaterquad(xx << mip, yy << mip, 1 << mip);
 			};
 			if (s->type == FHF) {
-				render_flatdelta(s->ftex, xx << mip, yy << mip, 1 << mip, df(s),
-						df(t), df(u), df(v), s, t, u, v, false);
+				render_flatdelta(s->ftex, xx << mip, yy << mip, 1 << mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
 				if (s->floor - s->vdelta / 4.0f < hdr.waterlevel && !SOLID(s))
 					addwaterquad(xx << mip, yy << mip, 1 << mip);
 			};
@@ -196,20 +189,23 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 
 	LOOPH
 				continue;     // walls
-			LOOPD
+			Block *t = SWS(s,1,0,sz);
+			Block *u = SWS(s,1,1,sz);
+			Block *v = SWS(s,0,1,sz);
+
 			//  w
 			// zSt
 			//  vu
 
-			sqr *w = SWS(s, 0, -1, sz);
-			sqr *z = SWS(s, -1, 0, sz);
+			Block *w = SWS(s, 0, -1, sz);
+			Block *z = SWS(s, -1, 0, sz);
 			bool normalwall = true;
 
 			if (s->type == CORNER) {
 				// cull also
 				bool topleft = true;
-				sqr *h1 = NULL;
-				sqr *h2 = NULL;
+				Block *h1 = NULL;
+				Block *h2 = NULL;
 				if (SOLID(z)) {
 					if (SOLID(w)) {
 						render_wall(w, h2 = s, xx + 1, yy, xx, yy + 1, mip, t,

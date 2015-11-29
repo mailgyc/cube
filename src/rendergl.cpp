@@ -45,8 +45,7 @@ void gl_init(int w, int h) {
 	if (strstr(exts, "GL_EXT_texture_env_combine"))
 		hasoverbright = true;
 	else
-		conoutf(
-				"WARNING: cannot use overbright lighting, using old lighting model!");
+		conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glmaxtexsize);
 
@@ -141,7 +140,6 @@ void texture(char *aframe, char *name) {
 	mapping[num][frame] = 1;
 	char *n = mapname[num][frame];
 	strcpy_s(n, name);
-	path(n);
 }
 
 COMMAND(texturereset, ARG_NONE);
@@ -316,8 +314,7 @@ void gl_drawframe(int w, int h, float curfps) {
 
 	glFogi(GL_FOG_START, (fog + 64) / 8);
 	glFogi(GL_FOG_END, fog);
-	float fogc[4] = { (fogcolour >> 16) / 256.0f, ((fogcolour >> 8) & 255)
-			/ 256.0f, (fogcolour & 255) / 256.0f, 1.0f };
+	float fogc[4] = { (fogcolour >> 16) / 256.0f, ((fogcolour >> 8) & 255) / 256.0f, (fogcolour & 255) / 256.0f, 1.0f };
 	glFogfv(GL_FOG_COLOR, fogc);
 	glClearColor(fogc[0], fogc[1], fogc[2], 1.0f);
 
@@ -328,9 +325,7 @@ void gl_drawframe(int w, int h, float curfps) {
 		glFogi(GL_FOG_END, (fog + 96) / 8);
 	};
 
-	glClear(
-			(player1->outsidemap ? GL_COLOR_BUFFER_BIT : 0)
-					| GL_DEPTH_BUFFER_BIT);
+	glClear( (player1->outsidemap ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();

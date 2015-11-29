@@ -134,7 +134,7 @@ bool los(float lx, float ly, float lz, float bx, float by, float bz, Vec3 &v) //
 	float y = ly;
 	int i = 0;
 	for (;;) {
-		sqr *s = S(fast_f2nat(x), fast_f2nat(y));
+		Block *s = S(fast_f2nat(x), fast_f2nat(y));
 		if (SOLID(s))
 			break;
 		float floor = s->floor;
@@ -315,8 +315,7 @@ void monsterpain(Sprite *m, int damage, Sprite *d) {
 
 void endsp(bool allkilled) {
 	conoutf(allkilled ? "you have cleared the map!" : "you reached the exit!");
-	conoutf("score: %d kills in %d seconds", numkilled,
-			(lastmillis - mtimestart) / 1000);
+	conoutf("score: %d kills in %d seconds", numkilled, (lastmillis - mtimestart) / 1000);
 	monstertotal = 0;
 	startintermission();
 }

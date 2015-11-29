@@ -54,7 +54,7 @@ void screenshot() {
 			};
 			char buf[80];
 			std::sprintf(buf, "screenshots/screenshot_%d.bmp", lastmillis);
-			SDL_SaveBMP(temp, path(buf));
+			SDL_SaveBMP(temp, buf);
 			SDL_FreeSurface(temp);
 		};
 		SDL_FreeSurface(image);
@@ -77,16 +77,10 @@ int minmillis = variable("minmillis", 0, 5, 1000, &minmillis, NULL, true);
 int islittleendian = 1;
 int framesinmap = 0;
 
-int main(int argc, char **argv) {
+bool parseArgs(int argc, char** argv, int& uprate, char*& sdesc, char*& ip, char*& master, char*& passwd, int& maxcl) {
 	bool dedicated = false;
-	int par = 0, uprate = 0, maxcl = 4;
-	char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
-	islittleendian = *((char *) &islittleendian);
-
-	printf("init");
-
 	for (int i = 1; i < argc; i++) {
-		char *a = &argv[i][2];
+		char* a = &argv[i][2];
 		if (argv[i][0] == '-') {
 			switch (argv[i][1]) {
 			case 'd':
@@ -123,6 +117,15 @@ int main(int argc, char **argv) {
 			printf("unknown commandline argument");
 		}
 	};
+	return dedicated;
+}
+
+int main(int argc, char **argv) {
+	int par = 0, uprate = 0, maxcl = 4;
+	char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
+	islittleendian = *((char *) &islittleendian);
+
+	bool dedicated = parseArgs(argc, argv, uprate, sdesc, ip, master, passwd, maxcl);
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | par) < 0)
 		fatal("Unable to initialize SDL");
 
@@ -153,17 +156,18 @@ int main(int argc, char **argv) {
 
 	printf("basetex");
 	int xs, ys;
-	if (!installtex(2, path(newIString("data/newchars.png")), xs, ys)
-			|| !installtex(3, path(newIString("data/martin/base.png")), xs, ys)
-			|| !installtex(6, path(newIString("data/martin/ball1.png")), xs, ys)
-			|| !installtex(7, path(newIString("data/martin/smoke.png")), xs, ys)
-			|| !installtex(8, path(newIString("data/martin/ball2.png")), xs, ys)
-			|| !installtex(9, path(newIString("data/martin/ball3.png")), xs, ys)
-			|| !installtex(4, path(newIString("data/explosion.jpg")), xs, ys)
-			|| !installtex(5, path(newIString("data/items.png")), xs, ys)
-			|| !installtex(1, path(newIString("data/crosshair.png")), xs, ys))
-		fatal(
-				"could not find core textures (hint: run cube from the parent of the bin directory)");
+	if (!installtex(2, newIString("data/newchars.png"), xs, ys)
+			|| !installtex(3, newIString("data/martin/base.png"), xs, ys)
+			|| !installtex(6, newIString("data/martin/ball1.png"), xs, ys)
+			|| !installtex(7, newIString("data/martin/smoke.png"), xs, ys)
+			|| !installtex(8, newIString("data/martin/ball2.png"), xs, ys)
+			|| !installtex(9, newIString("data/martin/ball3.png"), xs, ys)
+			|| !installtex(4, newIString("data/explosion.jpg"), xs, ys)
+			|| !installtex(5, newIString("data/items.png"), xs, ys)
+			|| !installtex(1, newIString("data/crosshair.png"), xs, ys))
+	{
+		fatal( "could not find core textures (hint: run cube from the parent of the bin directory)");
+	}
 
 	printf("sound");
 	initsound();

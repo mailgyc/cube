@@ -234,17 +234,17 @@ void sendpackettoserv(void *packet) {
 }
 
 void c2sinfo(Sprite *d)                     // send update to the server
-		{
+{
 	if (clientnum < 0)
 		return;          // we haven't had a welcome message from the server yet
 	if (lastmillis - lastupdate < 40)
-		return;    // don't update faster than 25fps
+		return;    		// don't update faster than 25fps
 	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
-	uchar *start = packet->data;
-	uchar *p = start + 2;
+	unsigned char *start = packet->data;
+	unsigned char *p = start + 2;
 	bool serveriteminitdone = false;
-	if (toservermap[0])                      // suggest server to change map
-	{         // do this exclusively as map change may invalidate rest of update
+	if (toservermap[0])             // suggest server to change map
+	{         						// do this exclusively as map change may invalidate rest of update
 		packet->flags = ENET_PACKET_FLAG_RELIABLE;
 		putint(p, SV_MAPCHANGE);
 		sendIString(toservermap, p);
@@ -263,10 +263,7 @@ void c2sinfo(Sprite *d)                     // send update to the server
 		putint(p, (int) (d->vel.y * DVF));
 		putint(p, (int) (d->vel.z * DVF));
 		// pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
-		putint(p,
-				(d->strafe & 3) | ((d->move & 3) << 2)
-						| (((int) d->onfloor) << 4)
-						| ((editmode ? CS_EDITING : d->state) << 5));
+		putint(p, (d->strafe & 3) | ((d->move & 3) << 2) | (((int) d->onfloor) << 4) | ((editmode ? CS_EDITING : d->state) << 5));
 
 		if (senditemstoserver) {
 			packet->flags = ENET_PACKET_FLAG_RELIABLE;
@@ -293,12 +290,11 @@ void c2sinfo(Sprite *d)                     // send update to the server
 			sendIString(player1->team, p);
 			putint(p, player1->lifesequence);
 		};
-		loopv(messages) // send messages collected during the previous frames
+		for(std::vector<int> &msg : messages) // send messages collected during the previous frames
 		{
-			std::vector<int> &msg = messages[i];
 			if (msg[1])
 				packet->flags = ENET_PACKET_FLAG_RELIABLE;
-			loopi(msg[0])
+			for(int i = 0; i < msg[0]; ++i)
 				putint(p, msg[i + 2]);
 		};
 		messages.resize(0);
@@ -306,19 +302,21 @@ void c2sinfo(Sprite *d)                     // send update to the server
 			putint(p, SV_PING);
 			putint(p, lastmillis);
 			lastping = lastmillis;
-		};
+		}
 	};
-	*(ushort *) start = ENET_HOST_TO_NET_16(p - start);
+	*(unsigned short *) start = ENET_HOST_TO_NET_16(p - start);
 	enet_packet_resize(packet, p - start);
 	incomingdemodata(start, p - start, true);
 	if (clienthost) {
 		enet_host_broadcast(clienthost, 0, packet);
 		enet_host_flush(clienthost);
-	} else
+	} else {
 		localclienttoserver(packet);
+	}
 	lastupdate = lastmillis;
-	if (serveriteminitdone)
+	if (serveriteminitdone) {
 		loadgamerest();  // hack
+	}
 }
 
 void gets2c()           // get updates from the server

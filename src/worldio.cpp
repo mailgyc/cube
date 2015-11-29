@@ -20,13 +20,9 @@ void setnames(char *name) {
 		strcpy_s(mapname, name);
 	};
 	std::sprintf(cgzname, "packages/%s/%s.cgz", pakname, mapname);
-	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname, mapname,
-			lastmillis);
+	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname, mapname, lastmillis);
 	std::sprintf(pcfname, "packages/%s/package.cfg", pakname);
 	std::sprintf(mcfname, "packages/%s/%s.cfg", pakname, mapname);
-
-	path(cgzname);
-	path(bakname);
 }
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by
@@ -35,7 +31,7 @@ void setnames(char *name) {
 // the reason it is done on save is to reduce the amount spend in the mipmapper (as that is done
 // in realtime).
 
-inline bool nhf(sqr *s) {
+inline bool nhf(Block *s) {
 	return s->type != FHF && s->type != CHF;
 }
 
@@ -44,7 +40,7 @@ void voptimize()        // reset vdeltas on non-hf cubes
 	loop(x, ssize)
 		loop(y, ssize)
 		{
-			sqr *s = S(x, y);
+			Block *s = S(x, y);
 			if (x && y) {
 				if (nhf(s) && nhf(S(x - 1, y)) && nhf(S(x - 1, y - 1))
 						&& nhf(S(x, y - 1)))
@@ -54,8 +50,8 @@ void voptimize()        // reset vdeltas on non-hf cubes
 		};
 }
 
-void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut) {
-	sqr *o[4];
+void topt(Block *s, bool &wf, bool &uf, int &wt, int &ut) {
+	Block *o[4];
 	o[0] = SWS(s, 0, -1, ssize);
 	o[1] = SWS(s, 0, 1, ssize);
 	o[2] = SWS(s, 1, 0, ssize);
@@ -88,7 +84,7 @@ void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut) {
 void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 {
 	bool wf[4], uf[4];
-	sqr *s[4];
+	Block *s[4];
 	for (int x = 2; x < ssize - 4; x += 2)
 		for (int y = 2; y < ssize - 4; y += 2) {
 			s[0] = S(x, y);
@@ -165,12 +161,12 @@ void save_world(char *mname) {
 			gzwrite(f, &tmp, sizeof(persistent_entity));
 		};
 	};
-	sqr *t = NULL;
+	Block *t = NULL;
 	int sc = 0;
 #define spurge while(sc) { gzputc(f, 255); if(sc>255) { gzputc(f, 255); sc -= 255; } else { gzputc(f, sc); sc = 0; } };
 	for(int k = 0; k < cubicsize; ++k)
 	{
-		sqr *s = &world[k];
+		Block *s = &world[k];
 #define c(f) (s->f==t->f)
 		// 4 types of blocks, to compress a bit:
 		// 255 (2): same as previous block + count
@@ -214,7 +210,7 @@ void save_world(char *mname) {
 }
 
 void load_world(char *mname) // still supports all map formats that have existed since the earliest cube betas!
-		{
+{
 	stopifrecording();
 	cleardlights();
 	pruneundos();
@@ -238,8 +234,8 @@ void load_world(char *mname) // still supports all map formats that have existed
 	} else {
 		hdr.waterlevel = -100000;
 	};
-	ents.resize(0);
-	loopi(hdr.numents)
+	ents.clear();
+	for(int i = 0; i < hdr.numents; ++i)
 	{
 		entity e;
 		gzread(f, &e, sizeof(persistent_entity));
@@ -256,30 +252,30 @@ void load_world(char *mname) // still supports all map formats that have existed
 	free(world);
 	setupworld(hdr.sfactor);
 	char texuse[256];
-	loopi(256)
+	for(int i = 0; i < 256; ++i) {
 		texuse[i] = 0;
-	sqr *t = NULL;
+	}
+	Block *t = NULL;
 	for(int k = 0; k < cubicsize; ++k)
 	{
-		sqr *s = &world[k];
+		Block *s = &world[k];
 		int type = gzgetc(f);
 		switch (type) {
 		case 255: {
 			int n = gzgetc(f);
-			for (int i = 0; i < n; i++, k++)
-				memcpy(&world[k], t, sizeof(sqr));
+			for (int i = 0; i < n; i++, k++) {
+				memcpy(&world[k], t, sizeof(Block));
+			}
 			k--;
 			break;
 		}
-			;
 		case 254: // only in MAPVERSION<=2
 		{
-			memcpy(s, t, sizeof(sqr));
+			memcpy(s, t, sizeof(Block));
 			s->r = s->g = s->b = gzgetc(f);
 			gzgetc(f);
 			break;
 		}
-			;
 		case SOLID: {
 			s->type = SOLID;
 			s->wtex = gzgetc(f);
@@ -295,13 +291,12 @@ void load_world(char *mname) // still supports all map formats that have existed
 			s->ceil = 16;
 			break;
 		}
-			;
 		default: {
 			if (type < 0 || type >= MAXTYPE) {
-				IString t;
+				char t[40];
 				std::sprintf(t, "%d @ %d", type, k);
 				fatal("while reading map: type out of range: ", t);
-			};
+			}
 			s->type = type;
 			s->floor = gzgetc(f);
 			s->ceil = gzgetc(f);
@@ -311,15 +306,15 @@ void load_world(char *mname) // still supports all map formats that have existed
 			s->ftex = gzgetc(f);
 			s->ctex = gzgetc(f);
 			if (hdr.version <= 2) {
-				gzgetc(f);gzgetc(f);
+				gzgetc(f);
+				gzgetc(f);
 			};
 			s->vdelta = gzgetc(f);
 			s->utex = (hdr.version >= 2) ? gzgetc(f) : s->wtex;
 			s->tag = (hdr.version >= 5) ? gzgetc(f) : 0;
 			s->type = type;
 		}
-			;
-		};
+		}
 		s->defer = 0;
 		t = s;
 		texuse[s->wtex] = 1;

@@ -65,12 +65,9 @@ void send(int n, ENetPacket *packet) {
 		bsend += packet->dataLength;
 		break;
 	}
-		;
-
 	case ST_LOCAL:
 		localservertoclient(packet->data, packet->dataLength);
 		break;
-
 	};
 }
 
@@ -166,36 +163,30 @@ bool vote(char *map, int reqmode, int sender) {
 // could be extended to move more gameplay to server (at expense of lag)
 
 void process(ENetPacket * packet, int sender)   // sender may be -1
-		{
+{
 	if (ENET_NET_TO_HOST_16(*(ushort *)packet->data) != packet->dataLength) {
 		disconnect_client(sender, "packet length");
 		return;
 	};
 
-	uchar *end = packet->data + packet->dataLength;
-	uchar *p = packet->data + 2;
+	unsigned char *end = packet->data + packet->dataLength;
+	unsigned char *p = packet->data + 2;
 	char text[MAXTRANS];
 	int cn = -1, type;
 
 	while (p < end)
 		switch (type = getint(p)) {
 		case SV_TEXT:
-			sgetstr()
-			;
+			sgetstr();
 			break;
-
 		case SV_INITC2S:
-			sgetstr()
-			;
+			sgetstr();
 			strcpy_s(clients[cn].name, text);
 			sgetstr()
-			;
 			getint(p);
 			break;
-
 		case SV_MAPCHANGE: {
-			sgetstr()
-			;
+			sgetstr();
 			int reqmode = getint(p);
 			if (reqmode < 0)
 				reqmode = 0;
@@ -211,8 +202,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			sender = -1;
 			break;
 		}
-			;
-
 		case SV_ITEMLIST: {
 			int n;
 			while ((n = getint(p)) != -1)
@@ -225,19 +214,14 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			notgotitems = false;
 			break;
 		}
-			;
-
 		case SV_ITEMPICKUP: {
 			int n = getint(p);
 			pickup(n, getint(p), sender);
 			break;
 		}
-			;
-
 		case SV_PING:
 			send2(false, cn, SV_PONG, getint(p));
 			break;
-
 		case SV_POS: {
 			cn = getint(p);
 			if (cn < 0 || cn >= clients.size()
@@ -251,28 +235,21 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 				getint(p);
 			break;
 		}
-			;
-
 		case SV_SENDMAP: {
-			sgetstr()
-			;
+			sgetstr();
 			int mapsize = getint(p);
 			sendmaps(sender, text, mapsize, p);
 			return;
 		}
-
 		case SV_RECVMAP:
 			send(sender, recvmap(sender));
 			return;
-
 		case SV_EXT:  // allows for new features that require no server updates 
 		{
 			for (int n = getint(p); n; n--)
 				getint(p);
 			break;
 		}
-			;
-
 		default: {
 			int size = msgsizelookup(type);
 			if (size == -1) {
@@ -282,8 +259,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			loopi(size-1)
 				getint(p);
 		}
-			;
-		};
+	};
 
 	if (p > end) {
 		disconnect_client(sender, "end of packet");

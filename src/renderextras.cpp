@@ -166,12 +166,12 @@ void loadsky(char *basename) {
 		return;
 	char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
 	int texnum = 14;
-	loopi(6)
+	for(int i = 0; i < 6; ++i)
 	{
-		IString name;
+		char name[80];
 		std::sprintf(name, "packages/%s_%s.jpg", basename, side[i]);
 		int xs, ys;
-		if (!installtex(texnum + i, path(name), xs, ys, true))
+		if (!installtex(texnum + i, name, xs, ys, true))
 			conoutf("could not load sky textures");
 	};
 	strcpy_s(lastsky, basename);

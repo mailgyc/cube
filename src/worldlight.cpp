@@ -155,18 +155,17 @@ void postlightarea(block &a) // median filter, smooths out random noise in light
 }
 
 void calclight() {
-	loop(x,ssize)
-		loop(y,ssize)
-		{
-			sqr *s = S(x, y);
+	for(int x = 0; x < ssize; ++x) {
+		for(int y = 0; y < ssize; ++y) {
+			sqr *s = &world[y * ssize + x];
 			s->r = s->g = s->b = 10;
-		};
+		}
+	}
 
-	loopv(ents) {
-		entity &e = ents[i];
+	for(entity &e : ents) {
 		if (e.type == LIGHT)
 			calclightsource(e);
-	};
+	}
 
 	block b = { 1, 1, ssize - 2, ssize - 2 };
 	postlightarea(b);

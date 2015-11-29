@@ -197,7 +197,7 @@ std::vector<block *> undos; // unlimited undo
 int undomegs = variable("undomegs", 0, 1, 10, &undomegs, NULL, true);
 
 void pruneundos(int maxremain)                          // bound memory
-		{
+{
 	int t = 0;
 	for (auto it = undos.begin(); it != undos.end();) {
 		block *b = *it;

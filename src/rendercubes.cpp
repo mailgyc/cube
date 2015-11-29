@@ -57,10 +57,10 @@ void finishstrips() {
 	stripend();
 }
 
-sqr sbright, sdark;
+Block sbright, sdark;
 int lighterror = variable("lighterror", 1, 8, 100, &lighterror, NULL, false);
 
-void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
+void render_flat(int wtex, int x, int y, int size, int h, Block *l1, Block *l2, Block *l3, Block *l4, bool isceil)  // floor/ceil quads
 {
 	vertcheck();
 	if (showm) {
@@ -133,7 +133,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
 }
 
 void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2,
-		float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil) // floor/ceil quads on a slope
+		float h3, float h4, Block *l1, Block *l2, Block *l3, Block *l4, bool isceil) // floor/ceil quads on a slope
 		{
 	vertcheck();
 	if (showm) {
@@ -185,8 +185,8 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2,
 	nquads++;
 }
 
-void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3,
-		int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
+void render_2tris(Block *h, Block *s, int x1, int y1, int x2, int y2, int x3,
+		int y3, Block *l1, Block *l2, Block *l3)   // floor/ceil tris on a corner cube
 		{
 	stripend();
 	vertcheck();
@@ -212,8 +212,8 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3,
 	nquads++;
 }
 
-void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s,
-		sqr *t, sqr *u, sqr *v) {
+void render_tris(int x, int y, int size, bool topleft, Block *h1, Block *h2, Block *s,
+		Block *t, Block *u, Block *v) {
 	if (topleft) {
 		if (h1)
 			render_2tris(h1, s, x + size, y + size, x, y + size, x, y, u, v, s);
@@ -229,7 +229,7 @@ void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s,
 }
 
 void render_square(int wtex, float floor1, float floor2, float ceil1,
-		float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2,
+		float ceil2, int x1, int y1, int x2, int y2, int size, Block *l1, Block *l2,
 		bool flip)   // wall quads
 		{
 	stripend();
@@ -274,7 +274,7 @@ void var_waterlevel() {
 	}
 }
 
-inline void vertw(int v1, float v2, int v3, sqr *c, float t1, float t2,
+inline void vertw(int v1, float v2, int v3, Block *c, float t1, float t2,
 		float t) {
 	vertcheck();
 	vertf((float )v1, v2 - (float )sin(v1 * v3 * 0.1 + t) * 0.2f, (float )v3, c,
@@ -311,7 +311,7 @@ int renderwater(float hf) {
 	float t1 = lastmillis / 300.0f;
 	float t2 = lastmillis / 4000.0f;
 
-	sqr dl;
+	Block dl;
 	dl.r = dl.g = dl.b = 255;
 
 	for (int xx = wx1; xx < wx2; xx += watersubdiv) {

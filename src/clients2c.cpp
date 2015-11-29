@@ -13,13 +13,13 @@ void neterr(char *s) {
 }
 
 void changemapserv(char *name, int mode)    // forced map change from the server
-		{
+{
 	gamemode = mode;
 	load_world(name);
 }
 
 void changemap(char *name)              // request map change, server may ignore
-		{
+{
 	strcpy_s(toservermap, name);
 }
 
@@ -49,7 +49,7 @@ void updatepos(Sprite *d) {
 }
 
 void localservertoclient(uchar *buf, int len) // processes any updates from the server
-		{
+{
 	if (ENET_NET_TO_HOST_16(*(ushort *)buf) != len)
 		neterr("packet length");
 	incomingdemodata(buf, len);
@@ -68,9 +68,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			cn = getint(p);
 			int prot = getint(p);
 			if (prot != PROTOCOL_VERSION) {
-				conoutf(
-						"you are using a different game protocol (you: %d, server: %d)",
-						PROTOCOL_VERSION, prot);
+				conoutf( "you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
 				disconnect();
 				return;
 			};
@@ -78,11 +76,10 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			clientnum = cn;                 // we are now fully connected
 			if (!getint(p))
 				strcpy_s(toservermap, getclientmap()); // we are the first client on this server, set map
-			sgetstr()
-			;
+			sgetstr();
+
 			if (text[0] && strcmp(text, clientpassword)) {
-				conoutf(
-						"you need to set the correct password to join this server!");
+				conoutf( "you need to set the correct password to join this server!");
 				disconnect();
 				return;
 			};
@@ -91,8 +88,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			};
 			break;
 		}
-			;
-
 		case SV_POS:                        // position of another client
 		{
 			cn = getint(p);
@@ -121,25 +116,23 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				updatepos(d);
 			break;
 		}
-			;
 
 		case SV_SOUND:
 			playsound(getint(p), &d->o);
 			break;
 
 		case SV_TEXT:
-			sgetstr()
-			;
+			sgetstr();
+
 			conoutf("%s:\f %s", d->name, text);
 			break;
 
 		case SV_MAPCHANGE:
-			sgetstr()
-			;
+			sgetstr();
+
 			changemapserv(text, getint(p));
 			mapchanged = true;
 			break;
-
 		case SV_ITEMLIST: {
 			int n;
 			if (mapchanged) {
@@ -151,7 +144,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 					setspawn(n, true);
 			break;
 		}
-			;
 
 		case SV_MAPRELOAD:          // server requests next map
 		{
@@ -162,12 +154,11 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			changemap(map ? map : getclientmap());
 			break;
 		}
-			;
 
 		case SV_INITC2S: // another client either connected or changed name/team
 		{
-			sgetstr()
-			;
+			sgetstr();
+
 			if (d->name[0])          // already connected
 			{
 				if (strcmp(d->name, text))
@@ -178,13 +169,12 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				conoutf("connected: %s", text);
 			};
 			strcpy_s(d->name, text);
-			sgetstr()
-			;
+			sgetstr();
+
 			strcpy_s(d->team, text);
 			d->lifesequence = getint(p);
 			break;
 		}
-			;
 
 		case SV_CDIS:
 			cn = getint(p);
@@ -209,7 +199,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			shootv(gun, s, e, d);
 			break;
 		}
-			;
 
 		case SV_DAMAGE: {
 			int target = getint(p);
@@ -222,7 +211,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				playsound(S_PAIN1 + rnd(5), &getclient(target)->o);
 			break;
 		}
-			;
 
 		case SV_DIED: {
 			int actor = getint(p);
@@ -253,7 +241,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			d->lifesequence++;
 			break;
 		}
-			;
 
 		case SV_FRAGS:
 			players[cn]->frags = getint(p);
@@ -273,7 +260,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			playsound(S_ITEMSPAWN, &v);
 			break;
 		}
-			;
 
 		case SV_ITEMACC:       // server acknowledges that I picked up this item
 			realpickup(getint(p), player1);
@@ -309,7 +295,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			};
 			break;
 		}
-			;
 
 		case SV_EDITENT:            // coop edit of ent
 		{
@@ -332,7 +317,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				calclight();
 			break;
 		}
-			;
 
 		case SV_PING:
 			getint(p);
@@ -357,8 +341,8 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			break;
 
 		case SV_RECVMAP: {
-			sgetstr()
-			;
+			sgetstr();
+
 			conoutf("received map \"%s\" from server, reloading..", text);
 			int mapsize = getint(p);
 			writemap(text, mapsize, p);
@@ -366,11 +350,9 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			changemapserv(text, gamemode);
 			break;
 		}
-			;
 
 		case SV_SERVMSG:
-			sgetstr()
-			;
+			sgetstr();
 			conoutf("%s", text);
 			break;
 
@@ -380,7 +362,6 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				getint(p);
 			break;
 		}
-			;
 
 		default:
 			neterr("type");

@@ -41,22 +41,16 @@ extern void cleangl();
 extern void gl_drawframe(int w, int h, float curfps);
 extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp = false);
 extern void mipstats(int a, int b, int c);
-extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
+extern void vertf(float v1, float v2, float v3, Block *ls, float t1, float t2);
 extern void addstrip(int tex, int start, int n);
 extern int lookuptexture(int tex, int &xs, int &ys);
 
 // rendercubes
 extern void resetcubes();
-extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1,
-		sqr *l2, sqr *l3, sqr *l4, bool isceil);
-extern void render_flatdelta(int wtex, int x, int y, int size, float h1,
-		float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4,
-		bool isceil);
-extern void render_square(int wtex, float floor1, float floor2, float ceil1,
-		float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2,
-		bool topleft);
-extern void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2,
-		sqr *s, sqr *t, sqr *u, sqr *v);
+extern void render_flat(int tex, int x, int y, int size, int h, Block *l1, Block *l2, Block *l3, Block *l4, bool isceil);
+extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, Block *l1, Block *l2, Block *l3, Block *l4, bool isceil);
+extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, Block *l1, Block *l2, bool topleft);
+extern void render_tris(int x, int y, int size, bool topleft, Block *h1, Block *h2, Block *s, Block *t, Block *u, Block *v);
 extern void addwaterquad(int x, int y, int size);
 extern int renderwater(float hf);
 extern void finishstrips();
@@ -99,8 +93,7 @@ extern void fixplayer1range();
 
 // clientextras
 extern void renderclients();
-extern void renderclient(Sprite *d, bool team, char *mdlname, bool hellpig,
-		float scale);
+extern void renderclient(Sprite *d, bool team, char *mdlname, bool hellpig, float scale);
 void showscores(bool on);
 extern void renderscores();
 
@@ -119,15 +112,13 @@ extern entity *newentity(int x, int y, int z, char *what, int v1, int v2,
 
 // worldlight
 extern void calclight();
-extern void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength,
-		Sprite *owner);
+extern void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength, Sprite *owner);
 extern void cleardlights();
 extern block *blockcopy(block &b);
 extern void blockpaste(block &b);
 
 // worldrender
-extern void render_world(float vx, float vy, float vh, int yaw, int pitch,
-		float widef, int w, int h);
+extern void render_world(float vx, float vy, float vh, int yaw, int pitch, float widef, int w, int h);
 
 // worldocull
 extern void computeraytable(float vx, float vy);
@@ -162,8 +153,7 @@ extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
 extern void newsphere(Vec3 &o, float max, int type);
 extern void renderspheres(int time);
-extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert,
-		bool underwater);
+extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void readdepth(int w, int h);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border);
 extern void damageblend(int n);
@@ -201,9 +191,7 @@ extern void initsound();
 extern void cleansound();
 
 // rendermd2
-extern void rendermodel(char *mdl, int frame, int range, int tex, float rad,
-		float x, float y, float z, float yaw, float pitch, bool teammate,
-		float scale, float speed, int snap = 0, int basetime = 0);
+extern void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap = 0, int basetime = 0);
 extern mapmodelinfo &getmminfo(int i);
 
 // server
@@ -230,8 +218,7 @@ extern ENetPacket *recvmap(int n);
 // weapon
 extern void selectgun(int a = -1, int b = -1, int c = -1);
 extern void shoot(Sprite *d, Vec3 &to);
-extern void shootv(int gun, Vec3 &from, Vec3 &to, Sprite *d = 0, bool local =
-		false);
+extern void shootv(int gun, Vec3 &from, Vec3 &to, Sprite *d = 0, bool local = false);
 extern void createrays(Vec3 &from, Vec3 &to);
 extern void moveprojectiles(float time);
 extern void projreset();

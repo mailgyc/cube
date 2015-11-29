@@ -4,7 +4,7 @@
 
 extern char *entnames[];            // lookup from map entities above to IStrings
 
-sqr *world = NULL;
+Block *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
@@ -12,19 +12,20 @@ header hdr;
 void settag(int tag, int type) // set all cubes with "tag" to space, if tag is 0 then reset ALL tagged cubes according to type
 {
 	int maxx = 0, maxy = 0, minx = ssize, miny = ssize;
-	loop(x, ssize)
-		loop(y, ssize)
+	for(int x = 0; x < ssize; ++x) {
+		for(int y = 0; y < ssize; ++y)
 		{
-			sqr *s = S(x, y);
+			Block *s = &world[y*ssize + x];
 			if (s->tag) {
 				if (tag) {
-					if (tag == s->tag)
+					if (tag == s->tag) {
 						s->type = SPACE;
-					else
+					} else {
 						continue;
+					}
 				} else {
 					s->type = type ? SOLID : SPACE;
-				};
+				}
 				if (x > maxx)
 					maxx = x;
 				if (y > maxy)
@@ -33,8 +34,9 @@ void settag(int tag, int type) // set all cubes with "tag" to space, if tag is 0
 					minx = x;
 				if (y < miny)
 					miny = y;
-			};
-		};
+			}
+		}
+	}
 	block b = { minx, miny, maxx - minx + 1, maxy - miny + 1 };
 	if (maxx)
 		remip(b);      // remip minimal area of changed geometry
@@ -47,25 +49,30 @@ void resettagareas() {
 // reset for editing or map saving
 void settagareas() {
 	settag(0, 1);
-	loopv(ents)
+	for(int i = 0; i < ents.size(); ++i) {
 		if (ents[i].type == CARROT)
 			setspawn(i, true);
+	}
 }
 
 // set for playing
-
 void trigger(int tag, int type, bool savegame) {
-	if (!tag)
+	if (!tag) {
 		return;
+	}
 	settag(tag, type);
-	if (!savegame && type != 3)
+	if (!savegame && type != 3) {
 		playsound(S_RUMBLE);
-	IString aliasname;
+	}
+
+	char aliasname[40];
 	std::sprintf(aliasname, "level_trigger_%d", tag);
-	if (identexists(aliasname))
+	if (identexists(aliasname)) {
 		execute(aliasname);
-	if (type == 2)
+	}
+	if (type == 2) {
 		endsp(false);
+	}
 }
 
 COMMAND(trigger, ARG_2INT);
@@ -80,44 +87,46 @@ void remip(block &b, int level) {
 	if (level >= SMALLEST_FACTOR)
 		return;
 	int lighterr = getvar("lighterror") * 3;
-	sqr *w = wmip[level];
-	sqr *v = wmip[level + 1];
+	Block *w = wmip[level];
+	Block *v = wmip[level + 1];
 	int ws = ssize >> level;
 	int vs = ssize >> (level + 1);
 	block s = b;
 	if (s.x & 1) {
 		s.x--;
 		s.xs++;
-	};
+	}
 	if (s.y & 1) {
 		s.y--;
 		s.ys++;
-	};
+	}
 	s.xs = (s.xs + 1) & ~1;
 	s.ys = (s.ys + 1) & ~1;
-	for (int x = s.x; x < s.x + s.xs; x += 2)
+	for (int x = s.x; x < s.x + s.xs; x += 2) {
 		for (int y = s.y; y < s.y + s.ys; y += 2) {
-			sqr *o[4];
-			o[0] = SWS(w, x, y, ws);                  // the 4 constituent cubes
-			o[1] = SWS(w, x + 1, y, ws);
-			o[2] = SWS(w, x + 1, y + 1, ws);
-			o[3] = SWS(w, x, y + 1, ws);
-			sqr *r = SWS(v, x / 2, y / 2, vs); // the target cube in the higher mip level
+			Block *o[4];
+			o[0] = &w[(y) * ws + (x)];    // the 4 constituent cubes
+			o[1] = &w[(y) * ws + (x + 1)];
+			o[2] = &w[(y + 1) * ws + (x + 1)];
+			o[3] = &w[(y + 1) * ws + (x)];
+			Block *r = &v[y/2 * vs + x/2];	// the target cube in the higher mip level
 			*r = *o[0];
-			uchar nums[MAXTYPE];
-			loopi(MAXTYPE)
+			unsigned char nums[MAXTYPE];
+			for(int i = 0; i < MAXTYPE; ++i) {
 				nums[i] = 0;
+			}
 			for(int i = 0; i < 4; ++i) {
 				nums[o[i]->type]++;
 			}
 			r->type = SEMISOLID; // cube contains both solid and space, treated specially in the renderer
-			for(int k = 0; k < MAXTYPE; k++)
+			for(int k = 0; k < MAXTYPE; k++) {
 				if (nums[k] == 4)
 					r->type = k;
-			if (!SOLID(r)) {
+			}
+			if (r->type != SOLID) {
 				int floor = 127, ceil = -128, num = 0;
-				loopi(4)
-					if (!SOLID(o[i])) {
+				for(int i = 0; i < 4; ++i)
+					if (o[i]->type != SOLID) {
 						num++;
 						int fh = o[i]->floor;
 						int ch = o[i]->ceil;
@@ -140,49 +149,41 @@ void remip(block &b, int level) {
 			// special case: don't ever split even if textures etc are different
 			r->defer = 1;
 			if (SOLID(r)) {
-				loopi(3)
+				for(int i = 0; i < 3; ++i)
 				{
 					if (o[i]->wtex != o[3]->wtex)
 						goto c;
 					// on an all solid cube, only thing that needs to be equal for a perfect mip is the wall texture
 				};
 			} else {
-				loopi(3)
+				for(int i = 0; i < 3; ++i)
 				{
-					if (o[i]->type != o[3]->type || o[i]->floor != o[3]->floor
-							|| o[i]->ceil != o[3]->ceil
-							|| o[i]->ftex != o[3]->ftex
-							|| o[i]->ctex != o[3]->ctex
+					if (o[i]->type != o[3]->type || o[i]->floor != o[3]->floor || o[i]->ceil != o[3]->ceil || o[i]->ftex != o[3]->ftex || o[i]->ctex != o[3]->ctex
 							|| abs(o[i + 1]->r - o[0]->r) > lighterr // perfect mip even if light is not exactly equal
 							|| abs(o[i + 1]->g - o[0]->g) > lighterr
 							|| abs(o[i + 1]->b - o[0]->b) > lighterr
-							|| o[i]->utex != o[3]->utex
-							|| o[i]->wtex != o[3]->wtex)
+							|| o[i]->utex != o[3]->utex || o[i]->wtex != o[3]->wtex)
 						goto c;
 				};
 				if (r->type == CHF || r->type == FHF) // can make a perfect mip out of a hf if slopes lie on one line
-						{
-					if (o[0]->vdelta - o[1]->vdelta
-							!= o[1]->vdelta - SWS(w,x+2,y,ws)->vdelta
-							|| o[0]->vdelta - o[2]->vdelta
-									!= o[2]->vdelta - SWS(w,x+2,y+2,ws)->vdelta
-							|| o[0]->vdelta - o[3]->vdelta
-									!= o[3]->vdelta - SWS(w,x,y+2,ws)->vdelta
-							|| o[3]->vdelta - o[2]->vdelta
-									!= o[2]->vdelta - SWS(w,x+2,y+1,ws)->vdelta
-							|| o[1]->vdelta - o[2]->vdelta
-									!= o[2]->vdelta - SWS(w,x+1,y+2,ws)->vdelta)
+				{
+					if (o[0]->vdelta - o[1]->vdelta != o[1]->vdelta - SWS(w,x+2,y,ws)->vdelta
+							|| o[0]->vdelta - o[2]->vdelta != o[2]->vdelta - SWS(w,x+2,y+2,ws)->vdelta
+							|| o[0]->vdelta - o[3]->vdelta != o[3]->vdelta - SWS(w,x,y+2,ws)->vdelta
+							|| o[3]->vdelta - o[2]->vdelta != o[2]->vdelta - SWS(w,x+2,y+1,ws)->vdelta
+							|| o[1]->vdelta - o[2]->vdelta != o[2]->vdelta - SWS(w,x+1,y+2,ws)->vdelta)
 						goto c;
 				};
 			};
 			{
-				loopi(4)
+				for(int i = 0; i < 4; ++i)
 					if (o[i]->defer)
 						goto c;
 			}; // if any of the constituents is not perfect, then this one isn't either
 			mip: r->defer = 0;
 			c: ;
-		};
+		}
+	}
 	s.x /= 2;
 	s.y /= 2;
 	s.xs /= 2;
@@ -209,7 +210,7 @@ int closestent()        // used for delent and edit mode ent display
 		return -1;
 	int best;
 	float bdist = 99999;
-	loopv(ents) {
+	for(int i = 0; i < ents.size(); ++i) {
 		entity &e = ents[i];
 		if (e.type == NOTUSED)
 			continue;
@@ -218,8 +219,8 @@ int closestent()        // used for delent and edit mode ent display
 		if (dist < bdist) {
 			best = i;
 			bdist = dist;
-		};
-	};
+		}
+	}
 	return bdist == 99999 ? -1 : best;
 }
 
@@ -258,15 +259,15 @@ void delent() {
 }
 
 int findtype(char *what) {
-	loopi(MAXENTTYPES)
+	for(int i = 0; i < MAXENTTYPES; ++i) {
 		if (strcmp(what, entnames[i]) == 0)
 			return i;
+	}
 	conoutf("unknown entity type \"%s\"", what);
 	return NOTUSED;
 }
 
-entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3,
-		int v4) {
+entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4) {
 	int type = findtype(what);
 	persistent_entity e = { x, y, z, v1, type, v2, v3, v4 };
 	switch (type) {
@@ -278,7 +279,6 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3,
 		if (!v2 && !v3 && !v4)
 			e.attr2 = 255;
 		break;
-
 	case MAPMODEL:
 		e.attr4 = e.attr3;
 		e.attr3 = e.attr2;
@@ -289,8 +289,7 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3,
 		e.attr1 = (int) player1->yaw;
 		break;
 	};
-	addmsg(1, 10, SV_EDITENT, ents.size(), type, e.x, e.y, e.z, e.attr1,
-			e.attr2, e.attr3, e.attr4);
+	addmsg(1, 10, SV_EDITENT, ents.size(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
 	ents.emplace_back(*((entity *) &e)); // unsafe!
 	if (type == LIGHT)
 		calclight();
@@ -301,11 +300,11 @@ void clearents(char *name) {
 	int type = findtype(name);
 	if (noteditmode() || multiplayer())
 		return;
-	loopv(ents) {
+	for(int i = 0; i < ents.size(); ++i) {
 		entity &e = ents[i];
 		if (e.type == type)
 			e.type = NOTUSED;
-	};
+	}
 	if (type == LIGHT)
 		calclight();
 }
@@ -320,8 +319,7 @@ void scalecomp(uchar &c, int intens) {
 }
 
 void scalelights(int f, int intens) {
-	loopv(ents) {
-		entity &e = ents[i];
+	for(entity &e : ents) {
 		if (e.type != LIGHT)
 			continue;
 		e.attr1 = e.attr1 * f / 100;
@@ -350,18 +348,18 @@ int findentity(int type, int index) {
 	return -1;
 }
 
-sqr *wmip[LARGEST_FACTOR * 2];
+Block *wmip[LARGEST_FACTOR * 2];
 
 void setupworld(int factor) {
 	ssize = 1 << (sfactor = factor);
 	cubicsize = ssize * ssize;
 	mipsize = cubicsize * 134 / 100;
-	sqr *w = world = (sqr *) alloc(mipsize * sizeof(sqr));
-	loopi(LARGEST_FACTOR*2)
+	Block *w = world = (Block *) alloc(mipsize * sizeof(Block));
+	for(int i = 0; i < LARGEST_FACTOR*2; ++i)
 	{
 		wmip[i] = w;
 		w += cubicsize >> (i * 2);
-	};
+	}
 }
 
 void empty_world(int factor, bool force) // main empty world creation routine, if passed factor -1 will enlarge old world by 1
@@ -370,7 +368,7 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 		return;
 	cleardlights();
 	pruneundos();
-	sqr *oldworld = world;
+	Block *oldworld = world;
 	bool copy = false;
 	if (oldworld && factor < 0) {
 		factor = sfactor + 1;
@@ -386,7 +384,7 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 		for(int y = 0; y < ssize; ++y)
 		{
 			//sqr *s = S(x, y);
-			sqr *s = &world[y * ssize + x];
+			Block *s = &world[y * ssize + x];
 			s->r = s->g = s->b = 150;
 			s->ftex = DEFAULT_FLOOR;
 			s->ctex = DEFAULT_CEIL;

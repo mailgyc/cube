@@ -41,7 +41,7 @@ void resetmovement(Sprite *d) {
 }
 
 void spawnstate(Sprite *d)   // reset player state not persistent accross spawns
-		{
+{
 	resetmovement(d);
 	d->vel.x = d->vel.y = d->vel.z = 0;
 	d->onfloor = false;
@@ -54,8 +54,9 @@ void spawnstate(Sprite *d)   // reset player state not persistent accross spawns
 	d->gunwait = 0;
 	d->attacking = false;
 	d->lastaction = 0;
-	loopi(NUMGUNS)
+	for (int i = 0; i < NUMGUNS; ++i) {
 		d->ammo[i] = 0;
+	}
 	d->ammo[GUN_FIST] = 1;
 	if (m_noitems) {
 		d->gunselect = GUN_RIFLE;
@@ -84,8 +85,9 @@ void spawnstate(Sprite *d)   // reset player state not persistent accross spawns
 				d->ammo[GUN_RIFLE] = 100;
 			} else // efficiency
 			{
-				loopi(4)
+				for (int i = 0; i < 4; ++i) {
 					baseammo(i + 1);
+				}
 				d->gunselect = GUN_CG;
 			};
 			d->ammo[GUN_CG] /= 2;
@@ -221,13 +223,13 @@ void sleepf(char *msec, char *cmd) {
 COMMANDN(sleep, sleepf, ARG_2STR);
 
 void updateworld(int millis)        // main game update loop
-		{
+{
 	if (lastmillis) {
 		curtime = millis - lastmillis;
 		if (sleepwait && lastmillis > sleepwait) {
 			sleepwait = 0;
 			execute(sleepcmd);
-		};
+		}
 		physicsframe();
 		checkquad(curtime);
 		if (m_arena)
@@ -246,22 +248,21 @@ void updateworld(int millis)        // main game update loop
 				if (lastmillis - player1->lastaction < 2000) {
 					player1->move = player1->strafe = 0;
 					moveplayer(player1, 10, false);
-				} else if (!m_arena && !m_sp
-						&& lastmillis - player1->lastaction > 10000)
+				} else if (!m_arena && !m_sp && lastmillis - player1->lastaction > 10000)
 					respawn();
 			} else if (!intermission) {
 				moveplayer(player1, 20, true);
 				checkitems();
-			};
+			}
 			c2sinfo(player1); // do this last, to reduce the effective frame lag
-		};
-	};
+		}
+	}
 	lastmillis = millis;
 }
 
 void entinmap(Sprite *d) // brute force but effective way to find a free spawn spot in the map
 {
-	loopi(100)              // try max 100 times
+	for (int i = 0; i < 100; ++i)       // try max 100 times
 	{
 		float dx = (rnd(21) - 10) / 10.0f * i;  // increasing distance
 		float dy = (rnd(21) - 10) / 10.0f * i;
@@ -272,8 +273,7 @@ void entinmap(Sprite *d) // brute force but effective way to find a free spawn s
 		d->o.x -= dx;
 		d->o.y -= dy;
 	};
-	conoutf("can't find entity spawn spot! (%d, %d)", (int) d->o.x,
-			(int) d->o.y);
+	conoutf("can't find entity spawn spot! (%d, %d)", (int) d->o.x, (int) d->o.y);
 	// leave ent at original pos, possibly stuck
 }
 
@@ -281,10 +281,11 @@ int spawncycle = -1;
 int fixspawn = 2;
 
 void spawnplayer(Sprite *d)   // place at random spawn. also used by monsters!
-		{
+{
 	int r = fixspawn-- > 0 ? 4 : rnd(10) + 1;
-	loopi(r)
+	for (int i = 0; i < r; ++i) {
 		spawncycle = findentity(PLAYERSTART, spawncycle + 1);
+	}
 	if (spawncycle != -1) {
 		d->o.x = ents[spawncycle].x;
 		d->o.y = ents[spawncycle].y;

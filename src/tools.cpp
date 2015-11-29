@@ -84,12 +84,6 @@ Pool *gp() // useful for global buffers that need to be initialisation order ind
 }
 
 ///////////////////////// misc tools ///////////////////////
-char *path(char *s) {
-	for (char *t = s; t = strpbrk(t, "/\\"); *t++ = '/')
-		;
-	return s;
-}
-
 char *loadfile(char *fn, int *size) {
 	FILE *f = fopen(fn, "rb");
 	if (!f)

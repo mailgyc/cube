@@ -104,7 +104,7 @@ struct Vec3 {
 		z = _z;
 	}
 };
-struct block {
+struct Rect {
 	int x, y, xs, ys;
 };
 struct mapmodelinfo {

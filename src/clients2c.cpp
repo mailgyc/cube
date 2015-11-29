@@ -275,7 +275,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			int xs = getint(p);
 			int ys = getint(p);
 			int v = getint(p);
-			block b = { x, y, xs, ys };
+			Rect b = { x, y, xs, ys };
 			switch (type) {
 			case SV_EDITH:
 				editheightxy(v != 0, getint(p), b);

@@ -7,7 +7,7 @@ bool editmode = false;
 // the current selection, used by almost all editing commands
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
 
-block sel = {
+Rect sel = {
 	variable("selx",  0, 0, 4096, &sel.x, NULL, false),
 	variable("sely",  0, 0, 4096, &sel.y, NULL, false),
 	variable("selxs", 0, 0, 4096, &sel.xs, NULL, false),
@@ -17,7 +17,7 @@ block sel = {
 int selh = 0;
 bool selset = false;
 
-#define loopselxy(b) { makeundo(); loop(x,sel.xs) loop(y,sel.ys) { sqr *s = S(sel.x+x, sel.y+y); b; }; remip(sel); }
+#define loopselxy(b) { makeundo(); loop(x,sel.xs) loop(y,sel.ys) { Block *s = S(sel.x+x, sel.y+y); b; }; remip(sel); }
 
 int cx, cy, ch;
 
@@ -27,7 +27,7 @@ bool dragging = false;
 int lastx, lasty, lasth;
 
 int lasttype = 0, lasttex = 0;
-sqr rtex;
+Block rtex;
 
 int editing = variable("editing", 0, 0, 1, &editing, NULL, false);
 
@@ -82,14 +82,14 @@ bool noselection() {
 #define EDITMP    if(noteditmode() || multiplayer()) return;
 
 void selectpos(int x, int y, int xs, int ys) {
-	block s = { x, y, xs, ys };
+	Rect s = { x, y, xs, ys };
 	sel = s;
 	selh = 0;
 	correctsel();
 }
 
 void makesel() {
-	block s = { min(lastx, cx), min(lasty, cy), abs(lastx - cx) + 1, abs( lasty - cy) + 1 };
+	Rect s = { min(lastx, cx), min(lasty, cy), abs(lastx - cx) + 1, abs( lasty - cy) + 1 };
 	sel = s;
 	selh = max(lasth, ch);
 	correctsel();
@@ -99,7 +99,7 @@ void makesel() {
 
 int flrceil = variable("flrceil", 0, 0, 2, &flrceil, NULL, false);
 
-float sheight(sqr *s, sqr *t, float z) // finds out z height when cursor points at wall
+float sheight(Block *s, Block *t, float z) // finds out z height when cursor points at wall
 {
 	//z-s->floor<s->ceil-z
 	return !flrceil
@@ -119,7 +119,7 @@ void cursorupdate()                               // called every frame from hud
 
 	if (OUTBORD(cx, cy))
 		return;
-	sqr *s = S(cx, cy);
+	Block *s = S(cx, cy);
 
 	if (fabs(sheight(s, s, z) - z) > 1)                        // selected wall
 			{
@@ -148,7 +148,7 @@ void cursorupdate()                               // called every frame from hud
 		for (int iy = cy - GRIDSIZE; iy <= cy + GRIDSIZE; iy++) {
 			if (OUTBORD(ix, iy))
 				continue;
-			sqr *s = S(ix, iy);
+			Block *s = S(ix, iy);
 			if (SOLID(s))
 				continue;
 			float h1 = sheight(s, s, z);
@@ -161,7 +161,7 @@ void cursorupdate()                               // called every frame from hud
 				linestyle(GRIDW, 0x80, 0xFF, 0x80);
 			else
 				linestyle(GRIDW, 0x80, 0x80, 0x80);
-			block b = { ix, iy, 1, 1 };
+			Rect b = { ix, iy, 1, 1 };
 			box(b, h1, h2, h3, h4);
 			linestyle(GRID8, 0x40, 0x40, 0xFF);
 			if (!(ix & GRIDM))
@@ -177,7 +177,7 @@ void cursorupdate()                               // called every frame from hud
 	if (!SOLID(s)) {
 		float ih = sheight(s, s, z);
 		linestyle(GRIDS, 0xFF, 0xFF, 0xFF);
-		block b = { cx, cy, 1, 1 };
+		Rect b = { cx, cy, 1, 1 };
 		box(b, ih, sheight(s, SWS(s, 1, 0, ssize), z),
 				sheight(s, SWS(s, 1, 1, ssize), z),
 				sheight(s, SWS(s, 0, 1, ssize), z));
@@ -192,7 +192,7 @@ void cursorupdate()                               // called every frame from hud
 	};
 }
 
-std::vector<block *> undos; // unlimited undo
+std::vector<Rect *> undos; // unlimited undo
 // bounded by n megs
 int undomegs = variable("undomegs", 0, 1, 10, &undomegs, NULL, true);
 
@@ -200,8 +200,8 @@ void pruneundos(int maxremain)                          // bound memory
 {
 	int t = 0;
 	for (auto it = undos.begin(); it != undos.end();) {
-		block *b = *it;
-		t += b->xs * b->ys * sizeof(sqr);
+		Rect *b = *it;
+		t += b->xs * b->ys * sizeof(Block);
 		free(b);
 		it = undos.erase(it);
 	}
@@ -218,13 +218,13 @@ void editundo() {
 		conoutf("nothing more to undo");
 		return;
 	};
-	block *p = undos.back();
+	Rect *p = undos.back();
 	undos.pop_back();
 	blockpaste(*p);
 	free(p);
 }
 
-block *copybuf = NULL;
+Rect *copybuf = NULL;
 
 void copy() {
 	EDITSELMP;
@@ -283,7 +283,7 @@ void editdrag(bool isdown) {
 // and are also called directly from the network, the function below it is strictly
 // triggered locally. They all have very similar structure.
 
-void editheightxy(bool isfloor, int amount, block &sel) {
+void editheightxy(bool isfloor, int amount, Rect &sel) {
 	loopselxy(if (isfloor) {
 		s->floor += amount
 		;
@@ -308,7 +308,7 @@ void editheight(int flr, int amount) {
 
 COMMAND(editheight, ARG_2INT);
 
-void edittexxy(int type, int t, block &sel) {
+void edittexxy(int type, int t, Rect &sel) {
 	loopselxy(switch (type) {
 	case 0:
 		s->ftex = t
@@ -351,7 +351,7 @@ void replace() {
 	loop(x,ssize)
 		loop(y,ssize)
 		{
-			sqr *s = S(x, y);
+			Block *s = S(x, y);
 			switch (lasttype) {
 			case 0:
 				if (s->ftex == rtex.ftex)
@@ -371,11 +371,11 @@ void replace() {
 				break;
 			};
 		};
-	block b = { 0, 0, ssize, ssize };
+	Rect b = { 0, 0, ssize, ssize };
 	remip(b);
 }
 
-void edittypexy(int type, block &sel) {
+void edittypexy(int type, Rect &sel) {
 	loopselxy(s->type = type);
 }
 
@@ -407,7 +407,7 @@ COMMAND(heightfield, ARG_1INT);
 COMMAND(solid, ARG_1INT);
 COMMAND(corner, ARG_NONE);
 
-void editequalisexy(bool isfloor, block &sel) {
+void editequalisexy(bool isfloor, Rect &sel) {
 	int low = 127, hi = -128;
 	loopselxy( {
 		if (s->floor < low)
@@ -439,7 +439,7 @@ void equalize(int flr) {
 
 COMMAND(equalize, ARG_1INT);
 
-void setvdeltaxy(int delta, block &sel) {
+void setvdeltaxy(int delta, Rect &sel) {
 	loopselxy(s->vdelta = max(s->vdelta+delta, 0));
 	remipmore(sel);
 }

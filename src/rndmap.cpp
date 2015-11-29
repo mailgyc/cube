@@ -52,7 +52,7 @@ float perlinnoise_2D(float x, float y, int seedstep, float pers) {
 	return total;
 }
 
-void perlinarea(block &b, int scale, int seed, int psize) {
+void perlinarea(Rect &b, int scale, int seed, int psize) {
 	srand(seed);
 	seed = rnd(10000);
 	if (!scale)

@@ -37,7 +37,7 @@ void settag(int tag, int type) // set all cubes with "tag" to space, if tag is 0
 			}
 		}
 	}
-	block b = { minx, miny, maxx - minx + 1, maxy - miny + 1 };
+	Rect b = { minx, miny, maxx - minx + 1, maxy - miny + 1 };
 	if (maxx)
 		remip(b);      // remip minimal area of changed geometry
 }
@@ -83,7 +83,7 @@ COMMAND(trigger, ARG_2INT);
 // mip level indistinguishable from its constituent cubes (saves considerable
 // rendering time if this is possible).
 
-void remip(block &b, int level) {
+void remip(Rect &b, int level) {
 	if (level >= SMALLEST_FACTOR)
 		return;
 	int lighterr = getvar("lighterror") * 3;
@@ -91,7 +91,7 @@ void remip(block &b, int level) {
 	Block *v = wmip[level + 1];
 	int ws = ssize >> level;
 	int vs = ssize >> (level + 1);
-	block s = b;
+	Rect s = b;
 	if (s.x & 1) {
 		s.x--;
 		s.xs++;
@@ -191,8 +191,8 @@ void remip(block &b, int level) {
 	remip(s, level + 1);
 }
 
-void remipmore(block &b, int level) {
-	block bb = b;
+void remipmore(Rect &b, int level) {
+	Rect bb = b;
 	if (bb.x > 1)
 		bb.x--;
 	if (bb.y > 1)
@@ -425,7 +425,7 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 			}
 		}
 		ents.resize(0);
-		block b = { 8, 8, ssize - 16, ssize - 16 };
+		Rect b = { 8, 8, ssize - 16, ssize - 16 };
 		edittypexy(SPACE, b);
 	};
 

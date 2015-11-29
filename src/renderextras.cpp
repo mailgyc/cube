@@ -17,7 +17,7 @@ void linestyle(float width, int r, int g, int b) {
 	glColor3ub(r, g, b);
 }
 
-void box(block &b, float z1, float z2, float z3, float z4) {
+void box(Rect &b, float z1, float z2, float z3, float z4) {
 	glBegin(GL_POLYGON);
 	glVertex3f((float) b.x, z1, (float) b.y);
 	glVertex3f((float) b.x + b.xs, z2, (float) b.y);

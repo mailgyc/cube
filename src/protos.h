@@ -100,8 +100,8 @@ extern void renderscores();
 // world
 extern void setupworld(int factor);
 extern void empty_world(int factor, bool force);
-extern void remip(block &b, int level = 0);
-extern void remipmore(block &b, int level = 0);
+extern void remip(Rect &b, int level = 0);
+extern void remipmore(Rect &b, int level = 0);
 extern int closestent();
 extern int findentity(int type, int index = 0);
 extern void trigger(int tag, int type, bool savegame);
@@ -114,8 +114,8 @@ extern entity *newentity(int x, int y, int z, char *what, int v1, int v2,
 extern void calclight();
 extern void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength, Sprite *owner);
 extern void cleardlights();
-extern block *blockcopy(block &b);
-extern void blockpaste(block &b);
+extern Rect *blockcopy(Rect &b);
+extern void blockpaste(Rect &b);
 
 // worldrender
 extern void render_world(float vx, float vy, float vh, int yaw, int pitch, float widef, int w, int h);
@@ -138,17 +138,17 @@ extern void draw_envbox(int t, int fogdist);
 extern void cursorupdate();
 extern void toggleedit();
 extern void editdrag(bool isdown);
-extern void setvdeltaxy(int delta, block &sel);
-extern void editequalisexy(bool isfloor, block &sel);
-extern void edittypexy(int type, block &sel);
-extern void edittexxy(int type, int t, block &sel);
-extern void editheightxy(bool isfloor, int amount, block &sel);
+extern void setvdeltaxy(int delta, Rect &sel);
+extern void editequalisexy(bool isfloor, Rect &sel);
+extern void edittypexy(int type, Rect &sel);
+extern void edittexxy(int type, int t, Rect &sel);
+extern void editheightxy(bool isfloor, int amount, Rect &sel);
 extern bool noteditmode();
 extern void pruneundos(int maxremain = 0);
 
 // renderextras
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
-extern void box(block &b, float z1, float z2, float z3, float z4);
+extern void box(Rect &b, float z1, float z2, float z3, float z4);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
 extern void newsphere(Vec3 &o, float max, int type);
@@ -247,5 +247,5 @@ extern void teleport(int n, Sprite *d);
 extern void baseammo(int gun);
 
 // rndmap
-extern void perlinarea(block &b, int scale, int seed, int psize);
+extern void perlinarea(Rect &b, int scale, int seed, int psize);
 

@@ -51,7 +51,7 @@ void lightray(float bx, float by, persistent_entity &light) // done in realtime,
 			stepb /= lightscale;
 			loopi(steps)
 			{
-				sqr *s = S(x >> PRECBITS, y >> PRECBITS);
+				Block *s = S(x >> PRECBITS, y >> PRECBITS);
 				int tl = (l >> PRECBITS) + s->r;
 				s->r = tl > 255 ? 255 : tl;
 				tl = (g >> PRECBITS) + s->g;
@@ -80,7 +80,7 @@ void lightray(float bx, float by, persistent_entity &light) // done in realtime,
 
 			loopi(steps)
 			{
-				sqr *s = S(x >> PRECBITS, y >> PRECBITS);
+				Block *s = S(x >> PRECBITS, y >> PRECBITS);
 				int tl = (l >> PRECBITS) + s->r;
 				s->r = s->g = s->b = tl > 255 ? 255 : tl;
 				if (SOLID(s))
@@ -95,7 +95,7 @@ void lightray(float bx, float by, persistent_entity &light) // done in realtime,
 	{
 		loopi(steps)
 		{
-			sqr *s = S(x >> PRECBITS, y >> PRECBITS);
+			Block *s = S(x >> PRECBITS, y >> PRECBITS);
 			int light = l >> PRECBITS;
 			if (light > s->r)
 				s->r = s->g = s->b = (uchar) light;
@@ -136,12 +136,12 @@ void calclightsource(persistent_entity &l) {
 	}
 }
 
-void postlightarea(block &a) // median filter, smooths out random noise in light and makes it more mipable
+void postlightarea(Rect &a) // median filter, smooths out random noise in light and makes it more mipable
+{
+	for(int x = 0; x < a.xs; ++x) {
+		for(int y = 0; y < a.ys; ++y)   // assumes area not on edge of world
 		{
-	loop(x,a.xs)
-		loop(y,a.ys)   // assumes area not on edge of world
-		{
-			sqr *s = S(x + a.x, y + a.y);
+		Block *s = S(x + a.x, y + a.y);
 #define median(m) s->m = (s->m*2 + SW(s,1,0)->m*2  + SW(s,0,1)->m*2 \
                                          + SW(s,-1,0)->m*2 + SW(s,0,-1)->m*2 \
                                          + SW(s,1,1)->m    + SW(s,1,-1)->m \
@@ -149,7 +149,8 @@ void postlightarea(block &a) // median filter, smooths out random noise in light
 			median(r);
 			median(g);
 			median(b);
-		};
+		}
+	}
 
 	remip(a);
 }
@@ -157,7 +158,7 @@ void postlightarea(block &a) // median filter, smooths out random noise in light
 void calclight() {
 	for(int x = 0; x < ssize; ++x) {
 		for(int y = 0; y < ssize; ++y) {
-			sqr *s = &world[y * ssize + x];
+			Block *s = &world[y * ssize + x];
 			s->r = s->g = s->b = 10;
 		}
 	}
@@ -167,18 +168,18 @@ void calclight() {
 			calclightsource(e);
 	}
 
-	block b = { 1, 1, ssize - 2, ssize - 2 };
+	Rect b = { 1, 1, ssize - 2, ssize - 2 };
 	postlightarea(b);
 	setvar("fullbright", 0);
 }
 
 int dynlight = variable("dynlight", 0, 16, 32, &dynlight, NULL, true);
 
-std::vector<block *> dlights;
+std::vector<Rect *> dlights;
 
 void cleardlights() {
 	while (!dlights.empty()) {
-		block *backup = dlights.back();
+		Rect *backup = dlights.back();
 		dlights.pop_back();
 		blockpaste(*backup);
 		free(backup);
@@ -196,7 +197,7 @@ void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength, Sprite *owner) {
 		return;
 
 	int creach = reach + 16;  // dependant on lightray random offsets!
-	block b = { (int) v.x - creach, (int) v.y - creach, creach * 2 + 1, creach
+	Rect b = { (int) v.x - creach, (int) v.y - creach, creach * 2 + 1, creach
 			* 2 + 1 };
 
 	if (b.x < 1)
@@ -217,18 +218,18 @@ void dodynlight(Vec3 &vold, Vec3 &v, int reach, int strength, Sprite *owner) {
 
 // utility functions also used by editing code
 
-block *blockcopy(block &s) {
-	block *b = (block *) alloc(sizeof(block) + s.xs * s.ys * sizeof(sqr));
+Rect *blockcopy(Rect &s) {
+	Rect *b = (Rect *) alloc(sizeof(Rect) + s.xs * s.ys * sizeof(Block));
 	*b = s;
-	sqr *q = (sqr *) (b + 1);
+	Block *q = (Block *) (b + 1);
 	for (int x = s.x; x < s.xs + s.x; x++)
 		for (int y = s.y; y < s.ys + s.y; y++)
 			*q++ = *S(x, y);
 	return b;
 }
 
-void blockpaste(block &b) {
-	sqr *q = (sqr *) ((&b) + 1);
+void blockpaste(Rect &b) {
+	Block *q = (Block *) ((&b) + 1);
 	for (int x = b.x; x < b.xs + b.x; x++)
 		for (int y = b.y; y < b.ys + b.y; y++)
 			*S(x, y) = *q++;

@@ -96,8 +96,7 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 		scaledimg = alloc(xs * ys * 3);
 		gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
 	};
-	if (gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, xs, ys, GL_RGB,
-	GL_UNSIGNED_BYTE, scaledimg))
+	if (gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, xs, ys, GL_RGB, GL_UNSIGNED_BYTE, scaledimg))
 		fatal("could not build mipmaps");
 	if (xs != s->w)
 		free(scaledimg);
@@ -122,9 +121,11 @@ int mapping[256][MAXFRAMES];   // ( cube texture, frame ) -> ( opengl id, name )
 IString mapname[256][MAXFRAMES];
 
 void purgetextures() {
-	loopi(256)
-		loop(j,MAXFRAMES)
+	for(int i = 0; i < 256; ++i) {
+		for(int j = 0; j < MAXFRAMES; ++j) {
 			mapping[i][j] = 0;
+		}
+	}
 }
 
 int curtexnum = 0;
@@ -157,9 +158,9 @@ int lookuptexture(int tex, int &xs, int &ys) {
 
 	xs = ys = 16;
 	if (!tid)
-		return 1;                  // crosshair :)
+		return 1;                   // crosshair :)
 
-	loopi(curtex)      // lazily happens once per "texture" command, basically
+	for(int i = 0; i < curtex; ++i) // lazily happens once per "texture" command, basically
 	{
 		if (strcmp(mapname[tex][frame], texname[i]) == 0) {
 			mapping[tex][frame] = tid = i + FIRSTTEX;
@@ -203,28 +204,30 @@ void setupworld() {
 
 int skyoglid;
 
-struct strip {
+struct Strip {
 	int tex, start, num;
 };
-std::vector<strip> strips;
+std::vector<Strip> strips;
 
 void renderstripssky() {
 	glBindTexture(GL_TEXTURE_2D, skyoglid);
-	loopv(strips)
-		if (strips[i].tex == skyoglid)
-			glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
+	for(Strip &st : strips) {
+		if (st.tex == skyoglid)
+			glDrawArrays(GL_TRIANGLE_STRIP, st.start, st.num);
+	}
 }
 
 void renderstrips() {
 	int lasttex = -1;
-	loopv(strips)
-		if (strips[i].tex != skyoglid) {
-			if (strips[i].tex != lasttex) {
-				glBindTexture(GL_TEXTURE_2D, strips[i].tex);
-				lasttex = strips[i].tex;
-			};
-			glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
-		};
+	for(Strip &st : strips) {
+		if (st.tex != skyoglid) {
+			if (st.tex != lasttex) {
+				glBindTexture(GL_TEXTURE_2D, st.tex);
+				lasttex = st.tex;
+			}
+			glDrawArrays(GL_TRIANGLE_STRIP, st.start, st.num);
+		}
+	}
 }
 
 void overbright(float amount) {
@@ -233,7 +236,7 @@ void overbright(float amount) {
 }
 
 void addstrip(int tex, int start, int n) {
-	strip s;
+	Strip s;
 	s.tex = tex;
 	s.start = start;
 	s.num = n;
@@ -258,9 +261,7 @@ void transplayer() {
 	glRotated(player1->pitch, -1.0, 0.0, 0.0);
 	glRotated(player1->yaw, 0.0, 1.0, 0.0);
 
-	glTranslated(-player1->o.x,
-			(player1->state == CS_DEAD ? player1->eyeheight - 0.2f : 0)
-					- player1->o.z, -player1->o.y);
+	glTranslated(-player1->o.x, (player1->state == CS_DEAD ? player1->eyeheight - 0.2f : 0) - player1->o.z, -player1->o.y);
 }
 
 int fov = variable("fov", 10, 105, 120, &fov, NULL, true);
@@ -345,8 +346,7 @@ void gl_drawframe(int w, int h, float curfps) {
 	curvert = 0;
 	strips.resize(0);
 
-	render_world(player1->o.x, player1->o.y, player1->o.z, (int) player1->yaw,
-			(int) player1->pitch, (float) fov, w, h);
+	render_world(player1->o.x, player1->o.y, player1->o.z, (int) player1->yaw, (int) player1->pitch, (float) fov, w, h);
 	finishstrips();
 
 	setupworld();

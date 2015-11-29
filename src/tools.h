@@ -64,7 +64,6 @@ inline void strcat_s(char *d, const char *s) {
 
 #define fast_f2nat(val) ((int)(val)) 
 
-extern char *path(char *s);
 extern char *loadfile(char *fn, int *size);
 extern void endianswap(void *, int, int);
 

@@ -14,7 +14,7 @@ struct md2_header {
 };
 
 struct md2_vertex {
-	uchar vertex[3], lightNormalIndex;
+	unsigned char vertex[3], lightNormalIndex;
 };
 
 struct md2_frame {
@@ -42,16 +42,17 @@ struct md2 {
 	bool loaded;
 
 	bool load(char* filename);
-	void render(Vec3 &light, int numFrame, int range, float x, float y, float z,
-			float yaw, float pitch, float scale, float speed, int snap,
-			int basetime);
+	void render(Vec3 &light, int numFrame, int range, float x, float y, float z, float yaw, float pitch, float scale, float speed, int snap, int basetime);
 	void scale(int frame, float scale, int sn);
 
-	md2() :
-			numGlCommands(0), frameSize(0), numFrames(0), displaylist(0), loaded(
-					false) {
+	md2()
+	:numGlCommands(0)
+	,frameSize(0)
+	,numFrames(0)
+	,displaylist(0)
+	,loaded(false)
+	{
 	}
-	;
 
 	~md2() {
 		if (glCommands)
@@ -169,7 +170,7 @@ void md2::render(Vec3 &light, int frame, int range, float x, float y, float z,
 			} else {
 				glBegin(GL_TRIANGLE_FAN);
 				numVertex = -numVertex;
-			};
+			}
 
 			for(int i = 0; i < numVertex; ++i)
 			{
@@ -179,9 +180,8 @@ void md2::render(Vec3 &light, int frame, int range, float x, float y, float z,
 				int vn = *command++;
 				Vec3 &v1 = verts1[vn];
 				Vec3 &v2 = verts2[vn];
-#define ip(c) v1.c*frac2+v2.c*frac1
-				glVertex3f(ip(x), ip(z), ip(y));
-			};
+				glVertex3f(v1.x * frac2 + v2.x * frac1, v1.z * frac2 + v2.z * frac1, v1.y * frac2 + v2.y * frac1);
+			}
 
 			xtraverts += numVertex;
 			glEnd();
@@ -280,7 +280,6 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, f
 		light.z *= 1.2f;
 	};
 
-	m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap,
-			basetime);
+	m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap, basetime);
 }
 

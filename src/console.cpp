@@ -25,7 +25,7 @@ void setconskip(int n) {
 COMMANDN(conskip, setconskip, ARG_1INT);
 
 void conline(const char *sf, bool highlight) // add a line to the console buffer
-		{
+{
 	cline cl;
 	if (conlines.size() > 100) {
 		cl.cref = conlines.back().cref;

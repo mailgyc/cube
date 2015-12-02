@@ -129,32 +129,25 @@ int main(int argc, char **argv) {
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | par) < 0)
 		fatal("Unable to initialize SDL");
 
-	printf("net");
 	if (enet_initialize() < 0)
 		fatal("Unable to initialise network module");
 
 	initclient();
 	initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl); // never returns if dedicated
 
-	printf("world");
 	empty_world(7, true);
 
-	printf("video: sdl");
 	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
 		fatal("Unable to initialize SDL Video");
 
-	printf("video: mode");
 	SDL_Window *window = SDL_CreateWindow("cube engine", 0, 0, scr_w, scr_h, SDL_WINDOW_OPENGL);
 	SDL_GL_CreateContext(window);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	printf("video: misc");
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	printf("gl");
 	gl_init(scr_w, scr_h);
 
-	printf("basetex");
 	int xs, ys;
 	if (!installtex(2, newIString("data/newchars.png"), xs, ys)
 			|| !installtex(3, newIString("data/martin/base.png"), xs, ys)
@@ -169,10 +162,8 @@ int main(int argc, char **argv) {
 		fatal( "could not find core textures (hint: run cube from the parent of the bin directory)");
 	}
 
-	printf("sound");
 	initsound();
 
-	printf("cfg");
 	newmenu("frags\tpj\tping\tteam\tname");
 	newmenu("ping\tplr\tserver");
 	exec("data/keymap.cfg");
@@ -184,11 +175,9 @@ int main(int argc, char **argv) {
 		execfile("data/defaults.cfg");
 	exec("autoexec.cfg");
 
-	printf("localconnect");
 	localconnect();
 	changemap("metl3");	// if this map is changed, also change depthcorrect()
 
-	printf("mainloop");
 	int ignore = 5;
 	for (;;) {
 		int millis = SDL_GetTicks() * gamespeed / 100;

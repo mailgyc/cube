@@ -116,20 +116,15 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				updatepos(d);
 			break;
 		}
-
 		case SV_SOUND:
 			playsound(getint(p), &d->o);
 			break;
-
 		case SV_TEXT:
 			sgetstr();
-
 			conoutf("%s:\f %s", d->name, text);
 			break;
-
 		case SV_MAPCHANGE:
 			sgetstr();
-
 			changemapserv(text, getint(p));
 			mapchanged = true;
 			break;
@@ -139,19 +134,19 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				senditemstoserver = false;
 				resetspawns();
 			};
-			while ((n = getint(p)) != -1)
+			while ((n = getint(p)) != -1) {
 				if (mapchanged)
 					setspawn(n, true);
+			}
 			break;
 		}
 
 		case SV_MAPRELOAD:          // server requests next map
 		{
 			getint(p);
-			IString nextmapalias;
-			std::sprintf(nextmapalias, "nextmap_%s", getclientmap());
-			char *map = getalias(nextmapalias);     // look up map in the cycle
-			changemap(map ? map : getclientmap());
+			std::string nextmapalias = std::string("nextmap_") + getclientmap();
+			std::string map = getalias(nextmapalias);     // look up map in the cycle
+			changemap(map.empty() ? getclientmap() : map.c_str());
 			break;
 		}
 
@@ -159,12 +154,10 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		{
 			sgetstr();
 
-			if (d->name[0])          // already connected
-			{
+			if (d->name[0]) {         // already connected
 				if (strcmp(d->name, text))
 					conoutf("%s is now known as %s", d->name, text);
-			} else                    // new client
-			{
+			} else {                   // new client
 				c2sinit = false;    // send new players my info again 
 				conoutf("connected: %s", text);
 			};
@@ -180,8 +173,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			cn = getint(p);
 			if (!(d = getclient(cn)))
 				break;
-			conoutf("player %s disconnected",
-					d->name[0] ? d->name : "[incompatible client]");
+			conoutf("player %s disconnected", d->name[0] ? d->name : "[incompatible client]");
 			zapSprite(players[cn]);
 			break;
 
@@ -230,8 +222,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				Sprite *a = getclient(actor);
 				if (a) {
 					if (isteam(a->team, d->name)) {
-						conoutf("%s fragged his teammate (%s)", a->name,
-								d->name);
+						conoutf("%s fragged his teammate (%s)", a->name, d->name);
 					} else {
 						conoutf("%s fragged %s", a->name, d->name);
 					};
@@ -241,30 +232,25 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			d->lifesequence++;
 			break;
 		}
-
 		case SV_FRAGS:
 			players[cn]->frags = getint(p);
 			break;
-
 		case SV_ITEMPICKUP:
 			setspawn(getint(p), false);
 			getint(p);
 			break;
-
 		case SV_ITEMSPAWN: {
-			uint i = getint(p);
+			int i = getint(p);
 			setspawn(i, true);
-			if (i >= (uint) ents.size())
+			if (i >= ents.size())
 				break;
 			Vec3 v = { ents[i].x, ents[i].y, ents[i].z };
 			playsound(S_ITEMSPAWN, &v);
 			break;
 		}
-
 		case SV_ITEMACC:       // server acknowledges that I picked up this item
 			realpickup(getint(p), player1);
 			break;
-
 		case SV_EDITH: // coop editing messages, should be extended to include all possible editing ops
 		case SV_EDITT:
 		case SV_EDITS:
@@ -298,8 +284,8 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 
 		case SV_EDITENT:            // coop edit of ent
 		{
-			uint i = getint(p);
-			while ((uint) ents.size() <= i) {
+			int i = getint(p);
+			while (ents.size() <= i) {
 				ents.emplace_back(entity());
 				ents.back().type = NOTUSED;
 			}
@@ -317,29 +303,21 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				calclight();
 			break;
 		}
-
 		case SV_PING:
 			getint(p);
 			break;
-
 		case SV_PONG:
-			addmsg(0, 2, SV_CLIENTPING,
-					player1->ping = (player1->ping * 5 + lastmillis - getint(p))
-							/ 6);
+			addmsg(0, 2, SV_CLIENTPING, player1->ping = (player1->ping * 5 + lastmillis - getint(p)) / 6);
 			break;
-
 		case SV_CLIENTPING:
 			players[cn]->ping = getint(p);
 			break;
-
 		case SV_GAMEMODE:
 			nextmode = getint(p);
 			break;
-
 		case SV_TIMEUP:
 			timeupdate(getint(p));
 			break;
-
 		case SV_RECVMAP: {
 			sgetstr();
 
@@ -350,22 +328,19 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			changemapserv(text, gamemode);
 			break;
 		}
-
 		case SV_SERVMSG:
 			sgetstr();
 			conoutf("%s", text);
 			break;
-
 		case SV_EXT: // so we can messages without breaking previous clients/servers, if necessary
 		{
 			for (int n = getint(p); n; n--)
 				getint(p);
 			break;
 		}
-
 		default:
 			neterr("type");
 			return;
-		};
+		}
 }
 

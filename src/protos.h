@@ -12,7 +12,7 @@ extern bool execfile(char *cfgfile);
 extern void resetcomplete();
 extern void complete(char *s);
 extern void alias(char *name, char *action);
-extern char *getalias(char *name);
+extern std::string getalias(const std::string &name);
 extern void writecfg();
 
 // console

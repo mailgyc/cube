@@ -2,6 +2,7 @@
 // is largely backwards compatible with the quake console language.
 
 #include <sstream>
+#include <iostream>
 #include "cube.h"
 
 enum {
@@ -52,10 +53,10 @@ COMMAND(alias, ARG_2STR);
 
 // variable's and commands are registered through globals, see cube.h
 
-int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(),
-		bool persist) {
-	if (!idents)
+int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist) {
+	if (!idents) {
 		idents = new std::map<std::string, Ident>;
+	}
 	Ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
 	idents->insert(std::make_pair(name, v));
 	return cur;
@@ -73,54 +74,67 @@ bool identexists(char *name) {
 	return idents->find(name) != idents->end();
 }
 
-char *getalias(char *name) {
+std::string getalias(const std::string &name) {
 	if (idents->find(name) == idents->end()) {
-		return NULL;
+		return "";
 	}
 	Ident &i = idents->at(name);
-	return i.type == ID_ALIAS ? i.action : NULL;
+	return i.type == ID_ALIAS ? i.action : "";
 }
 
 bool addcommand(char *name, void (*fun)(), int narg) {
-	if (!idents)
+	if (!idents) {
 		idents = new std::map<std::string, Ident>;
+	}
 	Ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, false };
 	idents->insert(std::make_pair(name, c));
 	return false;
 }
 
 char *parseexp(char *&p, int right)          // parse any nested set of () or []
-		{
+{
 	int left = *p++;
 	char *word = p;
 	for (int brak = 1; brak;) {
 		int c = *p++;
-		if (c == '\r')
+		if (c == '\r') {
 			*(p - 1) = ' ';               // hack
-		if (c == left)
+		}
+		if (c == left) {
 			brak++;
-		else if (c == right)
+		} else if (c == right) {
 			brak--;
-		else if (!c) {
+		} else if (!c) {
 			p--;
 			conoutf("missing \"%c\"", right);
 			return NULL;
-		};
-	};
+		}
+	}
 	char *s = newIString(word, p - word - 1);
 	if (left == '(') {
 		std::string t = tostr(execute(s)); // evaluate () exps directly, and substitute result
 		s = exchangestr(s, t.c_str());
-	};
+	}
 	return s;
 }
 
 #define __cdecl
+/*
+ *  consume all accept char
+ *  int strspn(string s, char[] accept)
+ *
+ *  consume all, until any reject appear
+ *  int strcspn(string s, char[] reject)
+ */
+
 char *parseword(char *&p)        // parse single argument, including expressions
 {
 	p += strspn(p, " \t\r");
-	if (p[0] == '/' && p[1] == '/')
+
+	if (p[0] == '/' && p[1] == '/') {
 		p += strcspn(p, "\n\0");
+	}
+
 	if (*p == '\"') {
 		p++;
 		char *word = p;
@@ -130,10 +144,13 @@ char *parseword(char *&p)        // parse single argument, including expressions
 			p++;
 		return s;
 	};
-	if (*p == '(')
+	if (*p == '(') {
 		return parseexp(p, ')');
-	if (*p == '[')
+	}
+	if (*p == '[') {
 		return parseexp(p, ']');
+	}
+
 	char *word = p;
 	p += strcspn(p, "; \t\r\n\0");
 	if (p - word == 0)
@@ -143,18 +160,19 @@ char *parseword(char *&p)        // parse single argument, including expressions
 
 char *lookup(char *n)            // find value of ident referenced with $ in exp
 {
-	if (idents->find(n + 1) != idents->end()) {
-		Ident &id = idents->at(n + 1);
+	std::string key(n + 1);
+	if (idents->find(key) != idents->end()) {
+		Ident &id = idents->at(key);
 		switch (id.type) {
-		case ID_VAR: {
-			std::string t = tostr(*(id.storage));
-			return exchangestr(n, t.c_str());
-		}
+		case ID_VAR:
+			return exchangestr(n, tostr(*(id.storage)).c_str());
+			//return tostr(*(id.storage)).c_str();
 		case ID_ALIAS:
 			return exchangestr(n, id.action);
+			//return id.action;
 		}
 	}
-	conoutf("unknown alias lookup: %s", n + 1);
+	conoutf("\nunknown alias lookup: %s\n", n);
 	return n;
 }
 
@@ -171,13 +189,11 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
 		break;
 	case ARG_3INT:
 		if (isdown)
-			((void (__cdecl *)(int, int, int)) id->fun)(ATOI(w[1]), ATOI(w[2]),
-					ATOI(w[3]));
+			((void (__cdecl *)(int, int, int)) id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]));
 		break;
 	case ARG_4INT:
 		if (isdown)
-			((void (__cdecl *)(int, int, int, int)) id->fun)(ATOI(w[1]),
-					ATOI(w[2]), ATOI(w[3]), ATOI(w[4]));
+			((void (__cdecl *)(int, int, int, int)) id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4]));
 		break;
 	case ARG_NONE:
 		if (isdown)
@@ -193,13 +209,11 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
 		break;
 	case ARG_3STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *, char*)) id->fun)(w[1], w[2],
-					w[3]);
+			((void (__cdecl *)(char *, char *, char*)) id->fun)(w[1], w[2], w[3]);
 		break;
 	case ARG_5STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *, char*, char*, char*)) id->fun)(
-					w[1], w[2], w[3], w[4], w[5]);
+			((void (__cdecl *)(char *, char *, char*, char*, char*)) id->fun)( w[1], w[2], w[3], w[4], w[5]);
 		break;
 	case ARG_DOWN:
 		((void (__cdecl *)(bool)) id->fun)(isdown);
@@ -213,8 +227,7 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
 		break;
 	case ARG_2EXP:
 		if (isdown)
-			val = ((int (__cdecl *)(int, int)) id->fun)(execute(w[1]),
-					execute(w[2]));
+			val = ((int (__cdecl *)(int, int)) id->fun)(execute(w[1]), execute(w[2]));
 		break;
 	case ARG_1EST:
 		if (isdown)
@@ -233,7 +246,7 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
 				if (i == numargs - 1)
 					break;
 				strcat_s(r, " ");
-			};
+			}
 			((void (__cdecl *)(char *)) id->fun)(r);
 			break;
 		}
@@ -244,34 +257,36 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
 int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 {
 	const int MAXWORDS = 25;                    // limit, remove
-	char *w[MAXWORDS];
+	char *wordbuf[MAXWORDS];
 	int val = 0;
 	for (bool cont = true; cont;)              // for each ; seperated statement
 	{
 		int numargs = MAXWORDS;
 		for(int i = 0; i < MAXWORDS; ++i)      // collect all argument values
 		{
-			w[i] = "";
+			wordbuf[i] = "";
 			if (i > numargs)
 				continue;
 			char *s = parseword(p);             // parse and evaluate exps
+			std::cout << ">>>>" << s << std::endl;
 			if (!s) {
 				numargs = i;
 				s = "";
 			}
-			if (*s == '$')
+			if (*s == '$') {
 				s = lookup(s);          // substitute variables
-			w[i] = s;
+			}
+			wordbuf[i] = s;
 		}
-
 		p += strcspn(p, ";\n\0");
 		cont = *p++ != 0; // more statements if this isn't the end of the IString
-		char *c = w[0];
+		char *c = wordbuf[0];
 		if (*c == '/')
 			c++;                        // strip irc-style command prefix
 		if (!*c)
-			continue;                       // empty statement
+			continue;                  // empty statement
 
+		std::cout << ">>>>" << c << std::endl;
 		if (idents->find(c) == idents->end()) {
 			val = ATOI(c);
 			if (!val && *c != '0')
@@ -280,25 +295,26 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 			Ident *id = &(idents->at(c));
 			switch (id->type) {
 			case ID_COMMAND:      		// game defined commands
-				val = exec_command(isdown, val, numargs, id, w);
+				val = exec_command(isdown, val, numargs, id, wordbuf);
 				break;
 			case ID_VAR:                        // game defined variabled 
 				if (isdown) {
-					if (!w[1][0])
+					if (!wordbuf[1][0]) {
 						conoutf("%s = %d", c, *id->storage); // var with no value just prints its current value
-					else {
+					} else {
 						if (id->min > id->max) {
 							conoutf("variable is read-only");
 						} else {
-							int i1 = ATOI(w[1]);
+							int i1 = ATOI(wordbuf[1]);
 							if (i1 < id->min || i1 > id->max) {
 								i1 = i1 < id->min ? id->min : id->max; // clamp to valid range
 								conoutf("valid range for %s is %d..%d", c, id->min, id->max);
 							}
 							*id->storage = i1;
 						};
-						if (id->fun)
+						if (id->fun) {
 							((void (__cdecl *)()) id->fun)(); // call trigger function if available
+						}
 					};
 				}
 				break;
@@ -306,7 +322,7 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 				for (int i = 1; i < numargs; i++) {
 					char t[20];
 					std::sprintf(t, "arg%d", i); // set any arguments as (global) arg values so functions can access them
-					alias(t, w[i]);
+					alias(t, wordbuf[i]);
 				}
 
 				char *action = newIString(id->action); // create new IString here because alias could rebind itself
@@ -316,7 +332,7 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 			};
 		}
 		for(int i = 0; i < numargs; ++i)
-			gp()->deallocstr(w[i]);
+			gp()->deallocstr(wordbuf[i]);
 	};
 	return val;
 }
@@ -353,11 +369,10 @@ void complete(char *s) {
 }
 
 bool execfile(char *cfgfile) {
-	IString s;
-	strcpy_s(s, cfgfile);
-	char *buf = loadfile(s, NULL);
-	if (!buf)
+	char *buf = loadfile(cfgfile, NULL);
+	if (!buf) {
 		return false;
+	}
 	execute(buf);
 	free(buf);
 	return true;
@@ -372,8 +387,7 @@ void writecfg() {
 	FILE *f = fopen("config.cfg", "w");
 	if (!f)
 		return;
-	fprintf(f,
-			"// automatically written on exit, do not modify\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+	fprintf(f, "// automatically written on exit, do not modify delete this file to have defaults.cfg overwrite these settings modify settings in game, or put settings in autoexec.cfg to override anything\n");
 	writeclientinfo(f);
 	fprintf(f, "\n");
 	for(auto &id : *idents) {
@@ -408,11 +422,11 @@ void ifthen(char *cond, char *thenp, char *elsep) {
 
 void loopa(char *times, char *body) {
 	int t = atoi(times);
-	loopi(t)
+	for(int i = 0; i < t; ++i)
 	{
 		intset("i", i);
 		execute(body);
-	};
+	}
 }
 
 void whilea(char *cond, char *body) {
@@ -449,8 +463,10 @@ int listlen(char *a) {
 
 void at(char *s, char *pos) {
 	int n = atoi(pos);
-	loopi(n)
-		s += strspn(s += strcspn(s, " \0"), " ");
+	for(int i = 0; i < n; ++i) {
+		s += strcspn(s, " \0");
+		s += strspn(s, " ");
+	}
 	s[strcspn(s, " \0")] = 0;
 	concat(s);
 }

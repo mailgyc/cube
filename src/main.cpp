@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
 	SDL_GL_CreateContext(window);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	//SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	gl_init(scr_w, scr_h);
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 	exec("autoexec.cfg");
 
 	localconnect();
-	changemap("metl3");	// if this map is changed, also change depthcorrect()
+	changemap(std::string("metl3"));	// if this map is changed, also change depthcorrect()
 
 	int ignore = 5;
 	for (;;) {

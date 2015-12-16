@@ -95,6 +95,7 @@ char *parseexp(char *&p, int right)          // parse any nested set of () or []
 {
 	int left = *p++;
 	char *word = p;
+
 	for (int brak = 1; brak;) {
 		int c = *p++;
 		if (c == '\r') {
@@ -268,7 +269,6 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 			if (i > numargs)
 				continue;
 			char *s = parseword(p);             // parse and evaluate exps
-			std::cout << ">>>>" << s << std::endl;
 			if (!s) {
 				numargs = i;
 				s = "";
@@ -286,7 +286,6 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 		if (!*c)
 			continue;                  // empty statement
 
-		std::cout << ">>>>" << c << std::endl;
 		if (idents->find(c) == idents->end()) {
 			val = ATOI(c);
 			if (!val && *c != '0')

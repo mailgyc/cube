@@ -33,9 +33,9 @@ std::vector<server_entity> sents;
 bool notgotitems = true; // true when map has changed and waiting for clients to send item
 int mode = 0;
 
-void restoreserverstate(std::vector<entity> &ents) // hack: called from savegame code, only works in SP
-		{
-	loopv(sents) {
+void restoreserverstate(std::vector<Entity> &ents) // hack: called from savegame code, only works in SP
+{
+	for(int i = 0; i < sents.size(); i++) {
 		sents[i].spawned = ents[i].spawned;
 		sents[i].spawnsecs = 0;
 	};

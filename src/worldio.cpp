@@ -9,20 +9,30 @@ void backup(char *name, char *backupname) {
 
 IString cgzname, bakname, pcfname, mcfname;
 
-void setnames(char *name) {
-	IString pakname, mapname;
-	char *slash = strpbrk(name, "/\\");
-	if (slash) {
-		strn0cpy(pakname, name, slash - name + 1);
-		strcpy_s(mapname, slash + 1);
+void setnames(const std::string &name) {
+//	IString pakname, mapname;
+//	char *slash = strpbrk(name, "/\\");
+//	if (slash) {
+//		strn0cpy(pakname, name, slash - name + 1);
+//		strcpy_s(mapname, slash + 1);
+//	} else {
+//		strcpy_s(pakname, "base");
+//		strcpy_s(mapname, name);
+//	};
+
+	std::string pakname, mapname;
+	std::size_t slash = name.find('/');
+	if (slash == std::string::npos) {
+		pakname = "base";
+		mapname = name;
 	} else {
-		strcpy_s(pakname, "base");
-		strcpy_s(mapname, name);
-	};
-	std::sprintf(cgzname, "packages/%s/%s.cgz", pakname, mapname);
-	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname, mapname, lastmillis);
-	std::sprintf(pcfname, "packages/%s/package.cfg", pakname);
-	std::sprintf(mcfname, "packages/%s/%s.cfg", pakname, mapname);
+		pakname = name.substr(0, slash);
+		mapname = name.substr(slash + 1);
+	}
+	std::sprintf(cgzname, "packages/%s/%s.cgz", pakname.c_str(), mapname.c_str());
+	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname.c_str(), mapname.c_str(), lastmillis);
+	std::sprintf(pcfname, "packages/%s/package.cfg", pakname.c_str());
+	std::sprintf(mcfname, "packages/%s/%s.cfg", pakname.c_str(), mapname.c_str());
 }
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by
@@ -105,7 +115,7 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 
 // these two are used by getmap/sendmap.. transfers compressed maps directly 
 
-void writemap(char *mname, int msize, uchar *mdata) {
+void writemap(const std::string &mname, int msize, uchar *mdata) {
 	setnames(mname);
 	backup(cgzname, bakname);
 	FILE *f = fopen(cgzname, "wb");
@@ -115,16 +125,16 @@ void writemap(char *mname, int msize, uchar *mdata) {
 	};
 	fwrite(mdata, 1, msize, f);
 	fclose(f);
-	conoutf("wrote map %s as file %s", mname, cgzname);
+	conoutf("wrote map %s as file %s", mname.c_str(), cgzname);
 }
 
-uchar *readmap(char *mname, int *msize) {
+unsigned char* readmap(const std::string &mname, int *msize) {
 	setnames(mname);
 	uchar *mdata = (uchar *) loadfile(cgzname, msize);
 	if (!mdata) {
 		conoutf("could not read map %s", cgzname);
 		return NULL;
-	};
+	}
 	return mdata;
 }
 
@@ -132,12 +142,13 @@ uchar *readmap(char *mname, int *msize) {
 // encoding and leaves out data for certain kinds of cubes, then zlib removes the
 // last bits of redundancy. Both passes contribute greatly to the miniscule map sizes.
 
-void save_world(char *mname) {
+void save_world(const std::string &mname) {
 	resettagareas();    // wouldn't be able to reproduce tagged areas otherwise
 	voptimize();
 	toptimize();
-	if (!*mname)
-		mname = getclientmap();
+//	if (mname.empty()) {
+//		mname = getclientmap();
+//	}
 	setnames(mname);
 	backup(cgzname, bakname);
 	gzFile f = gzopen(cgzname, "wb9");
@@ -147,16 +158,18 @@ void save_world(char *mname) {
 	};
 	hdr.version = MAPVERSION;
 	hdr.numents = 0;
-	loopv(ents)
-		if (ents[i].type != NOTUSED)
+	for(Entity &e : entityList) {
+		if (e.type != NOTUSED) {
 			hdr.numents++;
+		}
+	}
 	header tmp = hdr;
 	endianswap(&tmp.version, sizeof(int), 4);
 	endianswap(&tmp.waterlevel, sizeof(int), 16);
 	gzwrite(f, &tmp, sizeof(header));
-	loopv(ents) {
-		if (ents[i].type != NOTUSED) {
-			entity tmp = ents[i];
+	for(Entity &e : entityList) {
+		if (e.type != NOTUSED) {
+			Entity tmp(e);
 			endianswap(&tmp, sizeof(short), 4);
 			gzwrite(f, &tmp, sizeof(persistent_entity));
 		};
@@ -209,7 +222,7 @@ void save_world(char *mname) {
 	settagareas();
 }
 
-void load_world(char *mname) // still supports all map formats that have existed since the earliest cube betas!
+void load_world(const std::string &mname) // still supports all map formats that have existed since the earliest cube betas!
 {
 	stopifrecording();
 	cleardlights();
@@ -234,10 +247,10 @@ void load_world(char *mname) // still supports all map formats that have existed
 	} else {
 		hdr.waterlevel = -100000;
 	};
-	ents.clear();
+	entityList.clear();
 	for(int i = 0; i < hdr.numents; ++i)
 	{
-		entity e;
+		Entity e;
 		gzread(f, &e, sizeof(persistent_entity));
 		endianswap(&e, sizeof(short), 4);
 		e.spawned = false;
@@ -247,7 +260,7 @@ void load_world(char *mname) // still supports all map formats that have existed
 			if (e.attr1 > 32)
 				e.attr1 = 32; // 12_03 and below
 		};
-		ents.emplace_back(e);
+		entityList.emplace_back(e);
 	};
 	free(world);
 	setupworld(hdr.sfactor);

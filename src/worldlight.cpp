@@ -163,7 +163,7 @@ void calclight() {
 		}
 	}
 
-	for(entity &e : ents) {
+	for(Entity &e : entityList) {
 		if (e.type == LIGHT)
 			calclightsource(e);
 	}

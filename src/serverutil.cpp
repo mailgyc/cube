@@ -37,9 +37,12 @@ int getint(uchar *&p) {
 		return c;
 }
 
-void sendIString(char *t, uchar *&p) {
-	while (*t)
-		putint(p, *t++);
+void sendIString(const std::string &t, uchar *&p) {
+	//while (*t)
+	//	putint(p, *t++);
+	for (char ch : t) {
+		putint(p, ch);
+	}
 	putint(p, 0);
 }
 

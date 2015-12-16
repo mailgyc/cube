@@ -6,7 +6,7 @@
 #include "cube.h"
 
 bool plcollide(Sprite *d, Sprite *o, float &headspace, float &hi, float &lo) // collide with player or monster
-		{
+{
 	if (o->state != CS_ALIVE)
 		return true;
 	const float r = o->radius + d->radius;
@@ -28,10 +28,9 @@ bool plcollide(Sprite *d, Sprite *o, float &headspace, float &hi, float &lo) // 
 	return true;
 }
 
-bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by,
-		int &bs)    // recursively collide with a mipmapped corner cube
-		{
-	sqr *w = wmip[mip];
+bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
+{
+	Block *w = wmip[mip];
 	int sz = ssize >> mip;
 	bool stest = SOLID(SWS(w, x+dx, y, sz)) && SOLID(SWS(w, x, y+dy, sz));
 	mip++;
@@ -47,9 +46,8 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by,
 }
 
 void mmcollide(Sprite *d, float &hi, float &lo)       // collide with a mapmodel
-		{
-	loopv(ents) {
-		entity &e = ents[i];
+{
+	for(Entity &e : entityList) {
 		if (e.type != MAPMODEL)
 			continue;
 		mapmodelinfo &mmi = getmminfo(e.attr2);
@@ -85,12 +83,12 @@ bool collide(Sprite *d, bool spawn, float drop, float rise) {
 			(d->monsterstate && !spawn && d->health > 100) ?
 					d->o.z - d->eyeheight - 4.5f : -1000.0f; // big monsters are afraid of heights, unless angry :)
 
-	for (int x = x1; x <= x2; x++)
+	for (int x = x1; x <= x2; x++) {
 		for (int y = y1; y <= y2; y++)     // collide with map
-				{
+		{
 			if (OUTBORD(x, y))
 				return false;
-			sqr *s = S(x, y);
+			Block *s = S(x, y);
 			float ceil = s->ceil;
 			float floor = s->floor;
 			switch (s->type) {
@@ -132,7 +130,8 @@ bool collide(Sprite *d, bool spawn, float drop, float rise) {
 				lo = floor;
 			if (floor < minfloor)
 				return false;
-		};
+		}
+	}
 
 	if (hi - lo < d->eyeheight + d->aboveeye)
 		return false;
@@ -331,7 +330,7 @@ void moveplayer(Sprite *pl, int moveres, bool local, int curtime) {
 	if (pl->o.x < 0 || pl->o.x >= ssize || pl->o.y < 0 || pl->o.y > ssize) {
 		pl->outsidemap = true;
 	} else {
-		sqr *s = S((int )pl->o.x, (int )pl->o.y);
+		Block *s = S((int )pl->o.x, (int )pl->o.y);
 		pl->outsidemap = SOLID(s)
 				|| pl->o.z < s->floor - (s->type == FHF ? s->vdelta / 4 : 0)
 				|| pl->o.z > s->ceil + (s->type == CHF ? s->vdelta / 4 : 0);

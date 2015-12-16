@@ -71,19 +71,19 @@ extern void neterr(char *s);
 extern void initclientnet();
 extern bool netmapstart();
 extern int getclientnum();
-extern void changemapserv(char *name, int mode);
+extern void changemapserv(const std::string &name, int mode);
 extern void writeclientinfo(FILE *f);
 
 // clientgame
 extern void mousemove(int dx, int dy);
 extern void updateworld(int millis);
-extern void startmap(char *name);
-extern void changemap(char *name);
+extern void startmap (const std::string &name);
+extern void changemap(const std::string &name);
 extern void initclient();
 extern void spawnplayer(Sprite *d);
 extern void selfdamage(int damage, int actor, Sprite *act);
 extern Sprite *newSprite();
-extern char *getclientmap();
+extern std::string getclientmap();
 extern const char *modestr(int n);
 extern void zapSprite(Sprite *&d);
 extern Sprite *getclient(int cn);
@@ -107,7 +107,7 @@ extern int findentity(int type, int index = 0);
 extern void trigger(int tag, int type, bool savegame);
 extern void resettagareas();
 extern void settagareas();
-extern entity *newentity(int x, int y, int z, char *what, int v1, int v2,
+extern Entity *newentity(int x, int y, int z, char *what, int v1, int v2,
 		int v3, int v4);
 
 // worldlight
@@ -165,10 +165,10 @@ extern void particle_trail(int type, int fade, Vec3 &from, Vec3 &to);
 extern void render_particles(int time);
 
 // worldio
-extern void save_world(char *fname);
-extern void load_world(char *mname);
-extern void writemap(char *mname, int msize, uchar *mdata);
-extern uchar *readmap(char *mname, int *msize);
+extern void save_world(const std::string &fname);
+extern void load_world(const std::string &mname);
+extern void writemap(const std::string &mname, int msize, unsigned char *mdata);
+extern unsigned char* readmap(const std::string &mname, int *msize);
 extern void loadgamerest();
 extern void incomingdemodata(uchar *buf, int len, bool extras = false);
 extern void demoplaybackstep();
@@ -204,9 +204,9 @@ extern void localclienttoserver(struct _ENetPacket *);
 extern void serverslice(int seconds, unsigned int timeout);
 extern void putint(uchar *&p, int n);
 extern int getint(uchar *&p);
-extern void sendIString(char *t, uchar *&p);
+extern void sendIString(const std::string &t, uchar *&p);
 extern void startintermission();
-extern void restoreserverstate(std::vector<entity> &ents);
+extern void restoreserverstate(std::vector<Entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname,

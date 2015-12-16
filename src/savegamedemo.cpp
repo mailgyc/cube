@@ -76,20 +76,24 @@ void savestate(char *fn) {
 	gzputc(f, islittleendian);
 	gzputi(SAVEGAMEVERSION);
 	gzputi(sizeof(Sprite));
-	gzwrite(f, getclientmap(), _MAXDEFSTR);
+	char buf[_MAXDEFSTR];
+	sprintf(buf, "%s", getclientmap().c_str());
+	gzwrite(f, buf, _MAXDEFSTR);
 	gzputi(gamemode);
-	gzputi(ents.size());
-	loopv(ents)
-		gzputc(f, ents[i].spawned);
+	gzputi(entityList.size());
+	for(Entity &en : entityList) {
+		gzputc(f, en.spawned);
+	}
 	gzwrite(f, player1, sizeof(Sprite));
 	std::vector<Sprite *> &monsters = getmonsters();
 	gzputi(monsters.size());
-	loopv(monsters)
-		gzwrite(f, monsters[i], sizeof(Sprite));
+	for(Sprite *m : monsters) {
+		gzwrite(f, m, sizeof(Sprite));
+	}
 	gzputi(players.size());
-	loopv(players) {
-		gzput(players[i] == NULL);
-		gzwrite(f, players[i], sizeof(Sprite));
+	for(Sprite *p : players) {
+		gzput(p == NULL);
+		gzwrite(f, p, sizeof(Sprite));
 	};
 }
 
@@ -115,49 +119,43 @@ void loadstate(char *fn) {
 		return;
 	};
 
-	IString buf;
+	char buf[_MAXDEFSTR];
 	gzread(f, buf, 8);
-	if (strncmp(buf, "CUBESAVE", 8))
-		goto out;
-	if (gzgetc(f) != islittleendian)
-		goto out;
 	// not supporting save->load accross incompatible architectures simpifies things a LOT
-	if (gzgeti() != SAVEGAMEVERSION || gzgeti() != sizeof(Sprite))
-		goto out;
-	IString mapname;
-	gzread(f, mapname, _MAXDEFSTR);
-	nextmode = gzgeti();
-	changemap(mapname); // continue below once map has been loaded and client & server have updated 
-	return;
-	out: conoutf(
-			"aborting: savegame/demo from a different version of cube or cpu architecture");
-	stop();
+	if (strncmp(buf, "CUBESAVE", 8) || gzgetc(f) != islittleendian || gzgeti() != SAVEGAMEVERSION || gzgeti() != sizeof(Sprite)) {
+		conoutf("aborting: savegame/demo from a different version of cube or cpu architecture");
+		stop();
+	} else {
+		memset(buf, 0, _MAXDEFSTR);
+		gzread(f, buf, _MAXDEFSTR);
+		nextmode = gzgeti();
+		changemap(std::string(buf)); // continue below once map has been loaded and client & server have updated
+	}
 }
 
 void loadgame(char *name) {
-	IString fn;
+	char fn[_MAXDEFSTR];
 	std::sprintf(fn, "savegames/%s.csgz", name);
 	loadstate(fn);
 }
 
 void loadgameout() {
 	stop();
-	conoutf(
-			"loadgame incomplete: savegame from a different version of this map");
+	conoutf("loadgame incomplete: savegame from a different version of this map");
 }
 
 void loadgamerest() {
 	if (demoplayback || !f)
 		return;
 
-	if (gzgeti() != ents.size())
+	if (gzgeti() != entityList.size())
 		return loadgameout();
-	loopv(ents) {
-		ents[i].spawned = gzgetc(f) != 0;
-		if (ents[i].type == CARROT && !ents[i].spawned)
-			trigger(ents[i].attr1, ents[i].attr2, true);
+	for(Entity &en : entityList) {
+		en.spawned = gzgetc(f) != 0;
+		if (en.type == CARROT && !en.spawned)
+			trigger(en.attr1, en.attr2, true);
 	};
-	restoreserverstate(ents);
+	restoreserverstate(entityList);
 
 	gzread(f, player1, sizeof(Sprite));
 	player1->lastaction = lastmillis;

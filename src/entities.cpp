@@ -2,22 +2,22 @@
 
 #include "cube.h"
 
-std::vector<entity> ents;
+std::vector<Entity> entityList;
 
 char *entmdlnames[] = { "shells", "bullets", "rockets", "rrounds", "health",
 		"boost", "g_armour", "y_armour", "quad", "teleporter", };
 
 int triggertime = 0;
 
-void renderent(entity &e, char *mdlname, float z, float yaw, int frame = 0, int numf = 1, int basetime = 0, float speed = 10.0f) {
+void renderent(Entity &e, char *mdlname, float z, float yaw, int frame = 0, int numf = 1, int basetime = 0, float speed = 10.0f) {
 	rendermodel(mdlname, frame, numf, 0, 1.1f, e.x, z + S(e.x, e.y)->floor, e.y, yaw, 0, false, 1.0f, speed, 0, basetime);
 }
 
 void renderentities() {
 	if (lastmillis > triggertime + 1000)
 		triggertime = 0;
-	for (int i = 0; i < ents.size(); ++i) {
-		entity &e = ents[i];
+	for (int i = 0; i < entityList.size(); ++i) {
+		Entity &e = entityList[i];
 		if (e.type == MAPMODEL) {
 			mapmodelinfo &mmi = getmminfo(e.attr2);
 			if (!&mmi)
@@ -79,8 +79,8 @@ void baseammo(int gun) {
 // picked up the item (in multiplayer someone may grab it before you).
 
 void radditem(int i, int &v) {
-	itemstat &is = itemstats[ents[i].type - I_SHELLS];
-	ents[i].spawned = false;
+	itemstat &is = itemstats[entityList[i].type - I_SHELLS];
+	entityList[i].spawned = false;
 	v += is.add;
 	if (v > is.max)
 		v = is.max;
@@ -88,7 +88,7 @@ void radditem(int i, int &v) {
 }
 
 void realpickup(int n, Sprite *d) {
-	switch (ents[n].type) {
+	switch (entityList[n].type) {
 	case I_SHELLS:
 		radditem(n, d->ammo[1]);
 		break;
@@ -128,16 +128,16 @@ void realpickup(int n, Sprite *d) {
 // these functions are called when the client touches the item
 
 void additem(int i, int &v, int spawnsec) {
-	if (v < itemstats[ents[i].type - I_SHELLS].max) // don't pick up if not needed
+	if (v < itemstats[entityList[i].type - I_SHELLS].max) // don't pick up if not needed
 			{
 		addmsg(1, 3, SV_ITEMPICKUP, i, m_classicsp ? 100000 : spawnsec); // first ask the server for an ack
-		ents[i].spawned = false;           // even if someone else gets it first
+		entityList[i].spawned = false;           // even if someone else gets it first
 	};
 }
 
 void teleport(int n, Sprite *d)     // also used by monsters
 		{
-	int e = -1, tag = ents[n].attr1, beenhere = -1;
+	int e = -1, tag = entityList[n].attr1, beenhere = -1;
 	for (;;) {
 		e = findentity(TELEDEST, e + 1);
 		if (e == beenhere || e < 0) {
@@ -146,11 +146,11 @@ void teleport(int n, Sprite *d)     // also used by monsters
 		};
 		if (beenhere < 0)
 			beenhere = e;
-		if (ents[e].attr2 == tag) {
-			d->o.x = ents[e].x;
-			d->o.y = ents[e].y;
-			d->o.z = ents[e].z;
-			d->yaw = ents[e].attr1;
+		if (entityList[e].attr2 == tag) {
+			d->o.x = entityList[e].x;
+			d->o.y = entityList[e].y;
+			d->o.z = entityList[e].z;
+			d->yaw = entityList[e].attr1;
 			d->pitch = 0;
 			d->vel.x = d->vel.y = d->vel.z = 0;
 			entinmap(d);
@@ -167,7 +167,7 @@ void pickup(int n, Sprite *d) {
 			np++;
 	np = np < 3 ? 4 : (np > 4 ? 2 : 3); // spawn times are dependent on number of players
 	int ammo = np * 2;
-	switch (ents[n].type) {
+	switch (entityList[n].type) {
 	case I_SHELLS:
 		additem(n, d->ammo[1], ammo);
 		break;
@@ -203,9 +203,9 @@ void pickup(int n, Sprite *d) {
 		break;
 
 	case CARROT:
-		ents[n].spawned = false;
+		entityList[n].spawned = false;
 		triggertime = lastmillis;
-		trigger(ents[n].attr1, ents[n].attr2, false); // needs to go over server for multiplayer
+		trigger(entityList[n].attr1, entityList[n].attr2, false); // needs to go over server for multiplayer
 		break;
 
 	case TELEPORT: {
@@ -223,7 +223,7 @@ void pickup(int n, Sprite *d) {
 		if (lastmillis - lastjumppad < 300)
 			break;
 		lastjumppad = lastmillis;
-		Vec3 v = { (int) (char) ents[n].attr3 / 10.0f, (int) (char) ents[n].attr2 / 10.0f, ents[n].attr1 / 10.0f };
+		Vec3 v = { (int) (char) entityList[n].attr3 / 10.0f, (int) (char) entityList[n].attr2 / 10.0f, entityList[n].attr1 / 10.0f };
 		player1->vel.z = 0;
 		vadd(player1->vel, v);
 		playsoundc(S_JUMPPAD);
@@ -236,11 +236,11 @@ void pickup(int n, Sprite *d) {
 void checkitems() {
 	if (editmode)
 		return;
-	for(int i = 0; i < ents.size(); ++i) {
-		entity &e = ents[i];
+	for(int i = 0; i < entityList.size(); ++i) {
+		Entity &e = entityList[i];
 		if (e.type == NOTUSED)
 			continue;
-		if (!ents[i].spawned && e.type != TELEPORT && e.type != JUMPPAD)
+		if (!entityList[i].spawned && e.type != TELEPORT && e.type != JUMPPAD)
 			continue;
 		if (OUTBORD(e.x, e.y))
 			continue;
@@ -262,22 +262,22 @@ void checkquad(int time) {
 
 void putitems(uchar *&p) // puts items in network stream and also spawns them locally
 {
-	for(int i = 0; i < ents.size(); ++i) {
-		if ((ents[i].type >= I_SHELLS && ents[i].type <= I_QUAD) || ents[i].type == CARROT) {
+	for(int i = 0; i < entityList.size(); ++i) {
+		if ((entityList[i].type >= I_SHELLS && entityList[i].type <= I_QUAD) || entityList[i].type == CARROT) {
 			putint(p, i);
-			ents[i].spawned = true;
+			entityList[i].spawned = true;
 		}
 	}
 }
 
 void resetspawns() {
-	for(int i = 0; i < ents.size(); ++i) {
-		ents[i].spawned = false;
+	for(int i = 0; i < entityList.size(); ++i) {
+		entityList[i].spawned = false;
 	}
 }
 
 void setspawn(uint i, bool on) {
-	if (i < ents.size())
-		ents[i].spawned = on;
+	if (i < entityList.size())
+		entityList[i].spawned = on;
 }
 

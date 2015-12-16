@@ -108,13 +108,13 @@ void monsterclear() // called after map start of when toggling edit mode to rese
 		monstertotal = spawnremain = gamemode < 0 ? skill * 10 : 0;
 	} else if (m_classicsp) {
 		mtimestart = lastmillis;
-		loopv(ents)
-			if (ents[i].type == MONSTER) {
-				Sprite *m = basicmonster(ents[i].attr2, ents[i].attr1, M_SLEEP,
+		loopv(entityList)
+			if (entityList[i].type == MONSTER) {
+				Sprite *m = basicmonster(entityList[i].attr2, entityList[i].attr1, M_SLEEP,
 						100, 0);
-				m->o.x = ents[i].x;
-				m->o.y = ents[i].y;
-				m->o.z = ents[i].z;
+				m->o.x = entityList[i].x;
+				m->o.y = entityList[i].y;
+				m->o.z = entityList[i].z;
 				entinmap(m);
 				monstertotal++;
 			};
@@ -331,9 +331,9 @@ void monsterthink() {
 	if (monstertotal && !spawnremain && numkilled == monstertotal)
 		endsp(true);
 
-	loopv(ents) // equivalent of player entity touch, but only teleports are used
+	loopv(entityList) // equivalent of player entity touch, but only teleports are used
 	{
-		entity &e = ents[i];
+		Entity &e = entityList[i];
 		if (e.type != TELEPORT)
 			continue;
 		if (OUTBORD(e.x, e.y))
@@ -350,7 +350,7 @@ void monsterthink() {
 				vdist(dist, t, monsters[i]->o, v);
 				v.z -= monsters[i]->eyeheight;
 				if (dist < 4)
-					teleport((int) (&e - &ents[0]), monsters[i]);
+					teleport((int) (&e - &entityList[0]), monsters[i]);
 			};
 	};
 

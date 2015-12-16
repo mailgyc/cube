@@ -143,21 +143,20 @@ void renderents()       // show sparkly thingies for map entities in edit mode
 	closeent[0] = 0;
 	if (!editmode)
 		return;
-	loopv(ents) {
-		entity &e = ents[i];
+	for(Entity &e : entityList) {
 		if (e.type == NOTUSED)
 			continue;
 		Vec3 v = { e.x, e.y, e.z };
 		particle_splash(2, 2, 40, v);
-	};
+	}
 	int e = closestent();
 	if (e >= 0) {
-		entity &c = ents[e];
+		Entity &c = entityList[e];
 		std::sprintf(closeent,
 				"closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)",
 				entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4,
 				getvar("selxs"), getvar("selys"));
-	};
+	}
 }
 
 void loadsky(char *basename) {

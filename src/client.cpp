@@ -176,10 +176,9 @@ void addmsg(int rel, int num, int type, ...) {
 		return;
 	if (num != msgsizelookup(type)) {
 		IString s;
-		std::sprintf(s, "inconsistant msg size for %d (%d != %d)", type, num,
-				msgsizelookup(type));
+		std::sprintf(s, "inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type));
 		fatal(s);
-	};
+	}
 	if (messages.size() == 100) {
 		conoutf("command flood protection (type %d)", type);
 		return;
@@ -202,7 +201,7 @@ void server_err() {
 }
 
 int lastupdate = 0, lastping = 0;
-IString toservermap;
+std::string toservermap;
 bool senditemstoserver = false; // after a map change, since server doesn't have map data
 
 IString clientpassword;

@@ -49,8 +49,8 @@ void resettagareas() {
 // reset for editing or map saving
 void settagareas() {
 	settag(0, 1);
-	for(int i = 0; i < ents.size(); ++i) {
-		if (ents[i].type == CARROT)
+	for(int i = 0; i < entityList.size(); ++i) {
+		if (entityList[i].type == CARROT)
 			setspawn(i, true);
 	}
 }
@@ -210,8 +210,8 @@ int closestent()        // used for delent and edit mode ent display
 		return -1;
 	int best;
 	float bdist = 99999;
-	for(int i = 0; i < ents.size(); ++i) {
-		entity &e = ents[i];
+	for(int i = 0; i < entityList.size(); ++i) {
+		Entity &e = entityList[i];
 		if (e.type == NOTUSED)
 			continue;
 		Vec3 v = { e.x, e.y, e.z };
@@ -230,16 +230,16 @@ void entproperty(int prop, int amount) {
 		return;
 	switch (prop) {
 	case 0:
-		ents[e].attr1 += amount;
+		entityList[e].attr1 += amount;
 		break;
 	case 1:
-		ents[e].attr2 += amount;
+		entityList[e].attr2 += amount;
 		break;
 	case 2:
-		ents[e].attr3 += amount;
+		entityList[e].attr3 += amount;
 		break;
 	case 3:
-		ents[e].attr4 += amount;
+		entityList[e].attr4 += amount;
 		break;
 	};
 }
@@ -250,9 +250,9 @@ void delent() {
 		conoutf("no more entities");
 		return;
 	};
-	int t = ents[e].type;
+	int t = entityList[e].type;
 	conoutf("%s entity deleted", entnames[t]);
-	ents[e].type = NOTUSED;
+	entityList[e].type = NOTUSED;
 	addmsg(1, 10, SV_EDITENT, e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
 	if (t == LIGHT)
 		calclight();
@@ -267,7 +267,7 @@ int findtype(char *what) {
 	return NOTUSED;
 }
 
-entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4) {
+Entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4) {
 	int type = findtype(what);
 	persistent_entity e = { x, y, z, v1, type, v2, v3, v4 };
 	switch (type) {
@@ -289,19 +289,19 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
 		e.attr1 = (int) player1->yaw;
 		break;
 	};
-	addmsg(1, 10, SV_EDITENT, ents.size(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
-	ents.emplace_back(*((entity *) &e)); // unsafe!
+	addmsg(1, 10, SV_EDITENT, entityList.size(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+	entityList.emplace_back(*((Entity *) &e)); // unsafe!
 	if (type == LIGHT)
 		calclight();
-	return &ents.back();
+	return &entityList.back();
 }
 
 void clearents(char *name) {
 	int type = findtype(name);
 	if (noteditmode() || multiplayer())
 		return;
-	for(int i = 0; i < ents.size(); ++i) {
-		entity &e = ents[i];
+	for(int i = 0; i < entityList.size(); ++i) {
+		Entity &e = entityList[i];
 		if (e.type == type)
 			e.type = NOTUSED;
 	}
@@ -319,7 +319,7 @@ void scalecomp(uchar &c, int intens) {
 }
 
 void scalelights(int f, int intens) {
-	for(entity &e : ents) {
+	for(Entity &e : entityList) {
 		if (e.type != LIGHT)
 			continue;
 		e.attr1 = e.attr1 * f / 100;
@@ -339,11 +339,11 @@ void scalelights(int f, int intens) {
 COMMAND(scalelights, ARG_2INT);
 
 int findentity(int type, int index) {
-	for (int i = index; i < ents.size(); i++)
-		if (ents[i].type == type)
+	for (int i = index; i < entityList.size(); i++)
+		if (entityList[i].type == type)
 			return i;
 	for(int i = 0; i < index; ++i)
-		if (ents[i].type == type)
+		if (entityList[i].type == type)
 			return i;
 	return -1;
 }
@@ -409,9 +409,9 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 				world[(y + ssize/4) * ssize + (x + ssize/4)] = oldworld[y * half + x];
 			}
 		}
-		for(int i = 0; i < ents.size(); ++i) {
-			ents[i].x += ssize / 4;
-			ents[i].y += ssize / 4;
+		for(int i = 0; i < entityList.size(); ++i) {
+			entityList[i].x += ssize / 4;
+			entityList[i].y += ssize / 4;
 		}
 	} else {
 		strn0cpy(hdr.maptitle, "Untitled Map by Unknown", 128);
@@ -424,7 +424,7 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 				hdr.texlists[k][i] = i;
 			}
 		}
-		ents.resize(0);
+		entityList.resize(0);
 		Rect b = { 8, 8, ssize - 16, ssize - 16 };
 		edittypexy(SPACE, b);
 	};

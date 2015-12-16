@@ -22,11 +22,11 @@ int invmouse = variable("invmouse", 0, 0, 1, &invmouse, NULL, true);
 
 int lastmillis = 0;
 int curtime = 10;
-IString clientmap;
+std::string clientmap;
 
 extern int framesinmap;
 
-char *getclientmap() {
+std::string getclientmap() {
 	return clientmap;
 }
 
@@ -287,10 +287,10 @@ void spawnplayer(Sprite *d)   // place at random spawn. also used by monsters!
 		spawncycle = findentity(PLAYERSTART, spawncycle + 1);
 	}
 	if (spawncycle != -1) {
-		d->o.x = ents[spawncycle].x;
-		d->o.y = ents[spawncycle].y;
-		d->o.z = ents[spawncycle].z;
-		d->yaw = ents[spawncycle].attr1;
+		d->o.x = entityList[spawncycle].x;
+		d->o.y = entityList[spawncycle].y;
+		d->o.z = entityList[spawncycle].z;
+		d->yaw = entityList[spawncycle].attr1;
 		d->pitch = 0;
 		d->roll = 0;
 	} else {
@@ -428,16 +428,16 @@ Sprite *getclient(int cn)   // ensure valid entity
 }
 
 void initclient() {
-	clientmap[0] = 0;
+	clientmap = "";
 	initclientnet();
 }
 
-void startmap(char *name)   // called just after a map load
-		{
+void startmap(const std::string &name)   // called just after a map load
+{
 	if (netmapstart() && m_sp) {
 		gamemode = 0;
 		conoutf("coop sp not supported yet");
-	};
+	}
 	sleepwait = 0;
 	monsterclear();
 	projreset();
@@ -448,7 +448,8 @@ void startmap(char *name)   // called just after a map load
 		if (players[i])
 			players[i]->frags = 0;
 	resetspawns();
-	strcpy_s(clientmap, name);
+	//strcpy_s(clientmap, name);
+	clientmap = name;
 	if (editmode)
 		toggleedit();
 	setvar("gamespeed", 100);

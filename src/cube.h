@@ -65,7 +65,7 @@ struct persistent_entity        // map entity
 	uchar attr2, attr3, attr4;
 };
 
-struct entity: public persistent_entity {
+struct Entity: public persistent_entity {
 	bool spawned;               // the only dynamic state of a map entity
 };
 
@@ -285,7 +285,7 @@ extern int cubicsize, mipsize;          // cubicsize = ssize^2
 extern Sprite *player1; // special client ent that receives input and acts as camera
 extern std::vector<Sprite *> players;  // all the other clients (in multiplayer)
 extern bool editmode;
-extern std::vector<entity> ents;             // map entities
+extern std::vector<Entity> entityList;             // map entities
 extern Vec3 worldpos;             // current target of the crosshair in the world
 extern int lastmillis;                  // last time
 extern int curtime;                     // current frame time

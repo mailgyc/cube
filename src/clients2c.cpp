@@ -4,7 +4,7 @@
 
 extern int clientnum;
 extern bool c2sinit, senditemstoserver;
-extern IString toservermap;
+extern std::string toservermap;
 extern IString clientpassword;
 
 void neterr(char *s) {
@@ -12,15 +12,15 @@ void neterr(char *s) {
 	disconnect();
 }
 
-void changemapserv(char *name, int mode)    // forced map change from the server
+void changemapserv(const std::string &name, int mode)    // forced map change from the server
 {
 	gamemode = mode;
 	load_world(name);
 }
 
-void changemap(char *name)              // request map change, server may ignore
+void changemap(const std::string &mapname)              // request map change, server may ignore
 {
-	strcpy_s(toservermap, name);
+	toservermap = mapname;
 }
 
 // update the position of other clients in the game in our world
@@ -72,10 +72,11 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 				disconnect();
 				return;
 			};
-			toservermap[0] = 0;
+			toservermap = "";
 			clientnum = cn;                 // we are now fully connected
-			if (!getint(p))
-				strcpy_s(toservermap, getclientmap()); // we are the first client on this server, set map
+			if (!getint(p)) {
+				toservermap = getclientmap(); // we are the first client on this server, set map
+			}
 			sgetstr();
 
 			if (text[0] && strcmp(text, clientpassword)) {
@@ -146,7 +147,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			getint(p);
 			std::string nextmapalias = std::string("nextmap_") + getclientmap();
 			std::string map = getalias(nextmapalias);     // look up map in the cycle
-			changemap(map.empty() ? getclientmap() : map.c_str());
+			changemap(map.empty() ? getclientmap() : map);
 			break;
 		}
 
@@ -242,9 +243,9 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_ITEMSPAWN: {
 			int i = getint(p);
 			setspawn(i, true);
-			if (i >= ents.size())
+			if (i >= entityList.size())
 				break;
-			Vec3 v = { ents[i].x, ents[i].y, ents[i].z };
+			Vec3 v = { entityList[i].x, entityList[i].y, entityList[i].z };
 			playsound(S_ITEMSPAWN, &v);
 			break;
 		}
@@ -285,21 +286,21 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_EDITENT:            // coop edit of ent
 		{
 			int i = getint(p);
-			while (ents.size() <= i) {
-				ents.emplace_back(entity());
-				ents.back().type = NOTUSED;
+			while (entityList.size() <= i) {
+				entityList.emplace_back(Entity());
+				entityList.back().type = NOTUSED;
 			}
-			int to = ents[i].type;
-			ents[i].type = getint(p);
-			ents[i].x = getint(p);
-			ents[i].y = getint(p);
-			ents[i].z = getint(p);
-			ents[i].attr1 = getint(p);
-			ents[i].attr2 = getint(p);
-			ents[i].attr3 = getint(p);
-			ents[i].attr4 = getint(p);
-			ents[i].spawned = false;
-			if (ents[i].type == LIGHT || to == LIGHT)
+			int to = entityList[i].type;
+			entityList[i].type = getint(p);
+			entityList[i].x = getint(p);
+			entityList[i].y = getint(p);
+			entityList[i].z = getint(p);
+			entityList[i].attr1 = getint(p);
+			entityList[i].attr2 = getint(p);
+			entityList[i].attr3 = getint(p);
+			entityList[i].attr4 = getint(p);
+			entityList[i].spawned = false;
+			if (entityList[i].type == LIGHT || to == LIGHT)
 				calclight();
 			break;
 		}

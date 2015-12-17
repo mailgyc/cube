@@ -166,8 +166,7 @@ void sendmap(const std::string &mapname) {
 	uchar *mapdata = readmap(mapname, &mapsize);
 	if (!mapdata)
 		return;
-	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize,
-			ENET_PACKET_FLAG_RELIABLE);
+	ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize, ENET_PACKET_FLAG_RELIABLE);
 	uchar *start = packet->data;
 	uchar *p = start + 2;
 	putint(p, SV_SENDMAP);

@@ -532,8 +532,7 @@ void edittag(int tag) {
 
 void newent(char *what, char *a1, char *a2, char *a3, char *a4) {
 	EDITSEL;
-	newentity(sel.x, sel.y, (int) player1->o.z, what, ATOI(a1), ATOI(a2),
-			ATOI(a3), ATOI(a4));
+	newentity(sel.x, sel.y, (int) player1->o.z, what, std::stoi(a1), std::stoi(a2), std::stoi(a3), std::stoi(a4));
 }
 
 COMMANDN(select, selectpos, ARG_4INT);

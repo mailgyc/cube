@@ -10,16 +10,6 @@ void backup(char *name, char *backupname) {
 IString cgzname, bakname, pcfname, mcfname;
 
 void setnames(const std::string &name) {
-//	IString pakname, mapname;
-//	char *slash = strpbrk(name, "/\\");
-//	if (slash) {
-//		strn0cpy(pakname, name, slash - name + 1);
-//		strcpy_s(mapname, slash + 1);
-//	} else {
-//		strcpy_s(pakname, "base");
-//		strcpy_s(mapname, name);
-//	};
-
 	std::string pakname, mapname;
 	std::size_t slash = name.find('/');
 	if (slash == std::string::npos) {
@@ -31,6 +21,7 @@ void setnames(const std::string &name) {
 	}
 	std::sprintf(cgzname, "packages/%s/%s.cgz", pakname.c_str(), mapname.c_str());
 	std::sprintf(bakname, "packages/%s/%s_%d.BAK", pakname.c_str(), mapname.c_str(), lastmillis);
+
 	std::sprintf(pcfname, "packages/%s/package.cfg", pakname.c_str());
 	std::sprintf(mcfname, "packages/%s/%s.cfg", pakname.c_str(), mapname.c_str());
 }
@@ -40,7 +31,6 @@ void setnames(const std::string &name) {
 // visible difference. This allows the mipmapper to generate more efficient mips.
 // the reason it is done on save is to reduce the amount spend in the mipmapper (as that is done
 // in realtime).
-
 inline bool nhf(Block *s) {
 	return s->type != FHF && s->type != CHF;
 }
@@ -122,7 +112,7 @@ void writemap(const std::string &mname, int msize, uchar *mdata) {
 	if (!f) {
 		conoutf("could not write map to %s", cgzname);
 		return;
-	};
+	}
 	fwrite(mdata, 1, msize, f);
 	fclose(f);
 	conoutf("wrote map %s as file %s", mname.c_str(), cgzname);
@@ -130,7 +120,7 @@ void writemap(const std::string &mname, int msize, uchar *mdata) {
 
 unsigned char* readmap(const std::string &mname, int *msize) {
 	setnames(mname);
-	uchar *mdata = (uchar *) loadfile(cgzname, msize);
+	unsigned char *mdata = (unsigned char *) loadfile(cgzname, msize);
 	if (!mdata) {
 		conoutf("could not read map %s", cgzname);
 		return NULL;

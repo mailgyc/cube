@@ -80,11 +80,9 @@ void spawnstate(Sprite *d)   // reset player state not persistent accross spawns
 						break;
 					};
 				};
-			} else if (m_arena)    // insta arena
-			{
+			} else if (m_arena) {    // insta arena
 				d->ammo[GUN_RIFLE] = 100;
-			} else // efficiency
-			{
+			} else { // efficiency
 				for (int i = 0; i < 4; ++i) {
 					baseammo(i + 1);
 				}
@@ -417,7 +415,7 @@ void timeupdate(int timeremain) {
 }
 
 Sprite *getclient(int cn)   // ensure valid entity
-		{
+{
 	if (cn < 0 || cn >= MAXCLIENTS) {
 		neterr("clientnum");
 		return NULL;

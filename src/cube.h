@@ -353,14 +353,12 @@ enum    // function signatures for script functions, see command.cpp
 //#define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
 //#define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)
 
-#define ATOI(s) strtol(s, NULL, 0)		// supports hexadecimal numbers
-
 #include <time.h>
 
 //#include <SDL2/SDL_opengles.h>
 #include <SDL2/SDL_opengl.h>
 #include <GL/glu.h>
-//#include <GL/glext.h>
+#include <GL/glext.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>

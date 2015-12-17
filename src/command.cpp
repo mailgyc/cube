@@ -91,7 +91,7 @@ bool addcommand(char *name, void (*fun)(), int narg) {
 	return false;
 }
 
-char *parseexp(char *&p, int right)          // parse any nested set of () or []
+std::string parseexp(char *&p, int right)          // parse any nested set of () or []
 {
 	int left = *p++;
 	char *word = p;
@@ -108,13 +108,12 @@ char *parseexp(char *&p, int right)          // parse any nested set of () or []
 		} else if (!c) {
 			p--;
 			conoutf("missing \"%c\"", right);
-			return NULL;
+			return "";
 		}
 	}
-	char *s = newIString(word, p - word - 1);
+	std::string s(word, p - word - 1);
 	if (left == '(') {
-		std::string t = tostr(execute(s)); // evaluate () exps directly, and substitute result
-		s = exchangestr(s, t.c_str());
+		s = tostr(execute(s.c_str())); // evaluate () exps directly, and substitute result
 	}
 	return s;
 }
@@ -127,8 +126,7 @@ char *parseexp(char *&p, int right)          // parse any nested set of () or []
  *  consume all, until any reject appear
  *  int strcspn(string s, char[] reject)
  */
-
-char *parseword(char *&p)        // parse single argument, including expressions
+std::string parseword(char *&p)        // parse single argument, including expressions
 {
 	p += strspn(p, " \t\r");
 
@@ -155,46 +153,44 @@ char *parseword(char *&p)        // parse single argument, including expressions
 	char *word = p;
 	p += strcspn(p, "; \t\r\n\0");
 	if (p - word == 0)
-		return NULL;
-	return newIString(word, p - word);
+		return "";
+	return std::string(word, p - word);
 }
 
-char *lookup(char *n)            // find value of ident referenced with $ in exp
+std::string lookup(std::string n)            // find value of ident referenced with $ in exp
 {
-	std::string key(n + 1);
+	std::string key = n.substr(1);//(n + 1);
 	if (idents->find(key) != idents->end()) {
 		Ident &id = idents->at(key);
 		switch (id.type) {
 		case ID_VAR:
-			return exchangestr(n, tostr(*(id.storage)).c_str());
-			//return tostr(*(id.storage)).c_str();
+			return tostr(*(id.storage));
 		case ID_ALIAS:
-			return exchangestr(n, id.action);
-			//return id.action;
+			return id.action;
 		}
 	}
-	conoutf("\nunknown alias lookup: %s\n", n);
+	conoutf("\nunknown alias lookup: %s\n", n.c_str());
 	return n;
 }
 
-int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
+int exec_command(bool isdown, int val, int numargs, Ident* id, std::string w[]) {
 	switch (id->narg) 	// use very ad-hoc function signature, and just call it
 	{
 	case ARG_1INT:
 		if (isdown)
-			((void (__cdecl *)(int)) id->fun)(ATOI(w[1]));
+			((void (__cdecl *)(int)) id->fun)(std::stoi(w[1]));
 		break;
 	case ARG_2INT:
 		if (isdown)
-			((void (__cdecl *)(int, int)) id->fun)(ATOI(w[1]), ATOI(w[2]));
+			((void (__cdecl *)(int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]));
 		break;
 	case ARG_3INT:
 		if (isdown)
-			((void (__cdecl *)(int, int, int)) id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]));
+			((void (__cdecl *)(int, int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]), std::stoi(w[3]));
 		break;
 	case ARG_4INT:
 		if (isdown)
-			((void (__cdecl *)(int, int, int, int)) id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4]));
+			((void (__cdecl *)(int, int, int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]), std::stoi(w[3]), std::stoi(w[4]));
 		break;
 	case ARG_NONE:
 		if (isdown)
@@ -202,63 +198,62 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, char* w[]) {
 		break;
 	case ARG_1STR:
 		if (isdown)
-			((void (__cdecl *)(char *)) id->fun)(w[1]);
+			((void (__cdecl *)(char *)) id->fun)(w[1].c_str());
 		break;
 	case ARG_2STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *)) id->fun)(w[1], w[2]);
+			((void (__cdecl *)(char *, char *)) id->fun)(w[1].c_str(), w[2].c_str());
 		break;
 	case ARG_3STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *, char*)) id->fun)(w[1], w[2], w[3]);
+			((void (__cdecl *)(char *, char *, char*)) id->fun)(w[1].c_str(), w[2].c_str(), w[3].c_str());
 		break;
 	case ARG_5STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *, char*, char*, char*)) id->fun)( w[1], w[2], w[3], w[4], w[5]);
+			((void (__cdecl *)(char *, char *, char*, char*, char*)) id->fun)( w[1].c_str(), w[2].c_str(), w[3].c_str(), w[4].c_str(), w[5].c_str());
 		break;
 	case ARG_DOWN:
 		((void (__cdecl *)(bool)) id->fun)(isdown);
 		break;
 	case ARG_DWN1:
-		((void (__cdecl *)(bool, char *)) id->fun)(isdown, w[1]);
+		((void (__cdecl *)(bool, char *)) id->fun)(isdown, w[1].c_str());
 		break;
 	case ARG_1EXP:
 		if (isdown)
-			val = ((int (__cdecl *)(int)) id->fun)(execute(w[1]));
+			val = ((int (__cdecl *)(int)) id->fun)(execute(w[1].c_str()));
 		break;
 	case ARG_2EXP:
 		if (isdown)
-			val = ((int (__cdecl *)(int, int)) id->fun)(execute(w[1]), execute(w[2]));
+			val = ((int (__cdecl *)(int, int)) id->fun)(execute(w[1].c_str()), execute(w[2].c_str()));
 		break;
 	case ARG_1EST:
 		if (isdown)
-			val = ((int (__cdecl *)(char *)) id->fun)(w[1]);
+			val = ((int (__cdecl *)(char *)) id->fun)(w[1].c_str());
 		break;
 	case ARG_2EST:
 		if (isdown)
-			val = ((int (__cdecl *)(char *, char *)) id->fun)(w[1], w[2]);
+			val = ((int (__cdecl *)(char *, char *)) id->fun)(w[1].c_str(), w[2].c_str());
 		break;
 	case ARG_VARI:
 		if (isdown) {
-			IString r;               // limit, remove
-			r[0] = 0;
+			std::string r = "";               // limit, remove
 			for (int i = 1; i < numargs; i++) {
-				strcat_s(r, w[i]); // make IString-list out of all arguments
+				r += w[i]; // make string-list out of all arguments
 				if (i == numargs - 1)
 					break;
-				strcat_s(r, " ");
+				r += " ";
 			}
-			((void (__cdecl *)(char *)) id->fun)(r);
+			((void (__cdecl *)(char *)) id->fun)(r.c_str());
 			break;
 		}
 	}
 	return val;
 }
 
-int execute(char *p, bool isdown)    // all evaluation happens here, recursively
+int execute(char *paction, bool isdown)    // all evaluation happens here, recursively
 {
 	const int MAXWORDS = 25;                    // limit, remove
-	char *wordbuf[MAXWORDS];
+	std::string wordbuf[MAXWORDS];
 	int val = 0;
 	for (bool cont = true; cont;)              // for each ; seperated statement
 	{
@@ -268,28 +263,30 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 			wordbuf[i] = "";
 			if (i > numargs)
 				continue;
-			char *s = parseword(p);             // parse and evaluate exps
-			if (!s) {
+			std::string s = parseword(paction);             // parse and evaluate exps
+			if (s[0] == 0) {
 				numargs = i;
 				s = "";
 			}
-			if (*s == '$') {
+			if (s[0] == '$') {
 				s = lookup(s);          // substitute variables
 			}
 			wordbuf[i] = s;
 		}
-		p += strcspn(p, ";\n\0");
-		cont = *p++ != 0; // more statements if this isn't the end of the IString
-		char *c = wordbuf[0];
-		if (*c == '/')
-			c++;                        // strip irc-style command prefix
-		if (!*c)
+		paction += strcspn(paction, ";\n\0");
+		cont = *paction++ != 0; // more statements if this isn't the end of the IString
+		std::string c = wordbuf[0];
+		if (c[0] == '/') {
+			c = c.substr(1); // strip irc-style command prefix
+		}
+		if (c[0] == 0) {
 			continue;                  // empty statement
+		}
 
 		if (idents->find(c) == idents->end()) {
-			val = ATOI(c);
-			if (!val && *c != '0')
-				conoutf("unknown command: %s", c);
+			val = std::stoi(c);
+			if (!val && c[0] != '0')
+				conoutf("unknown command: %s", c.c_str());
 		} else {
 			Ident *id = &(idents->at(c));
 			switch (id->type) {
@@ -299,15 +296,15 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 			case ID_VAR:                        // game defined variabled 
 				if (isdown) {
 					if (!wordbuf[1][0]) {
-						conoutf("%s = %d", c, *id->storage); // var with no value just prints its current value
+						conoutf("%s = %d", c.c_str(), *id->storage); // var with no value just prints its current value
 					} else {
 						if (id->min > id->max) {
 							conoutf("variable is read-only");
 						} else {
-							int i1 = ATOI(wordbuf[1]);
+							int i1 = std::stoi(wordbuf[1]);
 							if (i1 < id->min || i1 > id->max) {
 								i1 = i1 < id->min ? id->min : id->max; // clamp to valid range
-								conoutf("valid range for %s is %d..%d", c, id->min, id->max);
+								conoutf("valid range for %s is %d..%d", c.c_str(), id->min, id->max);
 							}
 							*id->storage = i1;
 						};
@@ -321,18 +318,16 @@ int execute(char *p, bool isdown)    // all evaluation happens here, recursively
 				for (int i = 1; i < numargs; i++) {
 					char t[20];
 					std::sprintf(t, "arg%d", i); // set any arguments as (global) arg values so functions can access them
-					alias(t, wordbuf[i]);
+					alias(t, wordbuf[i].c_str());
 				}
 
 				char *action = newIString(id->action); // create new IString here because alias could rebind itself
 				val = execute(action, isdown);
 				gp()->deallocstr(action);
 				break;
-			};
+			}
 		}
-		for(int i = 0; i < numargs; ++i)
-			gp()->deallocstr(wordbuf[i]);
-	};
+	}
 	return val;
 }
 

@@ -16,7 +16,7 @@ struct Ident {
 	int *storage;       // ID_VAR
 	void (*fun)();      // ID_VAR, ID_COMMAND
 	int narg;           // ID_VAR, ID_COMMAND
-	char *action;       // ID_ALIAS
+	std::string action;       // ID_ALIAS
 	bool persist;
 };
 
@@ -27,23 +27,18 @@ std::string tostr(T value) {
 	return os.str();
 }
 
-char *exchangestr(char *o, char *n) {
-	gp()->deallocstr(o);
-	return newIString(n);
-}
-
 static std::map<std::string, Ident> *idents = NULL;    // contains ALL vars/commands/aliases
 
 void alias(char *name, char *action) {
 
 	if (idents->find(name) == idents->end()) {
 		name = newIString(name);
-		Ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newIString(action), true };
+		Ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, action, true };
 		idents->insert(std::make_pair(name, b));
 	} else {
 		Ident &b = idents->at(name);
 		if (b.type == ID_ALIAS)
-			b.action = exchangestr(b.action, action);
+			b.action = action;
 		else
 			conoutf("cannot redefine builtin %s with an alias", name);
 	};
@@ -57,7 +52,7 @@ int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(),
 	if (!idents) {
 		idents = new std::map<std::string, Ident>;
 	}
-	Ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
+	Ident v = { ID_VAR, name, min, max, storage, fun, 0, "", persist };
 	idents->insert(std::make_pair(name, v));
 	return cur;
 }
@@ -86,12 +81,12 @@ bool addcommand(char *name, void (*fun)(), int narg) {
 	if (!idents) {
 		idents = new std::map<std::string, Ident>;
 	}
-	Ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, false };
+	Ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, "", false };
 	idents->insert(std::make_pair(name, c));
 	return false;
 }
 
-std::string parseexp(char *&p, int right)          // parse any nested set of () or []
+std::string parseexp(char *&p, int right)  // parse any nested set of () or []
 {
 	int left = *p++;
 	char *word = p;
@@ -105,7 +100,7 @@ std::string parseexp(char *&p, int right)          // parse any nested set of ()
 			brak++;
 		} else if (c == right) {
 			brak--;
-		} else if (!c) {
+		} else if (c == 0) {
 			p--;
 			conoutf("missing \"%c\"", right);
 			return "";
@@ -138,11 +133,12 @@ std::string parseword(char *&p)        // parse single argument, including expre
 		p++;
 		char *word = p;
 		p += strcspn(p, "\"\r\n\0");
-		char *s = newIString(word, p - word);
-		if (*p == '\"')
+		std::string s(word, p - word);
+		if (*p == '\"') {
 			p++;
+		}
 		return s;
-	};
+	}
 	if (*p == '(') {
 		return parseexp(p, ')');
 	}
@@ -157,9 +153,9 @@ std::string parseword(char *&p)        // parse single argument, including expre
 	return std::string(word, p - word);
 }
 
-std::string lookup(std::string n)            // find value of ident referenced with $ in exp
+std::string lookup(const std::string &n)            // find value of ident referenced with $ in exp
 {
-	std::string key = n.substr(1);//(n + 1);
+	std::string key = n.substr(1);
 	if (idents->find(key) != idents->end()) {
 		Ident &id = idents->at(key);
 		switch (id.type) {
@@ -173,7 +169,7 @@ std::string lookup(std::string n)            // find value of ident referenced w
 	return n;
 }
 
-int exec_command(bool isdown, int val, int numargs, Ident* id, std::string w[]) {
+int exec_command(bool isdown, int val, int numargs, Ident* id, const std::string w[]) {
 	switch (id->narg) 	// use very ad-hoc function signature, and just call it
 	{
 	case ARG_1INT:
@@ -185,8 +181,12 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, std::string w[]) 
 			((void (__cdecl *)(int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]));
 		break;
 	case ARG_3INT:
-		if (isdown)
-			((void (__cdecl *)(int, int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]), std::stoi(w[3]));
+		if (isdown) {
+			int arg0 = std::stoi(w[1]);
+			int arg1 = std::stoi(w[2]);
+			int arg2 = w[3].empty() ? 0 : std::stoi(w[3]);
+			((void (__cdecl *)(int, int, int)) id->fun)(arg0, arg1, arg2);
+		}
 		break;
 	case ARG_4INT:
 		if (isdown)
@@ -320,10 +320,7 @@ int execute(char *paction, bool isdown)    // all evaluation happens here, recur
 					std::sprintf(t, "arg%d", i); // set any arguments as (global) arg values so functions can access them
 					alias(t, wordbuf[i].c_str());
 				}
-
-				char *action = newIString(id->action); // create new IString here because alias could rebind itself
-				val = execute(action, isdown);
-				gp()->deallocstr(action);
+				val = execute(id->action.c_str(), isdown);
 				break;
 			}
 		}
@@ -394,7 +391,7 @@ void writecfg() {
 	fprintf(f, "\n");
 	for(auto &id : *idents) {
 		if(id.second.type==ID_ALIAS && !strstr(id.second.name, "nextmap_")) {
-			fprintf(f, "alias \"%s\" [%s]\n", id.second.name, id.second.action);
+			fprintf(f, "alias \"%s\" [%s]\n", id.second.name, id.second.action.c_str());
 		}
 	}
 	fclose(f);

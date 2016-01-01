@@ -118,13 +118,12 @@ struct projectile {
 projectile projs[MAXPROJ];
 
 void projreset() {
-	loopi(MAXPROJ)
+	for(int i = 0; i < MAXPROJ; ++i)
 		projs[i].inuse = false;
 }
 
-void newprojectile(Vec3 &from, Vec3 &to, float speed, bool local, Sprite *owner,
-		int gun) {
-	loopi(MAXPROJ)
+void newprojectile(Vec3 &from, Vec3 &to, float speed, bool local, Sprite *owner, int gun) {
+	for(int i = 0; i < MAXPROJ; ++i)
 	{
 		projectile *p = &projs[i];
 		if (p->inuse)

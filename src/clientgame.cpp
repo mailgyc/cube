@@ -442,11 +442,11 @@ void startmap(const std::string &name)   // called just after a map load
 	spawncycle = -1;
 	spawnplayer(player1);
 	player1->frags = 0;
-	loopv(players)
-		if (players[i])
-			players[i]->frags = 0;
+	for(Sprite *p : players) {
+		if (p)
+			p->frags = 0;
+	}
 	resetspawns();
-	//strcpy_s(clientmap, name);
 	clientmap = name;
 	if (editmode)
 		toggleedit();

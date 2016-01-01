@@ -47,7 +47,6 @@ void alias(char *name, char *action) {
 COMMAND(alias, ARG_2STR);
 
 // variable's and commands are registered through globals, see cube.h
-
 int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist) {
 	if (!idents) {
 		idents = new std::map<std::string, Ident>;
@@ -90,7 +89,6 @@ std::string parseexp(char *&p, int right)  // parse any nested set of () or []
 {
 	int left = *p++;
 	char *word = p;
-
 	for (int brak = 1; brak;) {
 		int c = *p++;
 		if (c == '\r') {
@@ -113,7 +111,6 @@ std::string parseexp(char *&p, int right)  // parse any nested set of () or []
 	return s;
 }
 
-#define __cdecl
 /*
  *  consume all accept char
  *  int strspn(string s, char[] accept)
@@ -174,76 +171,76 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, const std::string
 	{
 	case ARG_1INT:
 		if (isdown)
-			((void (__cdecl *)(int)) id->fun)(std::stoi(w[1]));
+			((void (*)(int)) id->fun)(std::stoi(w[1]));
 		break;
 	case ARG_2INT:
 		if (isdown)
-			((void (__cdecl *)(int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]));
+			((void (*)(int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]));
 		break;
 	case ARG_3INT:
 		if (isdown) {
 			int arg0 = std::stoi(w[1]);
 			int arg1 = std::stoi(w[2]);
 			int arg2 = w[3].empty() ? 0 : std::stoi(w[3]);
-			((void (__cdecl *)(int, int, int)) id->fun)(arg0, arg1, arg2);
+			((void (*)(int, int, int)) id->fun)(arg0, arg1, arg2);
 		}
 		break;
 	case ARG_4INT:
 		if (isdown)
-			((void (__cdecl *)(int, int, int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]), std::stoi(w[3]), std::stoi(w[4]));
+			((void (*)(int, int, int, int)) id->fun)(std::stoi(w[1]), std::stoi(w[2]), std::stoi(w[3]), std::stoi(w[4]));
 		break;
 	case ARG_NONE:
 		if (isdown)
-			((void (__cdecl *)()) id->fun)();
+			((void (*)()) id->fun)();
 		break;
 	case ARG_1STR:
 		if (isdown)
-			((void (__cdecl *)(char *)) id->fun)(w[1].c_str());
+			((void (*)(char *)) id->fun)(w[1].c_str());
 		break;
 	case ARG_2STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *)) id->fun)(w[1].c_str(), w[2].c_str());
+			((void (*)(char *, char *)) id->fun)(w[1].c_str(), w[2].c_str());
 		break;
 	case ARG_3STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *, char*)) id->fun)(w[1].c_str(), w[2].c_str(), w[3].c_str());
+			((void (*)(char *, char *, char*)) id->fun)(w[1].c_str(), w[2].c_str(), w[3].c_str());
 		break;
 	case ARG_5STR:
 		if (isdown)
-			((void (__cdecl *)(char *, char *, char*, char*, char*)) id->fun)( w[1].c_str(), w[2].c_str(), w[3].c_str(), w[4].c_str(), w[5].c_str());
+			((void (*)(char *, char *, char*, char*, char*)) id->fun)( w[1].c_str(), w[2].c_str(), w[3].c_str(), w[4].c_str(), w[5].c_str());
 		break;
 	case ARG_DOWN:
-		((void (__cdecl *)(bool)) id->fun)(isdown);
+		((void (*)(bool)) id->fun)(isdown);
 		break;
 	case ARG_DWN1:
-		((void (__cdecl *)(bool, char *)) id->fun)(isdown, w[1].c_str());
+		((void (*)(bool, char *)) id->fun)(isdown, w[1].c_str());
 		break;
 	case ARG_1EXP:
 		if (isdown)
-			val = ((int (__cdecl *)(int)) id->fun)(execute(w[1].c_str()));
+			val = ((int (*)(int)) id->fun)(execute(w[1].c_str()));
 		break;
 	case ARG_2EXP:
 		if (isdown)
-			val = ((int (__cdecl *)(int, int)) id->fun)(execute(w[1].c_str()), execute(w[2].c_str()));
+			val = ((int (*)(int, int)) id->fun)(execute(w[1].c_str()), execute(w[2].c_str()));
 		break;
 	case ARG_1EST:
 		if (isdown)
-			val = ((int (__cdecl *)(char *)) id->fun)(w[1].c_str());
+			val = ((int (*)(char *)) id->fun)(w[1].c_str());
 		break;
 	case ARG_2EST:
 		if (isdown)
-			val = ((int (__cdecl *)(char *, char *)) id->fun)(w[1].c_str(), w[2].c_str());
+			val = ((int (*)(char *, char *)) id->fun)(w[1].c_str(), w[2].c_str());
 		break;
 	case ARG_VARI:
 		if (isdown) {
-			std::string r = "";               // limit, remove
+			std::string r = ""; // limit, remove
 			for (int i = 1; i < numargs; i++) {
 				r += w[i]; // make string-list out of all arguments
 				if (i == numargs - 1)
 					break;
 				r += " ";
 			}
-			((void (__cdecl *)(char *)) id->fun)(r.c_str());
+			((void (*)(char *)) id->fun)(r.c_str());
 			break;
 		}
 	}
@@ -260,15 +257,13 @@ int execute(char *paction, bool isdown)    // all evaluation happens here, recur
 		int numargs = MAXWORDS;
 		for(int i = 0; i < MAXWORDS; ++i)      // collect all argument values
 		{
-			wordbuf[i] = "";
-			if (i > numargs)
-				continue;
 			std::string s = parseword(paction);             // parse and evaluate exps
 			if (s[0] == 0) {
 				numargs = i;
-				s = "";
-			}
-			if (s[0] == '$') {
+				for (int k = i; k < MAXWORDS; k++)
+					wordbuf[k] = "";
+				break;
+			} else if (s[0] == '$') {
 				s = lookup(s);          // substitute variables
 			}
 			wordbuf[i] = s;
@@ -285,8 +280,9 @@ int execute(char *paction, bool isdown)    // all evaluation happens here, recur
 
 		if (idents->find(c) == idents->end()) {
 			val = std::stoi(c);
-			if (!val && c[0] != '0')
+			if (!val && c[0] != '0') {
 				conoutf("unknown command: %s", c.c_str());
+			}
 		} else {
 			Ident *id = &(idents->at(c));
 			switch (id->type) {
@@ -301,15 +297,15 @@ int execute(char *paction, bool isdown)    // all evaluation happens here, recur
 						if (id->min > id->max) {
 							conoutf("variable is read-only");
 						} else {
-							int i1 = std::stoi(wordbuf[1]);
-							if (i1 < id->min || i1 > id->max) {
-								i1 = i1 < id->min ? id->min : id->max; // clamp to valid range
+							int param = std::stoi(wordbuf[1]);
+							if (param < id->min || param > id->max) {
+								param = param < id->min ? id->min : id->max; // clamp to valid range
 								conoutf("valid range for %s is %d..%d", c.c_str(), id->min, id->max);
 							}
-							*id->storage = i1;
+							*id->storage = param;
 						};
 						if (id->fun) {
-							((void (__cdecl *)()) id->fun)(); // call trigger function if available
+							((void (*)()) id->fun)(); // call trigger function if available
 						}
 					};
 				}
@@ -341,17 +337,19 @@ void complete(char *s) {
 		strcpy_s(t, s);
 		strcpy_s(s, "/");
 		strcat_s(s, t);
-	};
-	if (!s[1])
+	}
+	if (!s[1]) {
 		return;
+	}
 	if (!completesize) {
 		completesize = (int) strlen(s) - 1;
 		completeidx = 0;
-	};
+	}
 	int idx = 0;
 	for(auto &id : *idents) {
 		if(strncmp(id.second.name, s+1, completesize)==0 && idx++==completeidx) {
-			strcpy_s(s, "/"); strcat_s(s, id.second.name);
+			strcpy_s(s, "/");
+			strcat_s(s, id.second.name);
 		}
 	}
 	completeidx++;
@@ -376,8 +374,6 @@ void exec(char *cfgfile) {
 
 void writecfg() {
 	FILE *f = fopen("config.cfg", "w");
-	if (!f)
-		return;
 	fprintf(f, "// automatically written on exit, do not modify delete this file to have defaults.cfg overwrite these settings modify settings in game, or put settings in autoexec.cfg to override anything\n");
 	writeclientinfo(f);
 	fprintf(f, "\n");
@@ -427,8 +423,9 @@ void whilea(char *cond, char *body) {
 
 // can't get any simpler than this :)
 void onrelease(bool on, char *body) {
-	if (!on)
+	if (!on) {
 		execute(body);
+	}
 }
 
 void concat(char *s) {
@@ -436,24 +433,27 @@ void concat(char *s) {
 }
 
 void concatword(char *s) {
-	for (char *a = s, *b = s; *a = *b; b++)
+	for (char *a = s, *b = s; *a = *b; b++) {
 		if (*a != ' ')
 			a++;
+	}
 	concat(s);
 }
 
 int listlen(char *a) {
-	if (!*a)
+	if (!*a) {
 		return 0;
+	}
 	int n = 0;
-	while (*a)
+	while (*a) {
 		if (*a++ == ' ')
 			n++;
+	}
 	return n + 1;
 }
 
 void at(char *s, char *pos) {
-	int n = atoi(pos);
+	int n = std::atoi(pos);
 	for(int i = 0; i < n; ++i) {
 		s += strcspn(s, " \0");
 		s += strspn(s, " ");
@@ -475,59 +475,55 @@ COMMAND(listlen, ARG_1EST);
 int add(int a, int b) {
 	return a + b;
 }
-
 COMMANDN(+, add, ARG_2EXP);
+
 int mul(int a, int b) {
 	return a * b;
 }
-
 COMMANDN(*, mul, ARG_2EXP);
+
 int sub(int a, int b) {
 	return a - b;
 }
-
 COMMANDN(-, sub, ARG_2EXP);
+
 int divi(int a, int b) {
 	return b ? a / b : 0;
 }
-
 COMMANDN(div, divi, ARG_2EXP);
+
 int mod(int a, int b) {
 	return b ? a % b : 0;
 }
-
 COMMAND(mod, ARG_2EXP);
+
 int equal(int a, int b) {
 	return (int) (a == b);
 }
-
 COMMANDN(=, equal, ARG_2EXP);
+
 int lt(int a, int b) {
 	return (int) (a < b);
 }
-
 COMMANDN(<, lt, ARG_2EXP);
+
 int gt(int a, int b) {
 	return (int) (a > b);
 }
-
 COMMANDN(>, gt, ARG_2EXP);
 
 int strcmpa(char *a, char *b) {
 	return strcmp(a, b) == 0;
 }
-
 COMMANDN(strcmp, strcmpa, ARG_2EST);
 
 int rndn(int a) {
 	return a > 0 ? rnd(a) : 0;
 }
-
 COMMANDN(rnd, rndn, ARG_1EXP);
 
 int explastmillis() {
 	return lastmillis;
 }
-
 COMMANDN(millis, explastmillis, ARG_1EXP);
 

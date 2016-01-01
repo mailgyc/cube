@@ -97,8 +97,9 @@ void spawnmonster() // spawn a random monster according to freq distribution in 
 
 void monsterclear() // called after map start of when toggling edit mode to reset/spawn all monsters to initial state
 {
-	loopv(monsters)
-		gp()->dealloc(monsters[i], sizeof(Sprite));
+	for(Sprite *m : monsters) {
+		gp()->dealloc(m, sizeof(Sprite));
+	}
 	monsters.resize(0);
 	numkilled = 0;
 	monstertotal = 0;

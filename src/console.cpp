@@ -196,29 +196,22 @@ void keypress(int code, bool isdown) {
 				resetcomplete();
 				break;
 			}
-				;
-
 			case SDLK_UP:
 				if (histpos)
 					strcpy_s(commandbuf, vhistory[--histpos]);
 				break;
-
 			case SDLK_DOWN:
 				if (histpos < vhistory.size())
 					strcpy_s(commandbuf, vhistory[histpos++]);
 				break;
-
 			case SDLK_TAB:
 				complete(commandbuf);
 				break;
-
 			case SDLK_v:
 				if (SDL_GetModState() & (KMOD_LCTRL | KMOD_RCTRL)) {
 					pasteconsole();
 					return;
 				}
-				;
-
 			default:
 				resetcomplete();
 				//if(cooked) { char add[] = { cooked, 0 }; strcat_s(commandbuf, add); };

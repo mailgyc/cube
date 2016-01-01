@@ -330,9 +330,10 @@ void startintermission() {
 }
 
 void resetserverifempty() {
-	loopv(clients)
-		if (clients[i].type != ST_EMPTY)
+	for(client c : clients) {
+		if (c.type != ST_EMPTY)
 			return;
+	}
 	clients.resize(0);
 	smapname[0] = 0;
 	resetvotes();
@@ -460,12 +461,10 @@ void localconnect() {
 	send_welcome(&c - &clients[0]);
 }
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
-		char *passwd, int maxcl) {
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl) {
 	serverpassword = passwd;
 	maxclients = maxcl;
-	servermsinit(master ? master : "wouter.fov120.com/cube/masterserver/",
-			sdesc, dedicated);
+	servermsinit(master ? master : "wouter.fov120.com/cube/masterserver/", sdesc, dedicated);
 
 	if (isdedicated = dedicated) {
 		ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
@@ -482,15 +481,11 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 
 	if (isdedicated)       // do not return, this becomes main loop
 	{
-#ifdef WIN32
-		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-#endif
-		printf(
-				"dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
+		printf( "dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
 		atexit(cleanupserver);
 		atexit(enet_deinitialize);
 		for (;;)
-			serverslice(/*enet_time_get_sec()*/time(NULL), 5);
+			serverslice(time(NULL), 5);
 	};
 }
 

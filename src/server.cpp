@@ -68,7 +68,7 @@ void send(int n, ENetPacket *packet) {
 	case ST_LOCAL:
 		localservertoclient(packet->data, packet->dataLength);
 		break;
-	};
+	}
 }
 
 void send2(bool rel, int cn, int a, int b) {
@@ -295,11 +295,11 @@ void send_welcome(int n) {
 }
 
 void multicast(ENetPacket *packet, int sender) {
-	loopv(clients) {
-		if (i == sender)
-			continue;
-		send(i, packet);
-	};
+	for(int i = 0; i < clients.size(); ++i) {
+		if (i != sender) {
+			send(i, packet);
+		}
+	}
 }
 
 void localclienttoserver(ENetPacket *packet) {

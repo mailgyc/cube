@@ -3,7 +3,7 @@
 #include "cube.h"
 #include <SDL2/SDL_thread.h>
 
-struct resolverthread {
+struct ResolverThread {
 	SDL_Thread *thread;
 	char *query;
 	int starttime;
@@ -14,7 +14,7 @@ struct resolverresult {
 	ENetAddress address;
 };
 
-std::vector<resolverthread> resolverthreads;
+std::vector<ResolverThread> resolverthreads;
 std::vector<char *> resolverqueries;
 std::vector<resolverresult> resolverresults;
 SDL_mutex *resolvermutex;
@@ -23,7 +23,7 @@ int resolverlimit = 1000;
 bool killThread = false;
 
 int resolverloop(void * data) {
-	resolverthread *rt = (resolverthread *) data;
+	ResolverThread *rt = (ResolverThread *) data;
 	while (!killThread) {
 		SDL_SemWait(resolversem);
 		SDL_LockMutex(resolvermutex);
@@ -55,7 +55,7 @@ void resolverinit(int threads, int limit) {
 	resolvermutex = SDL_CreateMutex();
 
 	while (threads > 0) {
-		resolverthread rt;
+		ResolverThread rt;
 		rt.query = NULL;
 		rt.starttime = 0;
 		rt.thread = SDL_CreateThread(resolverloop, "serverbrowser", &rt);
@@ -64,7 +64,7 @@ void resolverinit(int threads, int limit) {
 	};
 }
 
-void resolverstop(resolverthread &rt, bool restart) {
+void resolverstop(ResolverThread &rt, bool restart) {
 	SDL_LockMutex(resolvermutex);
 	killThread = true;
 	int status = 0;
@@ -82,12 +82,12 @@ void resolverclear() {
 	SDL_LockMutex(resolvermutex);
 	resolverqueries.resize(0);
 	resolverresults.resize(0);
-	while (SDL_SemTryWait(resolversem) == 0)
+	while (SDL_SemTryWait(resolversem) == 0) {
 		;
-	loopv(resolverthreads) {
-		resolverthread &rt = resolverthreads[i];
+	}
+	for (ResolverThread &rt : resolverthreads) {
 		resolverstop(rt, true);
-	};
+	}
 	SDL_UnlockMutex(resolvermutex);
 }
 
@@ -108,8 +108,7 @@ bool resolvercheck(char **name, ENetAddress *address) {
 		SDL_UnlockMutex(resolvermutex);
 		return true;
 	}
-	loopv(resolverthreads) {
-		resolverthread &rt = resolverthreads[i];
+	for (ResolverThread &rt : resolverthreads) {
 		if (rt.query) {
 			if (lastmillis - rt.starttime > resolverlimit) {
 				resolverstop(rt, true);
@@ -123,7 +122,7 @@ bool resolvercheck(char **name, ENetAddress *address) {
 	return false;
 }
 
-struct serverinfo {
+struct ServerInfo {
 	IString name;
 	IString full;
 	IString map;
@@ -132,7 +131,7 @@ struct serverinfo {
 	ENetAddress address;
 };
 
-std::vector<serverinfo> servers;
+std::vector<ServerInfo> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
 
@@ -141,12 +140,11 @@ char *getservername(int n) {
 }
 
 void addserver(char *servername) {
-	for (serverinfo &info : servers)
+	for (ServerInfo &info : servers)
 		if (strcmp(info.name, servername) == 0)
 			return;
-	std::vector<serverinfo>::iterator it = servers.insert(servers.begin(),
-			serverinfo());
-	serverinfo &si = *it;
+	std::vector<ServerInfo>::iterator it = servers.insert(servers.begin(), ServerInfo());
+	ServerInfo &si = *it;
 	strcpy_s(si.name, servername);
 	si.full[0] = 0;
 	si.mode = 0;
@@ -165,7 +163,7 @@ void pingservers() {
 	uchar ping[MAXTRANS];
 	uchar *p;
 	loopv(servers) {
-		serverinfo &si = servers[i];
+		ServerInfo &si = servers[i];
 		if (si.address.host == ENET_HOST_ANY)
 			continue;
 		p = ping;
@@ -184,7 +182,7 @@ void checkresolver() {
 		if (addr.host == ENET_HOST_ANY)
 			continue;
 		loopv(servers) {
-			serverinfo &si = servers[i];
+			ServerInfo &si = servers[i];
 			if (name == si.name) {
 				si.address = addr;
 				addr.host = ENET_HOST_ANY;
@@ -205,30 +203,28 @@ void checkpings() {
 	while (enet_socket_wait(pingsock, &events, 0) >= 0 && events) {
 		if (enet_socket_receive(pingsock, &addr, &buf, 1) <= 0)
 			return;
-		loopv(servers) {
-			serverinfo &si = servers[i];
+		for(ServerInfo &si : servers) {
 			if (addr.host == si.address.host) {
 				p = ping;
 				si.ping = lastmillis - getint(p);
 				si.protocol = getint(p);
-				if (si.protocol != PROTOCOL_VERSION)
+				if (si.protocol != PROTOCOL_VERSION) {
 					si.ping = 9998;
+				}
 				si.mode = getint(p);
 				si.numplayers = getint(p);
 				si.minremain = getint(p);
-				sgetstr()
-				;
+				sgetstr();
 				strcpy_s(si.map, text);
-				sgetstr()
-				;
+				sgetstr();
 				strcpy_s(si.sdesc, text);
 				break;
-			};
-		};
-	};
+			}
+		}
+	}
 }
 
-int sicompare(const serverinfo &a, const serverinfo &b) {
+int sicompare(const ServerInfo &a, const ServerInfo &b) {
 	return a.ping > b.ping ? 1 : (a.ping < b.ping ? -1 : strcmp(a.name, b.name));
 }
 
@@ -239,20 +235,15 @@ void refreshservers() {
 		pingservers();
 	std::sort(servers.begin(), servers.end(), sicompare);
 	int maxmenu = 16;
-	loopv(servers) {
-		serverinfo &si = servers[i];
+	for (int i = 0; i < servers.size(); ++i) {
+		ServerInfo &si = servers[i];
 		if (si.address.host != ENET_HOST_ANY && si.ping != 9999) {
 			if (si.protocol != PROTOCOL_VERSION)
 				std::sprintf(si.full, "%s [different cube protocol]", si.name);
 			else
-				std::sprintf(si.full, "%d\t%d\t%s, %s: %s %s", si.ping,
-						si.numplayers, si.map[0] ? si.map : "[unknown]",
-						modestr(si.mode), si.name, si.sdesc);
+				std::sprintf(si.full, "%d\t%d\t%s, %s: %s %s", si.ping, si.numplayers, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.sdesc);
 		} else {
-			std::sprintf(si.full,
-					si.address.host != ENET_HOST_ANY ?
-							"%s [waiting for server response]" :
-							"%s [unknown host]\t", si.name);
+			std::sprintf(si.full, si.address.host != ENET_HOST_ANY ? "%s [waiting for server response]" : "%s [unknown host]\t", si.name);
 		}
 		si.full[50] = 0; // cut off too long server descriptions
 		menumanual(1, i, si.full);
@@ -265,10 +256,11 @@ void servermenu() {
 	if (pingsock == ENET_SOCKET_NULL) {
 		pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
 		resolverinit(1, 1000);
-	};
+	}
 	resolverclear();
-	loopv(servers)
-		resolverquery(servers[i].name);
+	for (ServerInfo &info : servers) {
+		resolverquery(info.name);
+	}
 	refreshservers();
 	menuset(1);
 }
@@ -277,13 +269,12 @@ void updatefrommaster() {
 	const int MAXUPD = 32000;
 	uchar buf[MAXUPD];
 	uchar *reply = retrieveservers(buf, MAXUPD);
-	if (!*reply || strstr((char *) reply, "<html>")
-			|| strstr((char *) reply, "<HTML>")) {
+	if (!*reply || strstr((char *) reply, "<html>") || strstr((char *) reply, "<HTML>")) {
 		conoutf("master server not replying");
 	} else {
 		servers.resize(0);
 		execute((char *) reply);
-	};
+	}
 	servermenu();
 }
 

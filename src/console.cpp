@@ -92,25 +92,27 @@ void renderconsole()       // render buffer taking into account time & scrolling
 
 struct keym {
 	int code;
-	char *name;
-	char *action;
+	std::string name;
+	std::string action;
 } keyms[256];
 int numkm = 0;
 
 void keymap(char *code, char *key, char *action) {
-	keyms[numkm].code = atoi(code);
-	keyms[numkm].name = newIString(key);
-	keyms[numkm++].action = newIStringbuf(action);
+	keyms[numkm].code = std::atoi(code);
+	keyms[numkm].name = key;
+	keyms[numkm++].action = action;
 }
 
 COMMAND(keymap, ARG_3STR);
 
 void bindkey(char *key, char *action) {
-	for (char *x = key; *x; x++)
+	for (char *x = key; *x; x++) {
 		*x = toupper(*x);
-	loopi(numkm)
-		if (strcmp(keyms[i].name, key) == 0) {
-			strcpy_s(keyms[i].action, action);
+	}
+	std::string _key(key);
+	for(int i = 0; i < numkm; ++i)
+		if (keyms[i].name == _key) {
+			keyms[i].action = action;
 			return;
 		};
 	conoutf("unknown key \"%s\"", key);
@@ -219,8 +221,7 @@ void keypress(int code, bool isdown) {
 		} else {
 			if (code == SDLK_RETURN) {
 				if (commandbuf[0]) {
-					if (vhistory.empty()
-							|| strcmp(vhistory.back(), commandbuf)) {
+					if (vhistory.empty() || strcmp(vhistory.back(), commandbuf)) {
 						vhistory.emplace_back(newIString(commandbuf)); // cap this?
 					};
 					histpos = vhistory.size();
@@ -234,17 +235,15 @@ void keypress(int code, bool isdown) {
 				saycommand(NULL);
 			};
 		};
-	} else if (!menukey(code, isdown))                 // keystrokes go to menu
-			{
-		loopi(numkm)
+	} else if (!menukey(code, isdown)) {               // keystrokes go to menu
+		for (int i = 0; i < numkm; ++i) {
 			if (keyms[i].code == code) // keystrokes go to game, lookup in keymap and execute
-					{
-				IString temp;
-				strcpy_s(temp, keyms[i].action);
-				execute(temp, isdown);
+			{
+				execute(keyms[i].action.c_str(), isdown);
 				return;
-			};
-	};
+			}
+		}
+	}
 }
 
 char *getcurcommand() {
@@ -252,10 +251,10 @@ char *getcurcommand() {
 }
 
 void writebinds(FILE *f) {
-	loopi(numkm)
+	for(int i = 0; i < numkm; ++i)
 	{
-		if (*keyms[i].action)
-			fprintf(f, "bind \"%s\" [%s]\n", keyms[i].name, keyms[i].action);
-	};
+		if (!keyms[i].action.empty())
+			fprintf(f, "bind \"%s\" [%s]\n", keyms[i].name.c_str(), keyms[i].action.c_str());
+	}
 }
 

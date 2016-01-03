@@ -99,13 +99,10 @@ void render_flat(int wtex, int x, int y, int size, int h, Block *l1, Block *l2, 
 		ol4r = l2->r;
 		ol4g = l2->g;
 		ol4b = l2->b;
-	} else        // continue strip
-	{
+	} else {       // continue strip
 		int lighterr = lighterror * 2;
-		if ((abs(ol3r - l3->r) < lighterr && abs(ol4r - l4->r) < lighterr // skip vertices if light values are close enough
-		&& abs(ol3g - l3->g) < lighterr && abs(ol4g - l4->g) < lighterr
-				&& abs(ol3b - l3->b) < lighterr && abs(ol4b - l4->b) < lighterr)
-				|| !wtex) {
+		// skip vertices if light values are close enough
+		if ((abs(ol3r - l3->r) < lighterr && abs(ol4r - l4->r) < lighterr && abs(ol3g - l3->g) < lighterr && abs(ol4g - l4->g) < lighterr && abs(ol3b - l3->b) < lighterr && abs(ol4b - l4->b) < lighterr) || !wtex) {
 			curvert -= 2;
 			nquads--;
 		} else {
@@ -132,9 +129,8 @@ void render_flat(int wtex, int x, int y, int size, int h, Block *l1, Block *l2, 
 	nquads++;
 }
 
-void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2,
-		float h3, float h4, Block *l1, Block *l2, Block *l3, Block *l4, bool isceil) // floor/ceil quads on a slope
-		{
+void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, Block *l1, Block *l2, Block *l3, Block *l4, bool isceil) // floor/ceil quads on a slope
+{
 	vertcheck();
 	if (showm) {
 		l3 = l1 = &sbright;
@@ -185,9 +181,8 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2,
 	nquads++;
 }
 
-void render_2tris(Block *h, Block *s, int x1, int y1, int x2, int y2, int x3,
-		int y3, Block *l1, Block *l2, Block *l3)   // floor/ceil tris on a corner cube
-		{
+void render_2tris(Block *h, Block *s, int x1, int y1, int x2, int y2, int x3, int y3, Block *l1, Block *l2, Block *l3)   // floor/ceil tris on a corner cube
+{
 	stripend();
 	vertcheck();
 
@@ -212,8 +207,7 @@ void render_2tris(Block *h, Block *s, int x1, int y1, int x2, int y2, int x3,
 	nquads++;
 }
 
-void render_tris(int x, int y, int size, bool topleft, Block *h1, Block *h2, Block *s,
-		Block *t, Block *u, Block *v) {
+void render_tris(int x, int y, int size, bool topleft, Block *h1, Block *h2, Block *s, Block *t, Block *u, Block *v) {
 	if (topleft) {
 		if (h1)
 			render_2tris(h1, s, x + size, y + size, x, y + size, x, y, u, v, s);
@@ -223,15 +217,12 @@ void render_tris(int x, int y, int size, bool topleft, Block *h1, Block *h2, Blo
 		if (h1)
 			render_2tris(h1, s, x, y, x + size, y, x, y + size, s, t, u);
 		if (h2)
-			render_2tris(h2, s, x + size, y, x + size, y + size, x, y + size, t,
-					u, v);
+			render_2tris(h2, s, x + size, y, x + size, y + size, x, y + size, t, u, v);
 	};
 }
 
-void render_square(int wtex, float floor1, float floor2, float ceil1,
-		float ceil2, int x1, int y1, int x2, int y2, int size, Block *l1, Block *l2,
-		bool flip)   // wall quads
-		{
+void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, Block *l1, Block *l2, bool flip)   // wall quads
+{
 	stripend();
 	vertcheck();
 	if (showm) {
@@ -274,11 +265,9 @@ void var_waterlevel() {
 	}
 }
 
-inline void vertw(int v1, float v2, int v3, Block *c, float t1, float t2,
-		float t) {
+inline void vertw(int v1, float v2, int v3, Block *c, float t1, float t2, float t) {
 	vertcheck();
-	vertf((float )v1, v2 - (float )sin(v1 * v3 * 0.1 + t) * 0.2f, (float )v3, c,
-			t1, t2);
+	vertf((float )v1, v2 - (float )sin(v1 * v3 * 0.1 + t) * 0.2f, (float )v3, c, t1, t2);
 }
 
 inline float dx(float x) {
@@ -339,7 +328,7 @@ int renderwater(float hf) {
 }
 
 void addwaterquad(int x, int y, int size) // update bounding rect that contains water
-		{
+{
 	int x2 = x + size;
 	int y2 = y + size;
 	if (wx1 < 0) {

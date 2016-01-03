@@ -7,7 +7,7 @@ extern char *entnames[];            // lookup from map entities above to IString
 Block *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
 
-header hdr;
+Header hdr;
 
 void settag(int tag, int type) // set all cubes with "tag" to space, if tag is 0 then reset ALL tagged cubes according to type
 {
@@ -125,7 +125,7 @@ void remip(Rect &b, int level) {
 			}
 			if (r->type != SOLID) {
 				int floor = 127, ceil = -128, num = 0;
-				for(int i = 0; i < 4; ++i)
+				for(int i = 0; i < 4; ++i) {
 					if (o[i]->type != SOLID) {
 						num++;
 						int fh = o[i]->floor;
@@ -140,7 +140,8 @@ void remip(Rect &b, int level) {
 							floor = fh; // take lowest floor and highest ceil, so we never have to see missing lower/upper from the side
 						if (ch > ceil)
 							ceil = ch;
-					};
+					}
+				}
 				r->floor = floor;
 				r->ceil = ceil;
 			};
@@ -399,7 +400,7 @@ void empty_world(int factor, bool force) // main empty world creation routine, i
 
 	strncpy(hdr.head, "CUBE", 4);
 	hdr.version = MAPVERSION;
-	hdr.headersize = sizeof(header);
+	hdr.headersize = sizeof(Header);
 	hdr.sfactor = sfactor;
 
 	if (copy) {

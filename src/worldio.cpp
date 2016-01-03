@@ -153,10 +153,10 @@ void save_world(const std::string &mname) {
 			hdr.numents++;
 		}
 	}
-	header tmp = hdr;
+	Header tmp = hdr;
 	endianswap(&tmp.version, sizeof(int), 4);
 	endianswap(&tmp.waterlevel, sizeof(int), 16);
-	gzwrite(f, &tmp, sizeof(header));
+	gzwrite(f, &tmp, sizeof(Header));
 	for(Entity &e : entityList) {
 		if (e.type != NOTUSED) {
 			Entity tmp(e);
@@ -223,7 +223,7 @@ void load_world(const std::string &mname) // still supports all map formats that
 		conoutf("could not read map %s", cgzname);
 		return;
 	};
-	gzread(f, &hdr, sizeof(header) - sizeof(int) * 16);
+	gzread(f, &hdr, sizeof(Header) - sizeof(int) * 16);
 	endianswap(&hdr.version, sizeof(int), 4);
 	if (strncmp(hdr.head, "CUBE", 4) != 0)
 		fatal("while reading map: header malformatted");
@@ -328,20 +328,21 @@ void load_world(const std::string &mname) // still supports all map formats that
 	calclight();
 	settagareas();
 	int xs, ys;
-	loopi(256)
-		if (texuse)
+	for (int i = 0; i < 256; ++i) {
+		if (texuse) {
 			lookuptexture(i, xs, ys);
-	conoutf("read map %s (%d milliseconds)", cgzname,
-			SDL_GetTicks() - lastmillis);
+		}
+	}
+	conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks() - lastmillis);
 	conoutf("%s", hdr.maptitle);
 	startmap(mname);
 	for(int i = 0; i < 256; ++i)
 	{
-		IString aliasname;
+		char aliasname[40];
 		std::sprintf(aliasname, "level_trigger_%d", i); // can this be done smarter?
 		if (identexists(aliasname))
 			alias(aliasname, "");
-	};
+	}
 	execfile("data/default_map_settings.cfg");
 	execfile(pcfname);
 	execfile(mcfname);

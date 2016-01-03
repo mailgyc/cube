@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
 	exec("autoexec.cfg");
 
 	localconnect();
-	changemap(std::string("metl3"));	// if this map is changed, also change depthcorrect()
+	changemap(std::string("aard3"));	// if this map is changed, also change depthcorrect()
 
 	int ignore = 5;
 	for (;;) {

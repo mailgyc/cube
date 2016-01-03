@@ -11,7 +11,7 @@ enum {
 
 struct Ident {
 	int type;           // one of ID_* above
-	char *name;
+	std::string name;
 	int min, max;       // ID_VAR
 	int *storage;       // ID_VAR
 	void (*fun)();      // ID_VAR, ID_COMMAND
@@ -30,9 +30,7 @@ std::string tostr(T value) {
 static std::map<std::string, Ident> *idents = NULL;    // contains ALL vars/commands/aliases
 
 void alias(char *name, char *action) {
-
 	if (idents->find(name) == idents->end()) {
-		name = newIString(name);
 		Ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, action, true };
 		idents->insert(std::make_pair(name, b));
 	} else {
@@ -43,7 +41,6 @@ void alias(char *name, char *action) {
 			conoutf("cannot redefine builtin %s with an alias", name);
 	};
 }
-
 COMMAND(alias, ARG_2STR);
 
 // variable's and commands are registered through globals, see cube.h
@@ -93,8 +90,7 @@ std::string parseexp(char *&p, int right)  // parse any nested set of () or []
 		int c = *p++;
 		if (c == '\r') {
 			*(p - 1) = ' ';               // hack
-		}
-		if (c == left) {
+		} else if (c == left) {
 			brak++;
 		} else if (c == right) {
 			brak--;
@@ -247,7 +243,7 @@ int exec_command(bool isdown, int val, int numargs, Ident* id, const std::string
 	return val;
 }
 
-int execute(char *paction, bool isdown)    // all evaluation happens here, recursively
+int execute(char *source, bool isdown)    // all evaluation happens here, recursively
 {
 	const int MAXWORDS = 25;                    // limit, remove
 	std::string wordbuf[MAXWORDS];
@@ -257,19 +253,20 @@ int execute(char *paction, bool isdown)    // all evaluation happens here, recur
 		int numargs = MAXWORDS;
 		for(int i = 0; i < MAXWORDS; ++i)      // collect all argument values
 		{
-			std::string s = parseword(paction);             // parse and evaluate exps
+			std::string s = parseword(source);             // parse and evaluate exps
 			if (s[0] == 0) {
 				numargs = i;
-				for (int k = i; k < MAXWORDS; k++)
+				for (int k = i; k < MAXWORDS; k++) {
 					wordbuf[k] = "";
+				}
 				break;
 			} else if (s[0] == '$') {
 				s = lookup(s);          // substitute variables
 			}
 			wordbuf[i] = s;
 		}
-		paction += strcspn(paction, ";\n\0");
-		cont = *paction++ != 0; // more statements if this isn't the end of the IString
+		source += strcspn(source, ";\n\0");
+		cont = *source++ != 0; // more statements if this isn't the end of the string
 		std::string c = wordbuf[0];
 		if (c[0] == '/') {
 			c = c.substr(1); // strip irc-style command prefix
@@ -347,9 +344,9 @@ void complete(char *s) {
 	}
 	int idx = 0;
 	for(auto &id : *idents) {
-		if(strncmp(id.second.name, s+1, completesize)==0 && idx++==completeidx) {
+		if(strncmp(id.second.name.c_str(), s+1, completesize)==0 && idx++==completeidx) {
 			strcpy_s(s, "/");
-			strcat_s(s, id.second.name);
+			strcat_s(s, id.second.name.c_str());
 		}
 	}
 	completeidx++;
@@ -379,15 +376,15 @@ void writecfg() {
 	fprintf(f, "\n");
 	for(auto &id : *idents) {
 		if(id.second.type==ID_VAR && id.second.persist) {
-			fprintf(f, "%s %d\n", id.second.name, *(id.second.storage));
+			fprintf(f, "%s %d\n", id.second.name.c_str(), *(id.second.storage));
 		}
 	}
 	fprintf(f, "\n");
 	writebinds(f);
 	fprintf(f, "\n");
 	for(auto &id : *idents) {
-		if(id.second.type==ID_ALIAS && !strstr(id.second.name, "nextmap_")) {
-			fprintf(f, "alias \"%s\" [%s]\n", id.second.name, id.second.action.c_str());
+		if(id.second.type==ID_ALIAS && id.second.name.find("nextmap_") != std::string::npos) {
+			fprintf(f, "alias \"%s\" [%s]\n", id.second.name.c_str(), id.second.action.c_str());
 		}
 	}
 	fclose(f);
@@ -408,7 +405,7 @@ void ifthen(char *cond, char *thenp, char *elsep) {
 }
 
 void loopa(char *times, char *body) {
-	int t = atoi(times);
+	int t = std::atoi(times);
 	for(int i = 0; i < t; ++i)
 	{
 		intset("i", i);
@@ -440,16 +437,12 @@ void concatword(char *s) {
 	concat(s);
 }
 
-int listlen(char *a) {
-	if (!*a) {
+int listlen(char *str) {
+	std::string args(str);
+	if (args.empty()) {
 		return 0;
 	}
-	int n = 0;
-	while (*a) {
-		if (*a++ == ' ')
-			n++;
-	}
-	return n + 1;
+	return 1 + std::count(std::begin(args), std::end(args), ' ');
 }
 
 void at(char *s, char *pos) {

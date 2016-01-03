@@ -71,7 +71,7 @@ struct Entity: public persistent_entity {
 
 #define MAPVERSION 5            // bump if map format changes, see worldio.cpp
 
-struct header                   // map file format header
+struct Header                   // map file format header
 {
 	char head[4];               // "CUBE"
 	int version;                // any >8bit quantity is a little indian
@@ -279,7 +279,7 @@ struct vertex {
 // globals ooh naughty
 
 extern Block *world, *wmip[]; // map data, the mips are sequential 2D arrays in memory
-extern header hdr;                      // current map header
+extern Header hdr;                      // current map header
 extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
 extern Sprite *player1; // special client ent that receives input and acts as camera

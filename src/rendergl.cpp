@@ -111,14 +111,14 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp) {
 const int MAXTEX = 1000;
 int texx[MAXTEX];                        // ( loaded texture ) -> ( name, size )
 int texy[MAXTEX];
-IString texname[MAXTEX];
+std::string texname[MAXTEX];
 int curtex = 0;
 const int FIRSTTEX = 1000;                  // opengl id = loaded id + FIRSTTEX
 // std 1+, sky 14+, mdls 20+
 
 const int MAXFRAMES = 2;           // increase to allow more complex shader defs
 int mapping[256][MAXFRAMES];   // ( cube texture, frame ) -> ( opengl id, name )
-IString mapname[256][MAXFRAMES];
+std::string mapname[256][MAXFRAMES];
 
 void purgetextures() {
 	for(int i = 0; i < 256; ++i) {
@@ -139,8 +139,7 @@ void texture(char *aframe, char *name) {
 	if (num < 0 || num >= 256 || frame < 0 || frame >= MAXFRAMES)
 		return;
 	mapping[num][frame] = 1;
-	char *n = mapname[num][frame];
-	strcpy_s(n, name);
+	mapname[num][frame] = name;
 }
 
 COMMAND(texturereset, ARG_NONE);
@@ -162,7 +161,7 @@ int lookuptexture(int tex, int &xs, int &ys) {
 
 	for(int i = 0; i < curtex; ++i) // lazily happens once per "texture" command, basically
 	{
-		if (strcmp(mapname[tex][frame], texname[i]) == 0) {
+		if (mapname[tex][frame] == texname[i]) {
 			mapping[tex][frame] = tid = i + FIRSTTEX;
 			xs = texx[i];
 			ys = texy[i];
@@ -174,7 +173,7 @@ int lookuptexture(int tex, int &xs, int &ys) {
 		fatal("loaded too many textures");
 
 	int tnum = curtex + FIRSTTEX;
-	strcpy_s(texname[curtex], mapname[tex][frame]);
+	texname[curtex] = mapname[tex][frame];
 
 	std::string name = std::string("packages/") + texname[curtex];
 	if (installtex(tnum, name.c_str(), xs, ys)) {
@@ -333,7 +332,6 @@ void gl_drawframe(int w, int h, float curfps) {
 	int farplane = fog * 5 / 2;
 	gluPerspective(fovy, aspect, 0.15f, farplane);
 	glMatrixMode(GL_MODELVIEW);
-
 	transplayer();
 
 	glEnable(GL_TEXTURE_2D);

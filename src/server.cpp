@@ -7,7 +7,7 @@ enum {
 	ST_EMPTY, ST_LOCAL, ST_TCPIP
 };
 
-struct client                   // server side version of "Sprite" type
+struct Client                   // server side version of "Sprite" type
 {
 	int type;
 	ENetPeer *peer;
@@ -17,7 +17,7 @@ struct client                   // server side version of "Sprite" type
 	int modevote;
 };
 
-std::vector<client> clients;
+std::vector<Client> clients;
 
 int maxclients = 8;
 IString smapname;
@@ -60,11 +60,10 @@ void send(int n, ENetPacket *packet) {
 	if (!packet)
 		return;
 	switch (clients[n].type) {
-	case ST_TCPIP: {
+	case ST_TCPIP:
 		enet_peer_send(clients[n].peer, 0, packet);
 		bsend += packet->dataLength;
 		break;
-	}
 	case ST_LOCAL:
 		localservertoclient(packet->data, packet->dataLength);
 		break;
@@ -256,7 +255,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 				disconnect_client(sender, "tag type");
 				return;
 			};
-			loopi(size-1)
+			for (int i = 0; i < size-1; ++i)
 				getint(p);
 		}
 	};
@@ -269,8 +268,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 }
 
 void send_welcome(int n) {
-	ENetPacket * packet = enet_packet_create(NULL, MAXTRANS,
-			ENET_PACKET_FLAG_RELIABLE);
+	ENetPacket * packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
 	uchar *start = packet->data;
 	uchar *p = start + 2;
 	putint(p, SV_INITS2C);
@@ -284,9 +282,10 @@ void send_welcome(int n) {
 		sendIString(smapname, p);
 		putint(p, mode);
 		putint(p, SV_ITEMLIST);
-		loopv(sents)
+		for (int i = 0; i < sents.size(); i++) {
 			if (sents[i].spawned)
 				putint(p, i);
+		}
 		putint(p, -1);
 	};
 	*(ushort *) start = ENET_HOST_TO_NET_16(p - start);
@@ -308,11 +307,11 @@ void localclienttoserver(ENetPacket *packet) {
 		enet_packet_destroy(packet);
 }
 
-client &addclient() {
+Client &addclient() {
 	loopv(clients)
 		if (clients[i].type == ST_EMPTY)
 			return clients[i];
-	clients.emplace_back(client());
+	clients.emplace_back(Client());
 	return clients.back();
 }
 
@@ -330,7 +329,7 @@ void startintermission() {
 }
 
 void resetserverifempty() {
-	for(client c : clients) {
+	for(Client c : clients) {
 		if (c.type != ST_EMPTY)
 			return;
 	}
@@ -381,22 +380,22 @@ void serverslice(int seconds, unsigned int timeout) // main server update, calle
 		return;     // below is network only
 
 	int numplayers = 0;
-	loopv(clients)
-		if (clients[i].type != ST_EMPTY)
+	for (Client c : clients) {
+		if (c.type != ST_EMPTY)
 			++numplayers;
-	serverms(mode, numplayers, minremain, smapname, seconds,
-			clients.size() >= maxclients);
+	}
+	serverms(mode, numplayers, minremain, smapname, seconds, clients.size() >= maxclients);
 
 	if (seconds - laststatus > 60) // display bandwidth stats, useful for server ops
-			{
+	{
 		nonlocalclients = 0;
-		loopv(clients)
-			if (clients[i].type == ST_TCPIP)
+		for (Client c : clients) {
+			if (c.type == ST_TCPIP)
 				nonlocalclients++;
+		}
 		laststatus = seconds;
 		if (nonlocalclients || bsend || brec)
-			printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n",
-					nonlocalclients, bsend / 60.0f / 1024, brec / 60.0f / 1024);
+			printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend / 60.0f / 1024, brec / 60.0f / 1024);
 		bsend = brec = 0;
 	};
 
@@ -404,7 +403,7 @@ void serverslice(int seconds, unsigned int timeout) // main server update, calle
 	if (enet_host_service(serverhost, &event, timeout) > 0) {
 		switch (event.type) {
 		case ENET_EVENT_TYPE_CONNECT: {
-			client &c = addclient();
+			Client &c = addclient();
 			c.type = ST_TCPIP;
 			c.peer = event.peer;
 			c.peer->data = (void *) (&c - &clients[0]);
@@ -455,7 +454,7 @@ void localdisconnect() {
 }
 
 void localconnect() {
-	client &c = addclient();
+	Client &c = addclient();
 	c.type = ST_LOCAL;
 	strcpy_s(c.hostname, "local");
 	send_welcome(&c - &clients[0]);

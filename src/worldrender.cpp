@@ -278,17 +278,15 @@ void distlod(int &low, int &high, int angle, float widef) {
 }
 
 // does some out of date view frustrum optimisation that doesn't contribute much anymore
-
-void render_world(float vx, float vy, float vh, int yaw, int pitch, float fov,
-		int w, int h) {
-	loopi(LARGEST_FACTOR)
+void render_world(float vx, float vy, float vh, int yaw, int pitch, float fov, int w, int h) {
+	for (int i = 0; i < LARGEST_FACTOR; ++i)
 		stats[i] = 0;
 	min_lod = MIN_LOD + abs(pitch) / 12;
 	yaw = 360 - yaw;
 	float widef = fov / 75.0f;
 	int cdist = abs(yaw % 90 - 45);
 	if (cdist < 7)    // hack to avoid popup at high fovs at 45 yaw
-			{
+	{
 		min_lod = max(min_lod, (int )(MIN_LOD + (10 - cdist) / 1.0f * widef)); // less if lod worked better
 		widef = 1.0f;
 	};
@@ -311,8 +309,7 @@ void render_world(float vx, float vy, float vh, int yaw, int pitch, float fov,
 	render_floor = pitch < hyfov;
 	render_ceil = -pitch < hyfov;
 
-	render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize >> MAX_MIP,
-			ssize >> MAX_MIP);
+	render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize >> MAX_MIP, ssize >> MAX_MIP);
 	mipstats(stats[0], stats[1], stats[2]);
 }
 

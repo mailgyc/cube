@@ -261,8 +261,9 @@ void demo(char *name) {
 void stopreset() {
 	conoutf("demo stopped (%d msec elapsed)", lastmillis - starttime);
 	stop();
-	loopv(players)
-		zapSprite(players[i]);
+	for(auto p : players) {
+		zapSprite(p);
+	}
 	disconnect(0, 0);
 }
 

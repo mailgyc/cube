@@ -206,11 +206,11 @@ int skyoglid;
 struct Strip {
 	int tex, start, num;
 };
-std::vector<Strip> strips;
+std::vector<Strip> stripList;
 
 void renderstripssky() {
 	glBindTexture(GL_TEXTURE_2D, skyoglid);
-	for(Strip &st : strips) {
+	for(Strip &st : stripList) {
 		if (st.tex == skyoglid) {
 			glDrawArrays(GL_TRIANGLE_STRIP, st.start, st.num);
 		}
@@ -219,7 +219,7 @@ void renderstripssky() {
 
 void renderstrips() {
 	int lasttex = -1;
-	for(Strip &st : strips) {
+	for(Strip &st : stripList) {
 		if (st.tex != skyoglid) {
 			if (st.tex != lasttex) {
 				glBindTexture(GL_TEXTURE_2D, st.tex);
@@ -240,7 +240,7 @@ void addstrip(int tex, int start, int n) {
 	s.tex = tex;
 	s.start = start;
 	s.num = n;
-	strips.emplace_back(s);
+	stripList.emplace_back(s);
 }
 
 void var_gamma();
@@ -342,7 +342,7 @@ void gl_drawframe(int w, int h, float curfps) {
 	resetcubes();
 
 	curvert = 0;
-	strips.resize(0);
+	stripList.resize(0);
 
 	render_world(player1->o.x, player1->o.y, player1->o.z, (int) player1->yaw, (int) player1->pitch, (float) fov, w, h);
 	finishstrips();

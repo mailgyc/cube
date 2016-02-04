@@ -58,7 +58,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 	uchar *p = buf + 2;
 	char text[MAXTRANS];
 	int cn = -1, type;
-	Sprite *d = NULL;
+	Sprite *spr = NULL;
 	bool mapchanged = false;
 
 	while (p < end)
@@ -92,37 +92,37 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_POS:                        // position of another client
 		{
 			cn = getint(p);
-			d = getclient(cn);
-			if (!d)
+			spr = getclient(cn);
+			if (!spr)
 				return;
-			d->o.x = getint(p) / DMF;
-			d->o.y = getint(p) / DMF;
-			d->o.z = getint(p) / DMF;
-			d->yaw = getint(p) / DAF;
-			d->pitch = getint(p) / DAF;
-			d->roll = getint(p) / DAF;
-			d->vel.x = getint(p) / DVF;
-			d->vel.y = getint(p) / DVF;
-			d->vel.z = getint(p) / DVF;
+			spr->o.x = getint(p) / DMF;
+			spr->o.y = getint(p) / DMF;
+			spr->o.z = getint(p) / DMF;
+			spr->yaw = getint(p) / DAF;
+			spr->pitch = getint(p) / DAF;
+			spr->roll = getint(p) / DAF;
+			spr->vel.x = getint(p) / DVF;
+			spr->vel.y = getint(p) / DVF;
+			spr->vel.z = getint(p) / DVF;
 			int f = getint(p);
-			d->strafe = (f & 3) == 3 ? -1 : f & 3;
+			spr->strafe = (f & 3) == 3 ? -1 : f & 3;
 			f >>= 2;
-			d->move = (f & 3) == 3 ? -1 : f & 3;
-			d->onfloor = (f >> 2) & 1;
+			spr->move = (f & 3) == 3 ? -1 : f & 3;
+			spr->onfloor = (f >> 2) & 1;
 			int state = f >> 3;
-			if (state == CS_DEAD && d->state != CS_DEAD)
-				d->lastaction = lastmillis;
-			d->state = state;
+			if (state == CS_DEAD && spr->state != CS_DEAD)
+				spr->lastaction = lastmillis;
+			spr->state = state;
 			if (!demoplayback)
-				updatepos(d);
+				updatepos(spr);
 			break;
 		}
 		case SV_SOUND:
-			playsound(getint(p), &d->o);
+			playsound(getint(p), &spr->o);
 			break;
 		case SV_TEXT:
 			sgetstr();
-			conoutf("%s:\f %s", d->name, text);
+			conoutf("%s:\f %s", spr->name, text);
 			break;
 		case SV_MAPCHANGE:
 			sgetstr();
@@ -155,26 +155,26 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		{
 			sgetstr();
 
-			if (d->name[0]) {         // already connected
-				if (strcmp(d->name, text))
-					conoutf("%s is now known as %s", d->name, text);
+			if (spr->name[0]) {         // already connected
+				if (strcmp(spr->name, text))
+					conoutf("%s is now known as %s", spr->name, text);
 			} else {                   // new client
 				c2sinit = false;    // send new players my info again 
 				conoutf("connected: %s", text);
 			};
-			strcpy_s(d->name, text);
+			strcpy_s(spr->name, text);
 			sgetstr();
 
-			strcpy_s(d->team, text);
-			d->lifesequence = getint(p);
+			strcpy_s(spr->team, text);
+			spr->lifesequence = getint(p);
 			break;
 		}
 
 		case SV_CDIS:
 			cn = getint(p);
-			if (!(d = getclient(cn)))
+			if (!(spr = getclient(cn)))
 				break;
-			conoutf("player %s disconnected", d->name[0] ? d->name : "[incompatible client]");
+			conoutf("player %s disconnected", spr->name[0] ? spr->name : "[incompatible client]");
 			zapSprite(players[cn]);
 			break;
 
@@ -189,7 +189,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			e.z = getint(p) / DMF;
 			if (gun == GUN_SG)
 				createrays(s, e);
-			shootv(gun, s, e, d);
+			shootv(gun, s, e, spr);
 			break;
 		}
 
@@ -199,7 +199,7 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 			int ls = getint(p);
 			if (target == clientnum) {
 				if (ls == player1->lifesequence)
-					selfdamage(damage, cn, d);
+					selfdamage(damage, cn, spr);
 			} else
 				playsound(S_PAIN1 + rnd(5), &getclient(target)->o);
 			break;
@@ -208,29 +208,29 @@ void localservertoclient(uchar *buf, int len) // processes any updates from the 
 		case SV_DIED: {
 			int actor = getint(p);
 			if (actor == cn) {
-				conoutf("%s suicided", d->name);
+				conoutf("%s suicided", spr->name);
 			} else if (actor == clientnum) {
 				int frags;
-				if (isteam(player1->team, d->team)) {
+				if (isteam(player1->team, spr->team)) {
 					frags = -1;
-					conoutf("you fragged a teammate (%s)", d->name);
+					conoutf("you fragged a teammate (%s)", spr->name);
 				} else {
 					frags = 1;
-					conoutf("you fragged %s", d->name);
+					conoutf("you fragged %s", spr->name);
 				};
 				addmsg(1, 2, SV_FRAGS, player1->frags += frags);
 			} else {
 				Sprite *a = getclient(actor);
 				if (a) {
-					if (isteam(a->team, d->name)) {
-						conoutf("%s fragged his teammate (%s)", a->name, d->name);
+					if (isteam(a->team, spr->name)) {
+						conoutf("%s fragged his teammate (%s)", a->name, spr->name);
 					} else {
-						conoutf("%s fragged %s", a->name, d->name);
+						conoutf("%s fragged %s", a->name, spr->name);
 					};
 				};
 			};
-			playsound(S_DIE1 + rnd(2), &d->o);
-			d->lifesequence++;
+			playsound(S_DIE1 + rnd(2), &spr->o);
+			spr->lifesequence++;
 			break;
 		}
 		case SV_FRAGS:

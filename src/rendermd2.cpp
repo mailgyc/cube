@@ -128,8 +128,7 @@ void md2::scale(int frame, float scale, int sn) {
 	};
 }
 
-void md2::render(Vec3 &light, int frame, int range, float x, float y, float z,
-		float yaw, float pitch, float sc, float speed, int snap, int basetime) {
+void md2::render(Vec3 &light, int frame, int range, float x, float y, float z, float yaw, float pitch, float sc, float speed, int snap, int basetime) {
 	for(int i = 0; i < range; ++i) {
 		if (!mverts[frame + i])
 			scale(frame + i, sc, snap);

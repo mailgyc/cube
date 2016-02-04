@@ -271,9 +271,9 @@ enum {
 
 // vertex array format
 
-struct vertex {
+struct Vertex {
 	float u, v, x, y, z;
-	uchar r, g, b, a;
+	unsigned char r, g, b, a;
 };
 
 // globals ooh naughty
@@ -357,8 +357,6 @@ enum    // function signatures for script functions, see command.cpp
 
 //#include <SDL2/SDL_opengles.h>
 #include <SDL2/SDL_opengl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>

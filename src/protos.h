@@ -52,7 +52,7 @@ extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, Block *l1, Block *l2, bool topleft);
 extern void render_tris(int x, int y, int size, bool topleft, Block *h1, Block *h2, Block *s, Block *t, Block *u, Block *v);
 extern void addwaterquad(int x, int y, int size);
-extern int renderwater(float hf);
+extern int  renderwater(float hf);
 extern void finishstrips();
 extern void setarraypointers();
 

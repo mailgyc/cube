@@ -20,7 +20,7 @@ void cleanup(const std::string &msg)         // single program exit point;
 void quit()                     // normal exit
 {
 	writeservercfg();
-	cleanup(NULL);
+	cleanup("");
 }
 
 void fatal(char *s, char *o)    // failure exit

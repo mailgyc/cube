@@ -1,22 +1,22 @@
-// rendercubes.cpp: sits in between worldrender.cpp and rendergl.cpp and fills the vertex array for different cube surfaces.
+// rendercubes.cpp: sits in between worldrender.cpp and rendergl.cpp and fills the Vertex array for different cube surfaces.
 
 #include "cube.h"
 
-vertex *verts = NULL;
+Vertex *verts = NULL;
 int curvert;
 int curmaxverts = 10000;
 
 void setarraypointers() {
-	glVertexPointer(3, GL_FLOAT, sizeof(vertex), &verts[0].x);
-	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex), &verts[0].r);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &verts[0].u);
+	glVertexPointer(3, GL_FLOAT, sizeof(Vertex), &verts[0].x);
+	glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &verts[0].r);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &verts[0].u);
 }
 
 void reallocv() {
-	verts = (vertex *) realloc(verts, (curmaxverts *= 2) * sizeof(vertex));
+	verts = (Vertex *) realloc(verts, (curmaxverts *= 2) * sizeof(Vertex));
 	curmaxverts -= 10;
 	if (!verts)
-		fatal("no vertex memory!");
+		fatal("no Vertex memory!");
 	setarraypointers();
 }
 
@@ -26,7 +26,7 @@ void reallocv() {
 
 #define vertcheck() { if(curvert>=curmaxverts) reallocv(); }
 
-#define vertf(v1, v2, v3, ls, t1, t2) { vertex &v = verts[curvert++]; \
+#define vertf(v1, v2, v3, ls, t1, t2) { Vertex &v = verts[curvert++]; \
     v.u = t1; v.v = t2; \
     v.x = v1; v.y = v2; v.z = v3; \
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; };
@@ -312,8 +312,7 @@ int renderwater(float hf) {
 				vertw(xx + watersubdiv, hf, yy, &dl, dx(xo + xs), dy(yo), t1);
 			};
 			vertw(xx, hf, yy + watersubdiv, &dl, dx(xo), dy(yo + ys), t1);
-			vertw(xx + watersubdiv, hf, yy + watersubdiv, &dl, dx(xo + xs),
-					dy(yo + ys), t1);
+			vertw(xx + watersubdiv, hf, yy + watersubdiv, &dl, dx(xo + xs), dy(yo + ys), t1);
 		};
 		int n = (wy2 - wy1 - 1) / watersubdiv;
 		nquads += n;

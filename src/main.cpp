@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
 	SDL_GL_CreateContext(window);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
+//	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	gl_init(scr_w, scr_h);
 

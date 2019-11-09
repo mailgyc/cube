@@ -214,6 +214,7 @@ void keypress(int code, bool isdown) {
 					pasteconsole();
 					return;
 				}
+				break;
 			default:
 				resetcomplete();
 				//if(cooked) { char add[] = { cooked, 0 }; strcat_s(commandbuf, add); };
@@ -239,7 +240,7 @@ void keypress(int code, bool isdown) {
 		for (int i = 0; i < numkm; ++i) {
 			if (keyms[i].code == code) // keystrokes go to game, lookup in keymap and execute
 			{
-				execute(keyms[i].action.c_str(), isdown);
+				execute(keyms[i].action.c_str(), isdown); // @suppress("Invalid arguments")
 				return;
 			}
 		}

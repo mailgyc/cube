@@ -66,7 +66,7 @@ void cleangl() {
 		gluDeleteQuadric(qsphere);
 }
 
-bool installtex(int tnum, const char *texname, int &xs, int &ys, bool clamp) {
+bool installtex(int tnum, const char *texname, int &xs, int &ys, bool clamp = false) {
 	SDL_Surface *s = IMG_Load(texname);
 	if (!s) {
 		conoutf("couldn't load texture %s", texname);
@@ -176,7 +176,7 @@ int lookuptexture(int tex, int &xs, int &ys) {
 	texname[curtex] = mapname[tex][frame];
 
 	std::string name = std::string("packages/") + texname[curtex];
-	if (installtex(tnum, name.c_str(), xs, ys, true)) {
+	if (installtex(tnum, name.c_str(), xs, ys)) {
 		mapping[tex][frame] = tnum;
 		texx[curtex] = xs;
 		texy[curtex] = ys;

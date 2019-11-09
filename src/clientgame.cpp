@@ -304,18 +304,34 @@ void spawnplayer(Sprite *d)   // place at random spawn. also used by monsters!
 
 #define dir(name,v,d,s,os) void name(bool isdown) { player1->s = isdown; player1->v = isdown ? d : (player1->os ? -(d) : 0); player1->lastmove = lastmillis; };
 
-dir(backward, move, -1, k_down, k_up);
-dir(forward, move, 1, k_up, k_down);
+//dir(backward, move, -1, k_down, k_up);
+//dir(forward, move, 1, k_up, k_down);
 dir(left, strafe, 1, k_left, k_right);
 dir(right, strafe, -1, k_right, k_left);
+
+void backward(bool isdown) {
+	player1->k_down = isdown;
+	player1->move = isdown ? -1 : (player1->k_up ? 1 : 0);
+	player1->lastmove = lastmillis;
+}
+
+void forward(bool isdown) {
+	player1->k_up = isdown;
+	player1->move = isdown ? 1 : (player1->k_down ? -1 : 0);
+	player1->lastmove = lastmillis;
+}
 
 void attack(bool on) {
 	if (intermission)
 		return;
-	if (editmode)
+	if (editmode) {
 		editdrag(on);
-	else if (player1->attacking = on)
-		respawn();
+	} else {
+		player1->attacking = on;
+		if (player1->attacking) {
+			respawn();
+		}
+	}
 }
 
 void jumpn(bool on) {

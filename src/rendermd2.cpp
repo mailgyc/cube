@@ -209,7 +209,7 @@ void delayedload(md2 *m) {
 
 		std::sprintf(name, "packages/models/%s/skin.jpg", m->loadname);
 		int xs, ys;
-		installtex(FIRSTMDL + m->mdlnum, name, xs, ys, true);
+		installtex(FIRSTMDL + m->mdlnum, name, xs, ys);
 		m->loaded = true;
 	};
 }

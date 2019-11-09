@@ -172,7 +172,7 @@ bool collide(Sprite *d, bool spawn, float drop, float rise) {
 			else
 				return false;
 		} else {
-			d->o.z -= min(min(drop, space), headspace);       // gravity
+			d->o.z -= std::min(std::min(drop, space), headspace);       // gravity
 		};
 
 		const float space2 = hi - (d->o.z + d->aboveeye);

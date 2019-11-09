@@ -35,8 +35,6 @@ typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
 #define rnd(max) (rand()%(max))
 #define rndreset() (srand(1))
 #define loop(v,m) for(int v = 0; v<(m); v++)

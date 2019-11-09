@@ -96,9 +96,9 @@ struct Header                   // map file format header
 
 struct Vec3 {
 	float x, y, z;
-	Vec3(){
+	Vec3():x(0),y(0),z(0){
 	}
-	Vec3(short _x, short _y, short _z) {
+	Vec3(float _x, float _y, float _z) {
 		x = _x;
 		y = _y;
 		z = _z;
@@ -360,6 +360,7 @@ enum    // function signatures for script functions, see command.cpp
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <GL/glu.h>
 
 #include <enet/enet.h>
 

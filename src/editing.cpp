@@ -89,9 +89,9 @@ void selectpos(int x, int y, int xs, int ys) {
 }
 
 void makesel() {
-	Rect s = { min(lastx, cx), min(lasty, cy), abs(lastx - cx) + 1, abs( lasty - cy) + 1 };
+	Rect s = { std::min(lastx, cx), std::min(lasty, cy), abs(lastx - cx) + 1, abs( lasty - cy) + 1 };
 	sel = s;
-	selh = max(lasth, ch);
+	selh = std::max(lasth, ch);
 	correctsel();
 	if (selset)
 		rtex = *S(sel.x, sel.y);
@@ -340,7 +340,7 @@ void edittex(int type, int dir) {
 	int atype = type == 3 ? 1 : type;
 	int i = curedittex[atype];
 	i = i < 0 ? 0 : i + dir;
-	curedittex[atype] = i = min(max(i, 0), 255);
+	curedittex[atype] = i = std::min(std::max(i, 0), 255);
 	int t = lasttex = hdr.texlists[atype][i];
 	edittexxy(type, t, sel);
 	addmsg(1, 7, SV_EDITT, sel.x, sel.y, sel.xs, sel.ys, type, t);
@@ -440,7 +440,7 @@ void equalize(int flr) {
 COMMAND(equalize, ARG_1INT);
 
 void setvdeltaxy(int delta, Rect &sel) {
-	loopselxy(s->vdelta = max(s->vdelta+delta, 0));
+	loopselxy(s->vdelta = std::max(s->vdelta+delta, 0));
 	remipmore(sel);
 }
 

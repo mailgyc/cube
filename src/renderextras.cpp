@@ -146,7 +146,7 @@ void renderents()       // show sparkly thingies for map entities in edit mode
 	for(Entity &e : entityList) {
 		if (e.type == NOTUSED)
 			continue;
-		Vec3 v = { e.x, e.y, e.z };
+		Vec3 v = { (float)e.x, (float)e.y, (float)e.z };
 		particle_splash(2, 2, 40, v);
 	}
 	int e = closestent();
@@ -202,8 +202,7 @@ float depthcorrect(float d) {
 // could be replaced by a more acurate version of monster.cpp los() if needed
 
 void readdepth(int w, int h) {
-	glReadPixels(w / 2, h / 2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,
-			&cursordepth);
+	glReadPixels(w / 2, h / 2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
 	double worldx = 0, worldy = 0, worldz = 0;
 	gluUnProject(w / 2, h / 2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldz, &worldy);
 	worldpos.x = (float) worldx;

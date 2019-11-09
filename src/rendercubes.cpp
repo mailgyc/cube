@@ -235,7 +235,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
 	float xf = TEXTURESCALE / sx;
 	float yf = TEXTURESCALE / sy;
 	float xs = size * xf;
-	float xo = xf * (x1 == x2 ? min(y1, y2) : min(x1, x2));
+	float xo = xf * (x1 == x2 ? std::min(y1, y2) : std::min(x1, x2));
 
 	if (!flip) {
 		vertf((float )x2, ceil2, (float )y2, l2, xo + xs, -yf * ceil2);
